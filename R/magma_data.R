@@ -16,6 +16,7 @@
 #' @examples
 #' wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+
 magmatize_data <-
   function(wd, age_classes = "all", loci_names = NULL, save_data = TRUE) {
 
@@ -289,7 +290,7 @@ magmatize_data <-
         dimnames = list(rownames(metadat0), states_of_traits[seq(sum(nalleles))])
       ) # x rows are in the same order as metadat
     x[x0$indiv, seq(sum(nalleles))] <-
-      as.matrix(x0[, match(colnames(x)[seq(sum(nalleles))], colnames(x0)[-1])])
+      as.matrix(x0[, match(colnames(x)[seq(sum(nalleles))], colnames(x0))])
     # x[!is.na(age), seq(sum(nalleles) + 1, sum(nstates))] <-
     #   t(sapply(seq(sum(!is.na(age))),
     #            function(mm) {
