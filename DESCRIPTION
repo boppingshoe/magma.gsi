@@ -1,12 +1,25 @@
 Package: magma.gsi
-Title: What the Package Does (One Line, Title Case)
+Title: Mark and Age-enhanced Genetic Mixture Analysis
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Bobby", "Hsu", , "bobby.hsu@alaska.gov", role = c("aut", "cre"))
+Description: Conduct genetic stock identification that includes hatchery marking and age information,
+    using fully Bayesian or conditional model.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.0
+Imports: 
+    coda,
+    doParallel,
+    doRNG,
+    dplyr,
+    foreach,
+    ggplot2,
+    magrittr,
+    parallel,
+    stats,
+    stringr,
+    tibble,
+    tidyr
