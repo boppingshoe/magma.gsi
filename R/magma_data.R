@@ -1,4 +1,54 @@
 
+#' Error check
+#'
+#' Check loci in input data.
+#'
+#' @param loci_pr User provided loci info.
+#' @param loci_mix Loci info from mixture.
+#' @param loci_base Loci info from baseline.
+#'
+#' @noRd
+check_loci <- function(loci_pr, loci_mix, loci_base) {
+
+  if (!is.null(loci_pr)) { # check loci if provided
+
+    if (!setequal(loci_mix, loci_pr)) {
+      if (length(setdiff(loci_pr, loci_mix) > 0)) {
+        return(c("These provided loci names are not in mixture: ",
+                 paste0(setdiff(loci_pr, loci_mix), ", ")))
+      } else {
+        return(c("Unidentified loci in mixture (not used): ",
+                 paste0(setdiff(loci_mix, loci_pr), ", ")))
+      }
+    }
+
+    if (!setequal(loci_base, loci_pr)) {
+      if (length(setdiff(loci_pr, loci_base) > 0)) {
+        return(c("These provided loci names are not in baseline: ",
+                 paste0(setdiff(loci_pr, loci_base), ", ")))
+      } else {
+        return(c("Unidentified loci in baseline (not used): ",
+                 paste0(setdiff(loci_base, loci_pr), ", ")))
+      }
+    }
+
+  } else if (!setequal(loci_base, loci_mix)) {
+
+    if (length(setdiff(loci_base, loci_mix)) > 0) {
+      return(c("These loci are only in baseline: ",
+               paste0(setdiff(loci_base, loci_mix), ", ")))
+    } else {
+      return(c("These loci are only in mixture: ",
+               paste0(setdiff(loci_mix, loci_base), ", ")))
+    }
+
+  }
+
+  return("good")
+
+}
+
+
 #' Preparing MAGMA input data
 #'
 #' @param wd Directory where you have the *data* folder.
@@ -29,7 +79,7 @@ magmatize_data <-
 
     #### Allele frequency function #### ----
 
-    allefreq <- function(gble_in, loci, alleles, collect_by = indiv) {
+    allefreq <- function(gble_in, loci, alleles, collect_by = SillySource) {
 
       n_alleles = alleles %>%
         dplyr::group_by(locus) %>%
@@ -166,7 +216,8 @@ magmatize_data <-
 
     groups <- groups[all_pops, , drop = FALSE]
     # make sure groups and baseline are in the same row order
-    # force groups as an array, otherwise groups is converted to a vector under single district scenarios, crashing downstream analyses.
+    # force groups as an array, otherwise groups is converted to a vector
+    # under single district scenarios, crashing downstream analyses.
 
     base_data <-
       sapply(wildpops, function(pop) {
@@ -174,12 +225,46 @@ magmatize_data <-
       }, simplify = FALSE) %>%
       dplyr::bind_rows()
 
+    # loci check
+
+    mix_sillys <-
+      unique(sapply(stringr::str_split(rownames(metadat0), "_"), "[", 1))
+
+    mixture_data <-
+      sapply(mix_sillys, function(silly) {
+        get(paste0(silly, ".gcl"), pos = 1)
+      }, simplify = FALSE) %>%
+      dplyr::bind_rows() # all gcl objects into a list, for parallel process
+
+    loci_base <-
+      dplyr::tibble(locus = names(base_data)) %>%
+      dplyr::filter(grepl("\\.1$", locus)) %>%
+      dplyr::mutate(locus = substr(locus, 1, nchar(locus) - 2)) %>%
+      dplyr::pull(locus)
+
+    loci_mix <-
+      dplyr::tibble(locus = names(mixture_data)) %>%
+      dplyr::filter(grepl("\\.1$", locus)) %>%
+      dplyr::mutate(locus = substr(locus, 1, nchar(locus) - 2)) %>%
+      dplyr::pull(locus)
+
+    error_message <- check_loci(loci_names, loci_mix, loci_base)
+
+    if (grepl("Unidentified", error_message[1])) {
+      warning(error_message)
+    } else if (!"good" %in% error_message) {
+      detach(paste0("file:", wd, "/data/mixture.RData"), character.only = TRUE)
+      detach(paste0("file:", wd, "/data/baseline.RData"), character.only = TRUE)
+      stop(error_message)
+    }
+
     if (is.null(loci_names)) {
-      loci <-
-        dplyr::tibble(locus = names(base_data)) %>%
-        dplyr::filter(grepl("\\.1$", locus)) %>%
-        dplyr::mutate(locus = substr(locus, 1, nchar(locus) - 2)) %>%
-        dplyr::pull(locus)
+      # loci <-
+      #   dplyr::tibble(locus = names(base_data)) %>%
+      #   dplyr::filter(grepl("\\.1$", locus)) %>%
+      #   dplyr::mutate(locus = substr(locus, 1, nchar(locus) - 2)) %>%
+      #   dplyr::pull(locus)
+      loci <- loci_mix
     } else {
       loci <- loci_names
     }
@@ -231,35 +316,15 @@ magmatize_data <-
 
     #### Mixture #### ----
 
-    mix_sillys <-
-      unique(sapply(stringr::str_split(rownames(metadat0), "_"), "[", 1))
-
-    mixture_data <-
-      sapply(mix_sillys, function(silly) {
-        get(paste0(silly, ".gcl"), pos = 1)
-      }, simplify = FALSE) %>%
-      dplyr::bind_rows() # all gcl objects into a list, for parallel process
-
-    if ("SillySource" %in% names(mixture_data)) {
-      mixture_data <-
-        dplyr::rename(mixture_data, indiv = SillySource, collection = SILLY_CODE)
-      }
-
-    # alleles <- lapply(loci, function(loc) {
-    #   dplyr::tibble(locus = loc,
-    #                 call = mixture_data %>%
-    #                   dplyr::select(dplyr::all_of(loc), paste0(loc, ".1")) %>%
-    #                   unlist() %>% unique() %>% .[!is.na(.)],
-    #                 altyp = seq.int(dplyr::n_distinct(call)) %>% factor())
-    # }) %>% dplyr::bind_rows()
+    # mix_sillys <-
+    #   unique(sapply(stringr::str_split(rownames(metadat0), "_"), "[", 1))
     #
-    # nalleles <- alleles %>%
-    #   dplyr::group_by(locus) %>%
-    #   dplyr::summarise(n_allele = max(as.numeric(altyp)), .groups = "drop") %>%
-    # tibble::deframe()
+    # mixture_data <-
+    #   sapply(mix_sillys, function(silly) {
+    #     get(paste0(silly, ".gcl"), pos = 1)
+    #   }, simplify = FALSE) %>%
+    #   dplyr::bind_rows() # all gcl objects into a list, for parallel process
     #
-    # LocusControl <- get("LocusControl", pos = 1)
-
     if (length(mix_sillys) > 1) {
 
       ncores <- min(length(mix_sillys), 4)
@@ -267,7 +332,7 @@ magmatize_data <-
       doParallel::registerDoParallel(cl, cores = ncores)
 
       x0 <- foreach::foreach(mix = mix_sillys, .packages = c("magrittr", "dplyr")) %dopar% {
-        do_gcl <- dplyr::filter(mixture_data, collection == mix)
+        do_gcl <- dplyr::filter(mixture_data, SILLY_CODE == mix)
         allefreq(do_gcl, loci, alleles_tib)
 
       } %>% dplyr::bind_rows()
@@ -284,30 +349,30 @@ magmatize_data <-
       matrix(
         0L,
         nrow = nrow(metadat0),
-        # ncol = sum(nstates),
-        # dimnames = list(rownames(metadat0), states_of_traits)
-        ncol = sum(nalleles),
-        dimnames = list(rownames(metadat0), states_of_traits[seq(sum(nalleles))])
+        ncol = sum(nstates),
+        dimnames = list(rownames(metadat0), states_of_traits)
+        # ncol = sum(nalleles),
+        # dimnames = list(rownames(metadat0), states_of_traits[seq(sum(nalleles))])
       ) # x rows are in the same order as metadat
-    x[x0$indiv, seq(sum(nalleles))] <-
+    x[x0$SillySource, seq(sum(nalleles))] <-
       as.matrix(x0[, match(colnames(x)[seq(sum(nalleles))], colnames(x0))])
-    # x[!is.na(age), seq(sum(nalleles) + 1, sum(nstates))] <-
-    #   t(sapply(seq(sum(!is.na(age))),
-    #            function(mm) {
-    #              ag = age[!is.na(age)][mm]
-    #              ags = rep(0L, C)
-    #              ags[+ag] = 1L
-    #              ags
-    #            }))
-    x <- x %>%
-      dplyr::bind_cols(
-        {t(sapply(age, function(ag) {
-          if (is.na(ag)) rep(0, C)
-          else c(rep(0, ag - 1), 1, rep(0, C - ag))
-        })) %>%
-            dplyr::as_tibble(.name_repair = "minimal") %>%
-            setNames(paste0("age_", seq(C)))}
-        )
+    x[!is.na(age), seq(sum(nalleles) + 1, sum(nstates))] <-
+      t(sapply(seq(sum(!is.na(age))),
+               function(mm) {
+                 ag = age[!is.na(age)][mm]
+                 ags = rep(0L, C)
+                 ags[+ag] = 1L
+                 ags
+               }))
+    # x <- x %>%
+    #   dplyr::bind_cols(
+    #     {t(sapply(age, function(ag) {
+    #       if (is.na(ag)) rep(0, C)
+    #       else c(rep(0, ag - 1), 1, rep(0, C - ag))
+    #     })) %>%
+    #         dplyr::as_tibble(.name_repair = "minimal") %>%
+    #         setNames(paste0("age_", seq(C)))}
+    #     )
 
 
     #### metadata stuff #### ----

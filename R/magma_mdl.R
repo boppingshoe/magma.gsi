@@ -8,13 +8,21 @@
 #' @param nchains Number of independent MCMC chains run in the simulation.
 #' @param nadapt Amount of warm-up/adapt runs before the simulation.
 #' @param keep_burn Keep the burn-ins in the output or not. The default is `FALSE`.
-#' @param age_prior Specify the level of prior influence for age. The default is "weak", which has sum of age priors = 1. If specify `age_prior = "strong"`, it will have sum of age priors = number of specified age classes.
+#' @param age_prior Specify the level of prior influence for age.
+#'   The default is "weak", which has sum of age priors = 1.
+#'   If specify `age_prior = "strong"`, it will have sum of age priors
+#'   = number of specified age classes.
 #' @param cond_gsi Option to use conditional GSI model. The default is `TRUE`.
-#' @param out_path File path for saving the output. The default is `NULL` for not saving the output.
-#' @param seed Option to initialize a pseudo-random number generator (set random seed) so the output can be reproduced exactly. Just pick a seed number and make note of it for future reference. The default is `NULL`.
+#' @param out_path File path for saving the output.
+#'   The default is `NULL` for not saving the output.
+#' @param seed Option to initialize a pseudo-random number generator (set random seed)
+#'   so the output can be reproduced exactly.
+#'   Just pick a seed number and make note of it for future reference.
+#'   The default is `NULL`.
 
 #'
-#' @return The raw output of MAGMA is a multi-way array that need to be summarized using summary functions.
+#' @return The raw output of MAGMA is a multi-way array that need to be summarized
+#'   using summary functions.
 #'
 #' @export
 #' @importFrom magrittr %>%
@@ -25,6 +33,7 @@
 #' # format data
 #' wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+#'
 #' # model run
 #' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
 
@@ -216,20 +225,6 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
         } # w
       } # s
     } # d
-    # if (tbr) {
-    #   ppi_out <- vector("list", D)
-    #   for (d_idx in 1:D) {
-    #     ppi_out[[d_idx]] <- vector("list", max(S))
-    #     for (s_idx in 1:S[d_idx]) {
-    #       ppi_out[[d_idx]][[s_idx]] <- vector("list", W)
-    #       for (w_idx in 1:W) {
-    #         ppi_out[[d_idx]][[s_idx]][[w_idx]] <- vector("list", (nreps- nburn) / thin)
-    #       } # w
-    #     } # s
-    #   } # d
-    # } else {
-    #   ppi_out <- array(NA, c(C* (nreps- nburn) / thin, K+H+2, W, max(S), D))
-    # }
 
     ## gibbs loop ##
     for (rep in seq(nreps + nadapt)) {
@@ -298,41 +293,13 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
             for (s_idx in 1:S[d_idx]) {
               for (w_idx in 1:W) {
                 ppi_out[[d_idx]][[s_idx]][[w_idx]][[it]] <-
-                  t_pi %*% diag( p[d_idx, s_idx, w_idx, ] ) %>%
-                  tibble::as_tibble(.name_repair = "minimal") %>% # x= ages, y= pops
+                  t_pi %*% diag(p[d_idx, s_idx, w_idx, ]) %>%
+                  as.data.frame() %>% # x= ages, y= pops
                   dplyr::mutate(itr = it,
                                 agevec = age_class)
               } # w
             } # s
           } # d
-          # if (tbr) {
-          #   it <- (rep- nadapt- nburn) / thin
-          #   for (d_idx in 1:D) {
-          #     for (s_idx in 1:S[d_idx]) {
-          #       for (w_idx in 1:W) {
-          #         ppi_out[[d_idx]][[s_idx]][[w_idx]][[it]] <-
-          #           t_pi %*% diag( p[1, d_idx, s_idx, w_idx, ] ) %>%
-          #           as_tibble(.name_repair = "minimal") %>% # x= ages, y= pops
-          #           mutate(itr = it,
-          #                  agevec = age_class)
-          #       } # w
-          #     } # s
-          #   } # d
-          # } else {
-          #   it <- (rep- nadapt- nburn) / thin
-          #   for (d_idx in 1:D) {
-          #     for (s_idx in 1:S[d_idx]) {
-          #       for (w_idx in 1:W) {
-          #         ppi_out[(1:C)+(C*(it-1)), , w_idx, s_idx, d_idx, 1] <-
-          #           t_pi %*% diag( p[1, d_idx, s_idx, w_idx, ] ) %>%
-          #           as_tibble(.name_repair = "minimal") %>% # x= ages, y= pops
-          #           mutate(itr = it,
-          #                  agevec = age_class) %>%
-          #           as.matrix()
-          #       } # w
-          #     } # s
-          #   } # d
-          # }
 
         } # if rep > nburn & (rep-nburn) %% thin == 0
       } # if rep > nadapt
@@ -353,19 +320,13 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
       lapply(ch, function(dis) {
         sapply(dis, function(subdist) {
           sapply(subdist, function(wk) {
-            wk %>% bind_rows()
+            wk %>% dplyr::bind_rows()
           }) %>% unlist(.)
         }) %>% unlist(.)
       }) %>% unlist(.)
     }) %>% sapply(., function(ol) ol) %>%
-      array(., dim = c(C * (nreps - nburn) / thin, K + H + 2, W, max(S), D, 1, nchains))
+      array(., dim = c(C * (nreps - nburn) / thin, K + H + 2, W, max(S), D, nchains))
   } # R can't handle big ass TBR dataset
-  # if (tbr) {
-  #   out <- out_list
-  # } else {
-  #   out <- sapply(out_list, function(ol) ol) %>%
-  #     array(., dim = c(dim(out_list[[1]]), nchains))
-  # } # R can't handle big ass TBR dataset
 
   if (!is.null(out_path)) save(out, file = out_path)
 
