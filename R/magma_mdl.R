@@ -19,7 +19,6 @@
 #'   so the output can be reproduced exactly.
 #'   Just pick a seed number and make note of it for future reference.
 #'   The default is `NULL`.
-
 #'
 #' @return The raw output of MAGMA is a multi-way array that need to be summarized
 #'   using summary functions.
@@ -36,7 +35,7 @@
 #'
 #' # model run
 #' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
-
+#'
 magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_priors = "weak", cond_gsi = TRUE, out_path = NULL, seed = NULL, tbr = FALSE) {
 
   ### ballroom categories ### ----

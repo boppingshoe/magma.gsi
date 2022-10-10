@@ -1,13 +1,12 @@
 
-#' Error check
-#'
-#' Check loci in input data.
+#' Error check for loci in input data
 #'
 #' @param loci_pr User provided loci info.
 #' @param loci_mix Loci info from mixture.
 #' @param loci_base Loci info from baseline.
 #'
 #' @noRd
+#'
 check_loci <- function(loci_pr, loci_mix, loci_base) {
 
   if (!is.null(loci_pr)) { # check loci if provided
@@ -66,7 +65,7 @@ check_loci <- function(loci_pr, loci_mix, loci_base) {
 #' @examples
 #' wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
-
+#'
 magmatize_data <-
   function(wd, age_classes = "all", loci_names = NULL, save_data = TRUE) {
 
