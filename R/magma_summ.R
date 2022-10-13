@@ -206,7 +206,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
 
     summ_pop_all[[d_idx]] <-
       lapply(p_combo_all[[d_idx]], function(rlist) rlist[keep_list,]) %>%
-      dplyr::bind_rows %>%
+      dplyr::bind_rows() %>%
       tidyr::pivot_longer(cols = 1:ncol(.)) %>%
       dplyr::group_by(name) %>%
       dplyr::summarise(
@@ -215,7 +215,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
         sd = sd(value),
         ci.05 = quantile(value, 0.05),
         ci.95 = quantile(value, 0.95),
-        p0 = mean(value < (0.5/ max(1, ( any(p_zero[1, d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx) %>% dplyr::pull(sum_harv) )))),
+        p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx) %>% dplyr::pull(sum_harv) )))),
         .groups = "drop"
       ) %>%
       dplyr::mutate(
@@ -253,7 +253,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
 
       summ_pop[[p_idx]] <-
         lapply(p_combo[[p_idx]], function(rlist) rlist[keep_list,]) %>%
-        dplyr::bind_rows %>%
+        dplyr::bind_rows() %>%
         tidyr::pivot_longer(cols = 1:ncol(.)) %>%
         dplyr::group_by(name) %>%
         dplyr::summarise(
@@ -262,7 +262,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
           sd = sd(value),
           ci.05 = quantile(value, 0.05),
           ci.95 = quantile(value, 0.95),
-          p0 = mean(value < (0.5/ max(1, ( any(p_zero[1, d_idx, , w_idx, ])* harvest %>% dplyr::group_by(DISTRICT, STAT_WEEK) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, STAT_WEEK== w_idx) %>% dplyr::pull(sum_harv) )))),
+          p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , w_idx, ])* harvest %>% dplyr::group_by(DISTRICT, STAT_WEEK) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, STAT_WEEK== w_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
         dplyr::mutate(
@@ -299,7 +299,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
         stats::setNames(., c("grpvec", age_classes))
     } # combine all individual districts
 
-    for (grp in group_names[, d_idx] %>% stats::na.omit) {
+    for (grp in stats::na.omit(group_names[, d_idx])) {
       a_idx <- a_idx + 1
 
       ap_prop_grp[[a_idx]] <-
@@ -323,7 +323,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
 
       summ_age[[a_idx]] <-
         lapply(ap_prop_grp[[a_idx]], function(rlist) rlist[keep_list,]) %>%
-        dplyr::bind_rows %>%
+        dplyr::bind_rows() %>%
         dplyr::mutate(stock_prop = rowSums(.[,-1])) %>%
         tidyr::pivot_longer(-c(stock_prop, grpvec)) %>%
         dplyr::group_by(name, grpvec) %>%
@@ -431,8 +431,8 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
                     subdist==aa[2],
                     week==aa[3]) %>% nrow
     }) ) %>%
-    mutate(HARVEST = HARVEST * (n != 0)) %>%
-    select(-n)
+    dplyr::mutate(HARVEST = HARVEST * (n != 0)) %>%
+    dplyr::select(-n)
 
   groups <- dat_in$groups # vector id for reporting groups (aka groupvec)
   group_names <- dat_in$group_names # reporting groups
@@ -584,7 +584,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
 
       summ_pop_all[[max(S)*(d_idx-1)+s_idx]] <-
         lapply(p_combo_all[[max(S)*(d_idx-1)+s_idx]], function(rlist) rlist[keep_list,]) %>%
-        dplyr::bind_rows %>%
+        dplyr::bind_rows() %>%
         tidyr::pivot_longer(cols = 1:ncol(.)) %>%
         dplyr::group_by(name) %>%
         dplyr::summarise(
@@ -593,7 +593,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
           sd = sd(value),
           ci.05 = quantile(value, 0.05),
           ci.95 = quantile(value, 0.95),
-          p0 = mean(value < (0.5/ max(1, ( any(p_zero[1, d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT, SUBDISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>% dplyr::pull(sum_harv) )))),
+          p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT, SUBDISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
         dplyr::mutate(
@@ -633,7 +633,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
 
         summ_pop[[p_idx]] <-
           lapply(p_combo[[p_idx]], function(rlist) rlist[keep_list,]) %>%
-          dplyr::bind_rows %>%
+          dplyr::bind_rows() %>%
           tidyr::pivot_longer(cols = 1:ncol(.)) %>%
           dplyr::group_by(name) %>%
           dplyr::summarise(
@@ -642,10 +642,10 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
             sd = sd(value),
             ci.05 = quantile(value, 0.05),
             ci.95 = quantile(value, 0.95),
-            p0 = mean(value < (0.5/ max(1, (any(p_zero[1, d_idx, s_idx, w_idx, ])* dplyr::filter(harvest, DISTRICT== d_idx, SUBDISTRICT== s_idx, STAT_WEEK== w_idx)$HARVEST)))),
+            p0 = mean(value < (0.5/ max(1, (any(p_zero[d_idx, s_idx, w_idx, ])* dplyr::filter(harvest, DISTRICT== d_idx, SUBDISTRICT== s_idx, STAT_WEEK== w_idx)$HARVEST)))),
             .groups = "drop"
           ) %>%
-          mutate(
+          dplyr::mutate(
             GR = {if (nchains > 1) {
               coda::gelman.diag(mc_pop[[p_idx]],
                                 transform = TRUE,
@@ -680,7 +680,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
           stats::setNames(., c("grpvec", age_classes))
       } # combine all individual districts
 
-      for (grp in group_names[, d_idx] %>% na.omit) {
+      for (grp in stats::na.omit(group_names[, d_idx])) {
         a_idx <- a_idx + 1
 
         ap_prop_grp[[a_idx]] <-
@@ -704,7 +704,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
 
         summ_age[[a_idx]] <-
           lapply(ap_prop_grp[[a_idx]], function(rlist) rlist[keep_list,]) %>%
-          dplyr::bind_rows %>%
+          dplyr::bind_rows() %>%
           dplyr::mutate(stock_prop = rowSums(.[,-1])) %>%
           tidyr::pivot_longer(-c(stock_prop, grpvec)) %>%
           dplyr::group_by(name, grpvec) %>%
@@ -807,7 +807,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
 #' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
 #'
 #' # summary
-#' magma_summ <- magmatize_summ(magma_out, nreps = 50, nburn = 25, thin = 1, nchains = 3, summ_level = "district")
+#' magma_summ <- magmatize_summ(magma_out, magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3, summ_level = "district")
 #'
 magmatize_summ <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level) {
 
@@ -816,7 +816,7 @@ magmatize_summ <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bur
   D <- dplyr::n_distinct(dat_in$metadat$district) # number of districts
   S <- dat_in$metadat %>%
     dplyr::group_by(district) %>%
-    dplyr::summarise(S = n_distinct(subdist), .groups = "drop") %>%
+    dplyr::summarise(S = dplyr::n_distinct(subdist), .groups = "drop") %>%
     dplyr::pull(S) # number of subdistricts
   W <- max(dplyr::n_distinct(dat_in$metadat$week), length(dat_in$stat_weeks)) # number of stats weeks
 
