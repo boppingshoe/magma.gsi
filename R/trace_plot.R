@@ -15,22 +15,31 @@
 #' @export
 #'
 #' @examples
-#' # set up input data and run multistage model
-#' msgsi_dat <-
-#'   prep_msgsi_data(mixture_data = mix,
-#'   baseline1_data = base_templin, baseline2_data = base_yukon,
-#'   pop1_info = templin_pops211, pop2_info = yukon_pops50, sub_group = 3:5)
+#' # format data
+#' wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
+#' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
-#' msgsi_out <- msgsi_mdl(msgsi_dat, nreps = 25, nburn = 15, thin = 1, nchains = 1)
+#' # model run
+#' magma_out <- magmatize_mdl(magma_data,
+#'   nreps = 50, nburn = 25, thin = 1, nchains = 3, tbr = TRUE)
+#'
+#' # summary
+#' magma_summ <- magmatize_summ_tbr(which_dist = 2,
+#'   outraw = magma_out,
+#'   ma_dat = magma_data,
+#'   nreps = 50, nburn = 25, thin = 1, nchains = 3,
+#'   summ_level = "district")
 #'
 #' # trace plot
-#' tr_plot(obj = msgsi_out$trace_comb)
-
+#' tr_plot(obj = magma_summ$pop_prop[[1]])
+#'
 tr_plot <- function (obj, nburn = 0, thin = 1, name_order = NULL) {
 
   if (is.null(name_order)) {
     name_order <- dplyr::select(obj, -c(itr, chain)) %>% colnames()
   }
+
+  if ("grpvec" %in% names(obj)) obj <- dplyr::select(obj, -grpvec)
 
   tidyr::pivot_longer({{ obj }}, cols = -c(chain, itr)) %>%
     dplyr::mutate(name = factor(name, levels = name_order)) %>%
