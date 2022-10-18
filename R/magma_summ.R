@@ -1,8 +1,8 @@
 
 
-## file contains functions for formatting tbr magma output
+## file contains functions for formatting non-TBR and TBR magma output
 
-## summarize pop and age at the same time ----
+## summarize non-TBR output ----
 
 #' Format district
 #'
@@ -98,7 +98,8 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
         ap_prop[[d_idx]][[w_idx]][[s_idx]] <-
           apply(outraw, MARGIN = 6,
                 function(ol) ol[ , , w_idx, s_idx, d_idx] %>%
-                  tibble::as_tibble() %>%
+                  # tibble::as_tibble() %>%
+                  as.data.frame() %>%
                   tidyr::pivot_longer(cols = 1:(ncol(.)-2)) %>%
                   dplyr::mutate(
                     grpvec = rep(group_names[groups[, d_idx], d_idx],
@@ -493,7 +494,8 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
         ap_prop[[d_idx]][[s_idx]][[w_idx]] <-
           apply(outraw, MARGIN = 6,
                 function(ol) ol[ , , w_idx, s_idx, d_idx] %>%
-                  tibble::as_tibble() %>%
+                  # tibble::as_tibble() %>%
+                  as.data.frame() %>%
                   tidyr::pivot_longer(cols = 1:(ncol(.)-2)) %>%
                   dplyr::mutate(
                     grpvec = rep(group_names[groups[, d_idx], d_idx],
@@ -835,7 +837,7 @@ magmatize_summ <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bur
     out <- format_district(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W)
   } else if (summ_level == "subdistrict") {
     out <- format_subdistrict(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W)
-  }
+  } else stop("Invalid summ_level.")
 
   # id for age outputs
   if (summ_level == "district") {
@@ -960,24 +962,43 @@ magmatize_summ <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bur
 }
 
 
+
 ## pop and age separately ----
 
 # district
 
+#' Format district populations
+#'
+#' @param outraw
+#' @param dat_in
+#' @param nreps
+#' @param nburn
+#' @param thin
+#' @param nchains
+#' @param keep_burn
+#' @param C
+#' @param D
+#' @param S
+#' @param W
+#'
+#' @export
+#' @importFrom magrittr %>%
+#'
+#' @noRd
+#'
 format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W) {
 
   ### data input ### ----
   metadat <- dat_in$metadat # age and iden info
   harvest <- dat_in$harvest %>% # for calculating p0
-    mutate(n = apply(.[,1:4], 1, function(aa) {
-      filter(metadat,
-             year==aa[1],
-             district==aa[2],
-             subdist==aa[3],
-             week==aa[4]) %>% nrow
+    dplyr::mutate(n = apply(.[, 2:4], 1, function(aa) {
+      dplyr::filter(metadat,
+                    district == aa[1],
+                    subdist == aa[2],
+                    week == aa[3]) %>% nrow()
     }) ) %>%
-    mutate(HARVEST = HARVEST * (n != 0)) %>%
-    select(-n)
+    dplyr::mutate(HARVEST = HARVEST * (n != 0)) %>%
+    dplyr::select(-n)
 
   groups <- dat_in$groups # vector id for reporting groups (aka groupvec)
   group_names <- dat_in$group_names # reporting groups
@@ -998,10 +1019,10 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
   p_zero <- array(
     apply(
-      table(metadat[, c("year","district","subdist","week","iden")], exclude = NULL),
-      seq(4),
+      table(metadat[, c("district", "subdist", "week", "iden")], exclude = NULL),
+      seq(3),
       function(alf) any(alf!= 0) # prop = 0 if no sample
-    ), c(1, D, max(S), W, K+ H))
+    ), c(D, max(S), W, K+ H))
 
   if (isFALSE(keep_burn)|keep_burn == "false") keep_burn = FALSE
 
@@ -1027,54 +1048,54 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
       for (s_idx in 1:S[d_idx]) {
 
         # go in each chain and grab age-pop output according to specified sampling period
-        # new! ap_prop: [[yr]][[d]][[s]][[w]][[chain]][age*itr, c(pop, agevec)]
+        # new! ap_prop: [[d]][[s]][[w]][[chain]][age*itr, c(pop, agevec)]
         # pivot_longer %>% [pop*age*itr, c(itr, age, grp, value)]
 
         # ap_combo_dis or ap_combo_subdis
         # combine age classes and pop groups
         # weighted by harvest
         # this is done for each week in each district
-        # new! [[chain]][[yr]][[d]][[w]][group*itr, c(itr, grpvec, ages)]
+        # new! [[chain]][[d]][[w]][group*itr, c(itr, grpvec, ages)]
 
         idx <- idx + 1
         ap_prop[[d_idx]][[w_idx]][[s_idx]] <-
-          apply(outraw, MARGIN = 7,
-                function(ol) ol[ , , w_idx, s_idx, d_idx, 1] %>%
-                  as_tibble() %>%
-                  pivot_longer(cols = 1:(ncol(.)-2)) %>%
-                  mutate(
+          apply(outraw, MARGIN = 6,
+                function(ol) ol[ , , w_idx, s_idx, d_idx] %>%
+                  as.data.frame() %>%
+                  tidyr::pivot_longer(cols = 1:(ncol(.)-2)) %>%
+                  dplyr::mutate(
                     grpvec = rep(group_names[groups[, d_idx], d_idx],
                                  C* (nreps- nburn* isFALSE(keep_burn))/ thin)
                   ) %>%
-                  select(-name) %>%
-                  rename(itr = 1, agevec = 2))
+                  dplyr::select(-name) %>%
+                  dplyr::rename(itr = 1, agevec = 2))
 
         ap_prop2b[[d_idx]][[w_idx]][[s_idx]] <-
           lapply(ap_prop[[d_idx]][[w_idx]][[s_idx]],
                  function(ap) {
                    ap %>%
-                     mutate(value = value* {harvest %>%
-                         group_by(DISTRICT, STAT_WEEK) %>%
-                         mutate(prop_harv = prop.table(HARVEST)) %>%
-                         replace_na(list(prop_harv = 0)) %>%
-                         filter(DISTRICT == d_idx,
-                                SUBDISTRICT == s_idx,
-                                STAT_WEEK == w_idx) %>%
-                         pull(prop_harv) %>% max(., 0)})
+                     dplyr::mutate(value = value* {harvest %>%
+                         dplyr::group_by(DISTRICT, STAT_WEEK) %>%
+                         dplyr::mutate(prop_harv = prop.table(HARVEST)) %>%
+                         tidyr::replace_na(list(prop_harv = 0)) %>%
+                         dplyr::filter(DISTRICT == d_idx,
+                                       SUBDISTRICT == s_idx,
+                                       STAT_WEEK == w_idx) %>%
+                         dplyr::pull(prop_harv) %>% max(., 0)})
                  })
 
         ap_prop_all_1[[d_idx]][[W*(s_idx-1)+w_idx]] <-
           lapply(ap_prop[[d_idx]][[w_idx]][[s_idx]],
                  function(apa) {
                    apa %>%
-                     mutate(value = value* {harvest %>%
-                         group_by(DISTRICT) %>%
-                         mutate(prop_harv = prop.table(HARVEST)) %>%
-                         replace_na(list(prop_harv = 0)) %>%
-                         filter(DISTRICT == d_idx,
-                                SUBDISTRICT == s_idx,
-                                STAT_WEEK == w_idx) %>%
-                         pull(prop_harv) %>% max(., 0)})
+                     dplyr::mutate(value = value* {harvest %>%
+                         dplyr::group_by(DISTRICT) %>%
+                         dplyr::mutate(prop_harv = prop.table(HARVEST)) %>%
+                         tidyr::replace_na(list(prop_harv = 0)) %>%
+                         dplyr::filter(DISTRICT == d_idx,
+                                       SUBDISTRICT == s_idx,
+                                       STAT_WEEK == w_idx) %>%
+                         dplyr::pull(prop_harv) %>% max(., 0)})
                  })
 
       } # s_idx
@@ -1084,7 +1105,7 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
           lapply(ap_prop2b[[d_idx]][[w_idx]],
                  function(ap) {
                    ap[[chain]]
-                 }) %>% bind_rows()
+                 }) %>% dplyr::bind_rows()
       } # chain
 
     } # w_idx
@@ -1094,7 +1115,7 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
         lapply(ap_prop_all_1[[d_idx]],
                function(apa) {
                  apa[[chain]]
-               }) %>% bind_rows()
+               }) %>% dplyr::bind_rows()
     } # chain
 
     rm(idx)
@@ -1117,32 +1138,32 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
       lapply(ap_prop_all_2[[d_idx]],
              function(apchain) {
                apchain %>%
-                 select(-agevec) %>%
-                 group_by(itr, grpvec) %>%
-                 summarise(p = sum(value), .groups = "drop") %>%
-                 pivot_wider(names_from = grpvec, values_from = p) %>%
-                 select(-itr)
+                 dplyr::select(-agevec) %>%
+                 dplyr::group_by(itr, grpvec) %>%
+                 dplyr::summarise(p = sum(value), .groups = "drop") %>%
+                 tidyr::pivot_wider(names_from = grpvec, values_from = p) %>%
+                 dplyr::select(-itr)
              })
 
-    mc_pop_all[[d_idx]] <- as.mcmc.list(
+    mc_pop_all[[d_idx]] <- coda::as.mcmc.list(
       lapply(p_combo_all[[d_idx]],
-             function(rlist) mcmc(rlist[keep_list,])) )
+             function(rlist) coda::mcmc(rlist[keep_list,])) )
 
     summ_pop_all[[d_idx]] <-
       lapply(p_combo_all[[d_idx]], function(rlist) rlist[keep_list,]) %>%
-      bind_rows %>%
-      pivot_longer(cols = 1:ncol(.)) %>%
-      group_by(name) %>%
-      summarise(
+      dplyr::bind_rows() %>%
+      tidyr::pivot_longer(cols = everything()) %>%
+      dplyr::group_by(name) %>%
+      dplyr::summarise(
         mean = mean(value),
         median = median(value),
         sd = sd(value),
         ci.05 = quantile(value, 0.05),
         ci.95 = quantile(value, 0.95),
-        p0 = mean(value < (0.5/ max(1, ( any(p_zero[1, d_idx, , , ])* harvest %>% group_by(DISTRICT) %>% summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% filter(DISTRICT == d_idx) %>% pull(sum_harv) )))),
+        p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx) %>% dplyr::pull(sum_harv) )))),
         .groups = "drop"
       ) %>%
-      mutate(
+      dplyr::mutate(
         GR = {if (nchains > 1) {
           coda::gelman.diag(mc_pop_all[[d_idx]],
                             transform = TRUE,
@@ -1153,7 +1174,7 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
         n_eff = coda::effectiveSize(mc_pop_all[[d_idx]]) %>%
           .[order(group_names[seq(ncol(p_combo_all[[d_idx]][[1]])), d_idx])]
       ) %>%
-      rename(group = name)
+      dplyr::rename(group = name)
 
     for (w_idx in 1:W) {
       ## pop individual weeks ##
@@ -1164,32 +1185,32 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
         lapply(ap_prop2c[[d_idx]][[w_idx]],
                function(apfile) {
                  apfile %>%
-                   select(-agevec) %>%
-                   group_by(itr, grpvec) %>%
-                   summarise(p = sum(value), .groups = "drop") %>%
-                   pivot_wider(names_from = grpvec, values_from = p) %>%
-                   select(-itr)
+                   dplyr::select(-agevec) %>%
+                   dplyr::group_by(itr, grpvec) %>%
+                   dplyr::summarise(p = sum(value), .groups = "drop") %>%
+                   tidyr::pivot_wider(names_from = grpvec, values_from = p) %>%
+                   dplyr::select(-itr)
                })
 
-      mc_pop[[p_idx]] <- as.mcmc.list(
+      mc_pop[[p_idx]] <- coda::as.mcmc.list(
         lapply(p_combo[[p_idx]],
-               function(rlist) mcmc(rlist[keep_list,])) )
+               function(rlist) coda::mcmc(rlist[keep_list,])) )
 
       summ_pop[[p_idx]] <-
         lapply(p_combo[[p_idx]], function(rlist) rlist[keep_list,]) %>%
-        bind_rows %>%
-        pivot_longer(cols = 1:ncol(.)) %>%
-        group_by(name) %>%
-        summarise(
+        dplyr::bind_rows() %>%
+        tidyr::pivot_longer(cols = everything()) %>%
+        dplyr::group_by(name) %>%
+        dplyr::summarise(
           mean = mean(value),
           median = median(value),
           sd = sd(value),
           ci.05 = quantile(value, 0.05),
           ci.95 = quantile(value, 0.95),
-          p0 = mean(value < (0.5/ max(1, ( any(p_zero[1, d_idx, , w_idx, ])* harvest %>% group_by(DISTRICT, STAT_WEEK) %>% summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% filter(DISTRICT == d_idx, STAT_WEEK== w_idx) %>% pull(sum_harv) )))),
+          p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , w_idx, ])* harvest %>% dplyr::group_by(DISTRICT, STAT_WEEK) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, STAT_WEEK== w_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
-        mutate(
+        dplyr::mutate(
           GR = {if (nchains > 1) {
             coda::gelman.diag(mc_pop[[p_idx]],
                               transform = TRUE,
@@ -1200,7 +1221,7 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
           n_eff = coda::effectiveSize(mc_pop[[p_idx]]) %>%
             .[order(group_names[seq(ncol(p_combo[[p_idx]][[1]])), d_idx])]
         ) %>%
-        rename(group = name)
+        dplyr::rename(group = name)
     } # W
 
   } # D
@@ -1209,8 +1230,8 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
   out$pop_prop <-
     lapply(p_combo, function(rot) {
-      bind_rows(rot) %>%
-        mutate(
+      dplyr::bind_rows(rot) %>%
+        dplyr::mutate(
           chain = rep(1:nchains,
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
@@ -1222,8 +1243,8 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
   out$pop_prop_all <-
     lapply(p_combo_all, function(rot) {
-      bind_rows(rot) %>%
-        mutate(
+      dplyr::bind_rows(rot) %>%
+        dplyr::mutate(
           chain = rep(1:nchains,
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
@@ -1238,20 +1259,38 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 }
 
 
+#' Format district age classes
+#'
+#' @param outraw
+#' @param dat_in
+#' @param nreps
+#' @param nburn
+#' @param thin
+#' @param nchains
+#' @param keep_burn
+#' @param C
+#' @param D
+#' @param S
+#' @param W
+#'
+#' @export
+#' @importFrom magrittr %>%
+#'
+#' @noRd
+#'
 format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W) {
 
   ### data input ### ----
   metadat <- dat_in$metadat # age and iden info
   harvest <- dat_in$harvest %>% # for calculating p0
-    mutate(n = apply(.[,1:4], 1, function(aa) {
-      filter(metadat,
-             year==aa[1],
-             district==aa[2],
-             subdist==aa[3],
-             week==aa[4]) %>% nrow
+    dplyr::mutate(n = apply(.[, 2:4], 1, function(aa) {
+      dplyr::filter(metadat,
+                    district==aa[1],
+                    subdist==aa[2],
+                    week==aa[3]) %>% nrow
     }) ) %>%
-    mutate(HARVEST = HARVEST * (n != 0)) %>%
-    select(-n)
+    dplyr::mutate(HARVEST = HARVEST * (n != 0)) %>%
+    dplyr::select(-n)
 
   groups <- dat_in$groups # vector id for reporting groups (aka groupvec)
   group_names <- dat_in$group_names # reporting groups
@@ -1270,12 +1309,12 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
     H <- length(hatcheries)
   }
 
-  p_zero <- array(
-    apply(
-      table(metadat[, c("year","district","subdist","week","iden")], exclude = NULL),
-      seq(4),
-      function(alf) any(alf!= 0) # prop = 0 if no sample
-    ), c(1, D, max(S), W, K+ H))
+  # p_zero <- array(
+  #   apply(
+  #     table(metadat[, c("district", "subdist", "week", "iden")], exclude = NULL),
+  #     seq(3),
+  #     function(alf) any(alf!= 0) # prop = 0 if no sample
+  #   ), c(D, max(S), W, K+ H))
 
   if (isFALSE(keep_burn)|keep_burn == "false") keep_burn = FALSE
 
@@ -1288,56 +1327,51 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
   for (d_idx in 1:D) {
     ap_prop[[d_idx]] <- list()
-    # ap_prop2b[[d_idx]] <- list()
-    # ap_prop2c[[d_idx]] <- list()
-    # ap_prop_all_1[[d_idx]] <- ap_prop_all_2[[d_idx]] <- list()
     ap_combo_dis[[d_idx]] <- list()
 
     idx <- 0
     for (w_idx in 1:W) {
       ap_prop[[d_idx]][[w_idx]] <- list()
-      # ap_prop2b[[d_idx]][[w_idx]] <- list()
-      # ap_prop2c[[d_idx]][[w_idx]] <- list()
 
       for (s_idx in 1:S[d_idx]) {
 
         # go in each chain and grab age-pop output according to specified sampling period
-        # new! ap_prop: [[yr]][[d]][[s]][[w]][[chain]][age*itr, c(pop, agevec)]
+        # new! ap_prop: [[d]][[s]][[w]][[chain]][age*itr, c(pop, agevec)]
         # pivot_longer %>% [pop*age*itr, c(itr, age, grp, value)]
 
         # ap_combo_dis or ap_combo_subdis
         # combine age classes and pop groups
         # weighted by harvest
         # this is done for each week in each district
-        # new! [[chain]][[yr]][[d]][[w]][group*itr, c(itr, grpvec, ages)]
+        # new! [[chain]][[d]][[w]][group*itr, c(itr, grpvec, ages)]
 
         idx <- idx + 1
         ap_prop[[d_idx]][[w_idx]][[s_idx]] <-
-          apply(outraw, MARGIN = 7,
-                function(ol) ol[ , , w_idx, s_idx, d_idx, 1] %>%
-                  as_tibble() %>%
-                  pivot_longer(cols = 1:(ncol(.)-2)) %>%
-                  mutate(
+          apply(outraw, MARGIN = 6,
+                function(ol) ol[ , , w_idx, s_idx, d_idx] %>%
+                  as.data.frame() %>%
+                  tidyr::pivot_longer(cols = 1:(ncol(.)-2)) %>%
+                  dplyr::mutate(
                     grpvec = rep(group_names[groups[, d_idx], d_idx],
                                  C* (nreps- nburn* isFALSE(keep_burn))/ thin)
                   ) %>%
-                  select(-name) %>%
-                  rename(itr = 1, agevec = 2))
+                  dplyr::select(-name) %>%
+                  dplyr::rename(itr = 1, agevec = 2))
 
         ap_combo_dis[[d_idx]][[idx]] <-
           lapply(ap_prop[[d_idx]][[w_idx]][[s_idx]], function(apfile) {
             apfile %>%
-              group_by(itr, agevec, grpvec) %>%
-              summarise(ppi = sum(value), .groups = "drop") %>%
-              mutate(ppi = ppi* {harvest %>%
-                  group_by(DISTRICT) %>%
+              dplyr::group_by(itr, agevec, grpvec) %>%
+              dplyr::summarise(ppi = sum(value), .groups = "drop") %>%
+              dplyr::mutate(ppi = ppi* {harvest %>%
+                  dplyr::group_by(DISTRICT) %>%
                   # proportional within a district
-                  mutate(prop_harv = prop.table(HARVEST)) %>%
-                  filter(DISTRICT == d_idx,
-                         SUBDISTRICT == s_idx,
-                         STAT_WEEK == w_idx) %>%
-                  pull(prop_harv) %>% max(., 0)}) %>%
-              pivot_wider(names_from = agevec, values_from = ppi)
+                  dplyr::mutate(prop_harv = prop.table(HARVEST)) %>%
+                  dplyr::filter(DISTRICT == d_idx,
+                                SUBDISTRICT == s_idx,
+                                STAT_WEEK == w_idx) %>%
+                  dplyr::pull(prop_harv) %>% max(., 0)}) %>%
+              tidyr::pivot_wider(names_from = agevec, values_from = ppi)
           })
 
       } # s_idx
@@ -1351,9 +1385,6 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
   keep_list <- ((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn)))[!((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn))) %% thin] / thin
 
   # place holders/empty objects for age/pop summaries
-  # p_combo <- mc_pop <- summ_pop <- list()
-  # p_combo_all <- mc_pop_all <- summ_pop_all <- list()
-  # p_idx <- 0
   ap_prop_grp <- mc_age <- summ_age <- list()
   a_idx <- 0
 
@@ -1366,16 +1397,16 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
                function(apc) {
                  apc[[chain]]
                }) %>%
-        bind_rows() %>%
-        group_by(itr, grpvec) %>%
-        summarise(across(.fns = sum), .groups = "drop") %>%
-        pivot_longer(-c(itr, grpvec)) %>%
-        group_by(itr, grpvec) %>%
-        mutate(value = prop.table(value)) %>%
-        ungroup() %>%
-        pivot_wider() %>%
-        select(-itr) %>%
-        setNames(., c("grpvec", age_classes))
+        dplyr::bind_rows() %>%
+        dplyr::group_by(itr, grpvec) %>%
+        dplyr::summarise(across(.fns = sum), .groups = "drop") %>%
+        tidyr::pivot_longer(-c(itr, grpvec)) %>%
+        dplyr::group_by(itr, grpvec) %>%
+        dplyr::mutate(value = prop.table(value)) %>%
+        dplyr::ungroup() %>%
+        tidyr::pivot_wider() %>%
+        dplyr::select(-itr) %>%
+        stats::setNames(., c("grpvec", age_classes))
     } # combine all individual districts
 
     for (grp in group_names[, d_idx] %>% na.omit) {
@@ -1384,29 +1415,29 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
       ap_prop_grp[[a_idx]] <-
         lapply(ap_combo_all, function(aoc) {
           ar_temp <- aoc %>%
-            filter(grpvec == grp) %>%
-            setNames(., c("grpvec", age_classes))
+            dplyr::filter(grpvec == grp) %>%
+            stats::setNames(., c("grpvec", age_classes))
           return(ar_temp)# %>% select(-grpvec))
         }) # separate rep groups into its own output
 
       mc_age[[a_idx]] <-
-        as.mcmc.list(
+        coda::as.mcmc.list(
           lapply(ap_prop_grp[[a_idx]], function(rlist) {
-            mcmc(rlist[keep_list,] %>% select(-grpvec))
+            coda::mcmc(rlist[keep_list,] %>% dplyr::select(-grpvec))
           }) )
 
       harv_dis <- harvest %>%
-        filter(DISTRICT == d_idx) %>%
-        pull(HARVEST) %>%
-        mean
+        dplyr::filter(DISTRICT == d_idx) %>%
+        dplyr::pull(HARVEST) %>%
+        mean()
 
       summ_age[[a_idx]] <-
         lapply(ap_prop_grp[[a_idx]], function(rlist) rlist[keep_list,]) %>%
-        bind_rows %>%
-        mutate(stock_prop = rowSums(.[,-1])) %>%
-        pivot_longer(-c(stock_prop, grpvec)) %>%
-        group_by(name, grpvec) %>%
-        summarise(
+        dplyr::bind_rows() %>%
+        dplyr::mutate(stock_prop = rowSums(.[,-1])) %>%
+        tidyr::pivot_longer(-c(stock_prop, grpvec)) %>%
+        dplyr::group_by(name, grpvec) %>%
+        dplyr::summarise(
           mean = mean(value),
           median = median(value),
           sd = sd(value),
@@ -1415,7 +1446,7 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
           p0 = mean( value < (0.5/ max(1, harv_dis* stock_prop)) ),
           .groups = "drop"
         ) %>%
-        mutate(
+        dplyr::mutate(
           GR = {if (nchains > 1) {
             coda::gelman.diag(mc_age[[a_idx]],
                               transform = TRUE,
@@ -1426,9 +1457,9 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
           n_eff = coda::effectiveSize(mc_age[[a_idx]]) %>%
             .[order(age_classes)]
         ) %>%
-        rename(age = name,
-               group = grpvec) %>%
-        relocate(group, .before = age)
+        dplyr::rename(age = name,
+                      group = grpvec) %>%
+        dplyr::relocate(group, .before = age)
     } # grp
 
   } # D
@@ -1437,8 +1468,8 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
   out$age_prop <-
     lapply(ap_prop_grp, function(rot) {
-      bind_rows(rot) %>%
-        mutate(
+      dplyr::bind_rows(rot) %>%
+        dplyr::mutate(
           chain = rep(1:nchains,
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
@@ -1455,20 +1486,38 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
 # subdistrict
 
+#' Title
+#'
+#' @param outraw
+#' @param dat_in
+#' @param nreps
+#' @param nburn
+#' @param thin
+#' @param nchains
+#' @param keep_burn
+#' @param C
+#' @param D
+#' @param S
+#' @param W
+#'
+#' @export
+#' @importFrom magrittr %>%
+#'
+#' @noRd
+#'
 format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W) {
 
   ### data input ### ----
   metadat <- dat_in$metadat # age and iden info
   harvest <- dat_in$harvest %>% # for calculating p0
-    mutate(n = apply(.[,1:4], 1, function(aa) {
-      filter(metadat,
-             year==aa[1],
-             district==aa[2],
-             subdist==aa[3],
-             week==aa[4]) %>% nrow
+    dplyr::mutate(n = apply(.[, 2:4], 1, function(aa) {
+      dplyr::filter(metadat,
+                    district==aa[1],
+                    subdist==aa[2],
+                    week==aa[3]) %>% nrow
     }) ) %>%
-    mutate(HARVEST = HARVEST * (n != 0)) %>%
-    select(-n)
+    dplyr::mutate(HARVEST = HARVEST * (n != 0)) %>%
+    dplyr::select(-n)
 
   groups <- dat_in$groups # vector id for reporting groups (aka groupvec)
   group_names <- dat_in$group_names # reporting groups
@@ -1489,10 +1538,10 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 
   p_zero <- array(
     apply(
-      table(metadat[, c("year","district","subdist","week","iden")], exclude = NULL),
-      seq(4),
+      table(metadat[, c("district", "subdist", "week", "iden")], exclude = NULL),
+      seq(3),
       function(alf) any(alf!= 0) # prop = 0 if no sample
-    ), c(1, D, max(S), W, K+ H))
+    ), c(D, max(S), W, K+ H))
 
   if (isFALSE(keep_burn)|keep_burn == "false") keep_burn = FALSE
 
@@ -1517,39 +1566,39 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
       for (w_idx in 1:W) {
 
         # go in each chain and grab age-pop output according to specified sampling period
-        # new! ap_prop: [[yr]][[d]][[s]][[w]][[chain]][age*itr, c(pop, agevec)]
+        # new! ap_prop: [[d]][[s]][[w]][[chain]][age*itr, c(pop, agevec)]
         # pivot_longer %>% [pop*age*itr, c(itr, age, grp, value)]
 
         # ap_combo_dis or ap_combo_subdis
         # combine age classes and pop groups
         # weighted by harvest
         # this is done for each week in each district
-        # new! [[chain]][[yr]][[d]][[w]][group*itr, c(itr, grpvec, ages)]
+        # new! [[chain]][[d]][[w]][group*itr, c(itr, grpvec, ages)]
 
         ap_prop[[d_idx]][[s_idx]][[w_idx]] <-
-          apply(outraw, MARGIN = 7,
-                function(ol) ol[ , , w_idx, s_idx, d_idx, 1] %>%
-                  as_tibble() %>%
-                  pivot_longer(cols = 1:(ncol(.)-2)) %>%
-                  mutate(
+          apply(outraw, MARGIN = 6,
+                function(ol) ol[ , , w_idx, s_idx, d_idx] %>%
+                  as.data.frame() %>%
+                  tidyr::pivot_longer(cols = 1:(ncol(.)-2)) %>%
+                  dplyr::mutate(
                     grpvec = rep(group_names[groups[, d_idx], d_idx],
                                  C* (nreps- nburn* isFALSE(keep_burn))/ thin)
                   ) %>%
-                  select(-name) %>%
-                  rename(itr = 1, agevec = 2))
+                  dplyr::select(-name) %>%
+                  dplyr::rename(itr = 1, agevec = 2))
 
         ap_prop_all_1[[d_idx]][[s_idx]][[w_idx]] <-
           lapply(ap_prop[[d_idx]][[s_idx]][[w_idx]],
                  function(apa) {
                    apa %>%
-                     mutate(value = value* {harvest %>%
-                         group_by(DISTRICT, SUBDISTRICT) %>%
-                         mutate(prop_harv = prop.table(HARVEST)) %>%
-                         replace_na(list(prop_harv = 0)) %>%
-                         filter(DISTRICT == d_idx,
-                                SUBDISTRICT == s_idx,
-                                STAT_WEEK == w_idx) %>%
-                         pull(prop_harv) %>% max(., 0)})
+                     dplyr::mutate(value = value* {harvest %>%
+                         dplyr::group_by(DISTRICT, SUBDISTRICT) %>%
+                         dplyr::mutate(prop_harv = prop.table(HARVEST)) %>%
+                         tidyr::replace_na(list(prop_harv = 0)) %>%
+                         dplyr::filter(DISTRICT == d_idx,
+                                       SUBDISTRICT == s_idx,
+                                       STAT_WEEK == w_idx) %>%
+                         dplyr::pull(prop_harv) %>% max(., 0)})
                  })
 
       } # w_idx
@@ -1559,7 +1608,7 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
           lapply(ap_prop_all_1[[d_idx]][[s_idx]],
                  function(apa) {
                    apa[[chain]]
-                 }) %>% bind_rows()
+                 }) %>% dplyr::bind_rows()
       } # chain
 
     } # s_idx
@@ -1586,32 +1635,32 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
         lapply(ap_prop_all_2[[d_idx]][[s_idx]],
                function(apchain) {
                  apchain %>%
-                   select(-agevec) %>%
-                   group_by(itr, grpvec) %>%
-                   summarise(p = sum(value), .groups = "drop") %>%
-                   pivot_wider(names_from = grpvec, values_from = p) %>%
-                   select(-itr)
+                   dplyr::select(-agevec) %>%
+                   dplyr::group_by(itr, grpvec) %>%
+                   dplyr::summarise(p = sum(value), .groups = "drop") %>%
+                   tidyr::pivot_wider(names_from = grpvec, values_from = p) %>%
+                   dplyr::select(-itr)
                })
 
-      mc_pop_all[[max(S)*(d_idx-1)+s_idx]] <- as.mcmc.list(
+      mc_pop_all[[max(S)*(d_idx-1)+s_idx]] <- coda::as.mcmc.list(
         lapply(p_combo_all[[max(S)*(d_idx-1)+s_idx]],
-               function(rlist) mcmc(rlist[keep_list,])) )
+               function(rlist) coda::mcmc(rlist[keep_list,])) )
 
       summ_pop_all[[max(S)*(d_idx-1)+s_idx]] <-
         lapply(p_combo_all[[max(S)*(d_idx-1)+s_idx]], function(rlist) rlist[keep_list,]) %>%
-        bind_rows %>%
-        pivot_longer(cols = 1:ncol(.)) %>%
-        group_by(name) %>%
-        summarise(
+        dplyr::bind_rows() %>%
+        tidyr::pivot_longer(cols = everything()) %>%
+        dplyr::group_by(name) %>%
+        dplyr::summarise(
           mean = mean(value),
           median = median(value),
           sd = sd(value),
           ci.05 = quantile(value, 0.05),
           ci.95 = quantile(value, 0.95),
-          p0 = mean(value < (0.5/ max(1, ( any(p_zero[1, d_idx, , , ])* harvest %>% group_by(DISTRICT, SUBDISTRICT) %>% summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>% pull(sum_harv) )))),
+          p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT, SUBDISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
-        mutate(
+        dplyr::mutate(
           GR = {if (nchains > 1) {
             coda::gelman.diag(mc_pop_all[[max(S)*(d_idx-1)+s_idx]],
                               transform = TRUE,
@@ -1622,7 +1671,7 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
           n_eff = coda::effectiveSize(mc_pop_all[[max(S)*(d_idx-1)+s_idx]]) %>%
             .[order(group_names[seq(ncol(p_combo_all[[max(S)*(d_idx-1)+s_idx]][[1]])), d_idx])]
         ) %>%
-        rename(group = name)
+        dplyr::rename(group = name)
 
       for (w_idx in 1:W) {
 
@@ -1634,33 +1683,33 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
           lapply(ap_prop[[d_idx]][[s_idx]][[w_idx]],
                  function(apfile) {
                    apfile %>%
-                     select(-agevec) %>%
-                     group_by(itr, grpvec) %>%
-                     summarise(p = sum(value), .groups = "drop") %>%
-                     pivot_wider(names_from = grpvec, values_from = p) %>%
-                     select(-itr) #%>%
+                     dplyr::select(-agevec) %>%
+                     dplyr::group_by(itr, grpvec) %>%
+                     dplyr::summarise(p = sum(value), .groups = "drop") %>%
+                     tidyr::pivot_wider(names_from = grpvec, values_from = p) %>%
+                     dplyr::select(-itr) #%>%
                    # setNames(group_names[seq(ncol(.)), d_idx])
                  })
 
-        mc_pop[[p_idx]] <- as.mcmc.list(
+        mc_pop[[p_idx]] <- coda::as.mcmc.list(
           lapply(p_combo[[p_idx]],
-                 function(rlist) mcmc(rlist[keep_list,])) )
+                 function(rlist) coda::mcmc(rlist[keep_list,])) )
 
         summ_pop[[p_idx]] <-
           lapply(p_combo[[p_idx]], function(rlist) rlist[keep_list,]) %>%
-          bind_rows %>%
-          pivot_longer(cols = 1:ncol(.)) %>%
-          group_by(name) %>%
-          summarise(
+          dplyr::bind_rows() %>%
+          tidyr::pivot_longer(cols = everything()) %>%
+          dplyr::group_by(name) %>%
+          dplyr::summarise(
             mean = mean(value),
             median = median(value),
             sd = sd(value),
             ci.05 = quantile(value, 0.05),
             ci.95 = quantile(value, 0.95),
-            p0 = mean(value < (0.5/ max(1, (any(p_zero[1, d_idx, s_idx, w_idx, ])* filter(harvest, DISTRICT== d_idx, SUBDISTRICT== s_idx, STAT_WEEK== w_idx)$HARVEST)))),
+            p0 = mean(value < (0.5/ max(1, (any(p_zero[d_idx, s_idx, w_idx, ])* dplyr::filter(harvest, DISTRICT== d_idx, SUBDISTRICT== s_idx, STAT_WEEK== w_idx)$HARVEST)))),
             .groups = "drop"
           ) %>%
-          mutate(
+          dplyr::mutate(
             GR = {if (nchains > 1) {
               coda::gelman.diag(mc_pop[[p_idx]],
                                 transform = TRUE,
@@ -1671,7 +1720,7 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
             n_eff = coda::effectiveSize(mc_pop[[p_idx]]) %>%
               .[order(group_names[seq(ncol(p_combo[[p_idx]][[1]])), d_idx])]
           ) %>%
-          rename(group = name)
+          dplyr::rename(group = name)
 
       } # W
 
@@ -1682,8 +1731,8 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 
   out$pop_prop <-
     lapply(p_combo, function(rot) {
-      bind_rows(rot) %>%
-        mutate(
+      dplyr::bind_rows(rot) %>%
+        dplyr::mutate(
           chain = rep(1:nchains,
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
@@ -1695,8 +1744,8 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 
   out$pop_prop_all <-
     lapply(p_combo_all, function(rot) {
-      bind_rows(rot) %>%
-        mutate(
+      dplyr::bind_rows(rot) %>%
+        dplyr::mutate(
           chain = rep(1:nchains,
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
@@ -1711,20 +1760,38 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 }
 
 
+#' Title
+#'
+#' @param outraw
+#' @param dat_in
+#' @param nreps
+#' @param nburn
+#' @param thin
+#' @param nchains
+#' @param keep_burn
+#' @param C
+#' @param D
+#' @param S
+#' @param W
+#'
+#' @export
+#' @importFrom magrittr %>%
+#'
+#' @noRd
+#'
 format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W) {
 
   ### data input ### ----
   metadat <- dat_in$metadat # age and iden info
   harvest <- dat_in$harvest %>% # for calculating p0
-    mutate(n = apply(.[,1:4], 1, function(aa) {
-      filter(metadat,
-             year==aa[1],
-             district==aa[2],
-             subdist==aa[3],
-             week==aa[4]) %>% nrow
+    dplyr::mutate(n = apply(.[, 2:4], 1, function(aa) {
+      dplyr::filter(metadat,
+                    district==aa[1],
+                    subdist==aa[2],
+                    week==aa[3]) %>% nrow
     }) ) %>%
-    mutate(HARVEST = HARVEST * (n != 0)) %>%
-    select(-n)
+    dplyr::mutate(HARVEST = HARVEST * (n != 0)) %>%
+    dplyr::select(-n)
 
   groups <- dat_in$groups # vector id for reporting groups (aka groupvec)
   group_names <- dat_in$group_names # reporting groups
@@ -1745,10 +1812,10 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 
   p_zero <- array(
     apply(
-      table(metadat[, c("year","district","subdist","week","iden")], exclude = NULL),
-      seq(4),
+      table(metadat[, c("district", "subdist", "week", "iden")], exclude = NULL),
+      seq(3),
       function(alf) any(alf!= 0) # prop = 0 if no sample
-    ), c(1, D, max(S), W, K+ H))
+    ), c(D, max(S), W, K+ H))
 
   if (isFALSE(keep_burn)|keep_burn == "false") keep_burn = FALSE
 
@@ -1780,33 +1847,33 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
         # new! [[chain]][[yr]][[d]][[w]][group*itr, c(itr, grpvec, ages)]
 
         ap_prop[[d_idx]][[s_idx]][[w_idx]] <-
-          apply(outraw, MARGIN = 7,
-                function(ol) ol[ , , w_idx, s_idx, d_idx, 1] %>%
-                  as_tibble() %>%
-                  pivot_longer(cols = 1:(ncol(.)-2)) %>%
-                  mutate(
+          apply(outraw, MARGIN = 6,
+                function(ol) ol[ , , w_idx, s_idx, d_idx] %>%
+                  as.data.frame() %>%
+                  tidyr::pivot_longer(cols = 1:(ncol(.)-2)) %>%
+                  dplyr::mutate(
                     grpvec = rep(group_names[groups[, d_idx], d_idx],
                                  C* (nreps- nburn* isFALSE(keep_burn))/ thin)
                   ) %>%
-                  select(-name) %>%
-                  rename(itr = 1, agevec = 2))
+                  dplyr::select(-name) %>%
+                  dplyr::rename(itr = 1, agevec = 2))
 
         ap_combo_subdis[[d_idx]][[s_idx]][[w_idx]] <-
           lapply(ap_prop[[d_idx]][[s_idx]][[w_idx]],
                  function(apfile) {
 
                    apfile %>%
-                     group_by(itr, agevec, grpvec) %>%
-                     summarise(ppi = sum(value), .groups = "drop") %>%
-                     mutate(ppi = ppi* {harvest %>%
-                         group_by(DISTRICT, SUBDISTRICT) %>%
+                     dplyr::group_by(itr, agevec, grpvec) %>%
+                     dplyr::summarise(ppi = sum(value), .groups = "drop") %>%
+                     dplyr::mutate(ppi = ppi* {harvest %>%
+                         dplyr::group_by(DISTRICT, SUBDISTRICT) %>%
                          # proportional within a subdistrict
-                         mutate(prop_harv = prop.table(HARVEST)) %>%
-                         filter(DISTRICT == d_idx,
-                                SUBDISTRICT == s_idx,
-                                STAT_WEEK == w_idx) %>%
-                         pull(prop_harv) %>% max(., 0)}) %>%
-                     pivot_wider(names_from = agevec, values_from = ppi)
+                         dplyr::mutate(prop_harv = prop.table(HARVEST)) %>%
+                         dplyr::filter(DISTRICT == d_idx,
+                                       SUBDISTRICT == s_idx,
+                                       STAT_WEEK == w_idx) %>%
+                         dplyr::pull(prop_harv) %>% max(., 0)}) %>%
+                     tidyr::pivot_wider(names_from = agevec, values_from = ppi)
 
                  })
 
@@ -1837,16 +1904,16 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
                  function(apc) {
                    apc[[chain]]
                  }) %>%
-          bind_rows() %>%
-          group_by(itr, grpvec) %>%
-          summarise(across(.fns = sum), .groups = "drop") %>%
-          pivot_longer(-c(itr, grpvec)) %>%
-          group_by(itr, grpvec) %>%
-          mutate(value = prop.table(value)) %>%
-          ungroup() %>%
-          pivot_wider() %>%
-          select(-itr) %>%
-          setNames(., c("grpvec", age_classes))
+          dplyr::bind_rows() %>%
+          dplyr::group_by(itr, grpvec) %>%
+          dplyr::summarise(across(.fns = sum), .groups = "drop") %>%
+          tidyr::pivot_longer(-c(itr, grpvec)) %>%
+          dplyr::group_by(itr, grpvec) %>%
+          dplyr::mutate(value = prop.table(value)) %>%
+          dplyr::ungroup() %>%
+          tidyr::pivot_wider() %>%
+          dplyr::select(-itr) %>%
+          stats::setNames(., c("grpvec", age_classes))
       } # combine all individual districts
 
       for (grp in group_names[, d_idx] %>% na.omit) {
@@ -1855,29 +1922,29 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
         ap_prop_grp[[a_idx]] <-
           lapply(ap_combo_all, function(aoc) {
             ar_temp <- aoc %>%
-              filter(grpvec == grp) %>%
-              setNames(., c("grpvec", age_classes))
+              dplyr::filter(grpvec == grp) %>%
+              stats::setNames(., c("grpvec", age_classes))
             return(ar_temp)# %>% select(-grpvec))
           }) # separate rep groups into its own output
 
         mc_age[[a_idx]] <-
-          as.mcmc.list(
+          coda::as.mcmc.list(
             lapply(ap_prop_grp[[a_idx]], function(rlist) {
-              mcmc(rlist[keep_list,] %>% select(-grpvec))
+              coda::mcmc(rlist[keep_list,] %>% dplyr::select(-grpvec))
             }) )
 
         harv_subdis <- harvest %>%
-          filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>%
-          pull(HARVEST) %>%
-          mean
+          dplyr::filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>%
+          dplyr::pull(HARVEST) %>%
+          mean()
 
         summ_age[[a_idx]] <-
           lapply(ap_prop_grp[[a_idx]], function(rlist) rlist[keep_list,]) %>%
-          bind_rows %>%
-          mutate(stock_prop = rowSums(.[,-1])) %>%
-          pivot_longer(-c(stock_prop, grpvec)) %>%
-          group_by(name, grpvec) %>%
-          summarise(
+          dplyr::bind_rows() %>%
+          dplyr::mutate(stock_prop = rowSums(.[,-1])) %>%
+          tidyr::pivot_longer(-c(stock_prop, grpvec)) %>%
+          dplyr::group_by(name, grpvec) %>%
+          dplyr::summarise(
             mean = mean(value),
             median = median(value),
             sd = sd(value),
@@ -1886,7 +1953,7 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
             p0 = mean( value < (0.5/ max(1, harv_subdis* stock_prop)) ),
             .groups = "drop"
           ) %>%
-          mutate(
+          dplyr::mutate(
             GR = {if (nchains > 1) {
               coda::gelman.diag(mc_age[[a_idx]],
                                 transform = TRUE,
@@ -1897,9 +1964,9 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
             n_eff = coda::effectiveSize(mc_age[[a_idx]]) %>%
               .[order(age_classes)]
           ) %>%
-          rename(age = name,
-                 group = grpvec) %>%
-          relocate(group, .before = age)
+          dplyr::rename(age = name,
+                        group = grpvec) %>%
+          dplyr::relocate(group, .before = age)
       } # grp
 
     } # S
@@ -1909,8 +1976,8 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 
   out$age_prop <-
     lapply(ap_prop_grp, function(rot) {
-      bind_rows(rot) %>%
-        mutate(
+      dplyr::bind_rows(rot) %>%
+        dplyr::mutate(
           chain = rep(1:nchains,
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
@@ -1925,22 +1992,33 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 }
 
 
-# runners ----
-magma_format_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, summ_level) {
+# runners
 
-  ### load required packages ### ----
-  if(!require("pacman")) install.packages("pacman")
-  library(pacman)
-  pacman::p_load(coda, tidyverse)
+#' Summarize population part of MAGMA output
+#'
+#' @param outraw
+#' @param dat_in
+#' @param nreps
+#' @param nburn
+#' @param thin
+#' @param nchains
+#' @param keep_burn
+#' @param summ_level
+#'
+#' @export
+#' @importFrom magrittr %>%
+#'
+#' @noRd
+#'
+magmatize_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, summ_level) {
 
   ### info needed ### ----
   C <- dat_in$C # number of age classes
   D <- dplyr::n_distinct(dat_in$metadat$district) # number of districts
   S <- dat_in$metadat %>%
-    group_by(district) %>%
-    summarise(S = n_distinct(subdist),
-              .groups = "drop") %>%
-    pull(S) # number of subdistricts
+    dplyr::group_by(district) %>%
+    dplyr::summarise(S = dplyr::n_distinct(subdist), .groups = "drop") %>%
+    dplyr::pull(S) # number of subdistricts
   W <- max(dplyr::n_distinct(dat_in$metadat$week), length(dat_in$stat_weeks)) # number of stats weeks
 
   ng <- apply(dat_in$groups, 2, max) # number of groups
@@ -1958,7 +2036,7 @@ magma_format_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_b
     out <- format_district_pop(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W)
   } else if (summ_level == "subdistrict") {
     out <- format_subdistrict_pop(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W)
-  }
+  } else stop("Invalid summ_level.")
 
   if (summ_level == "district") {
 
@@ -2020,7 +2098,7 @@ magma_format_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_b
     }
   } else if (summ_level == "subdistrict") {
     for(li in 3:4) {
-      names(out[[li]]) <- subdist_names %>% unlist() %>% names
+      names(out[[li]]) <- subdist_names %>% unlist() %>% names()
     }
   }
 
@@ -2032,21 +2110,31 @@ magma_format_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_b
 }
 
 
-magma_format_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, summ_level) {
-
-  ### load required packages ### ----
-  if(!require("pacman")) install.packages("pacman")
-  library(pacman)
-  pacman::p_load(coda, tidyverse)
+#' Summarize age part of MAGMA output
+#'
+#' @param outraw
+#' @param dat_in
+#' @param nreps
+#' @param nburn
+#' @param thin
+#' @param nchains
+#' @param keep_burn
+#' @param summ_level
+#'
+#' @export
+#' @importFrom magrittr %>%
+#'
+#' @noRd
+#'
+magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, summ_level) {
 
   ### info needed ### ----
   C <- dat_in$C # number of age classes
   D <- dplyr::n_distinct(dat_in$metadat$district) # number of districts
   S <- dat_in$metadat %>%
-    group_by(district) %>%
-    summarise(S = n_distinct(subdist),
-              .groups = "drop") %>%
-    pull(S) # number of subdistricts
+    dplyr::group_by(district) %>%
+    dplyr::summarise(S = dplyr::n_distinct(subdist), .groups = "drop") %>%
+    dplyr::pull(S) # number of subdistricts
   W <- max(dplyr::n_distinct(dat_in$metadat$week), length(dat_in$stat_weeks)) # number of stats weeks
 
   ng <- apply(dat_in$groups, 2, max) # number of groups
@@ -2064,7 +2152,7 @@ magma_format_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_b
     out <- format_district_age(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W)
   } else if (summ_level == "subdistrict") {
     out <- format_subdistrict_age(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W)
-  }
+  } else stop("INvalid summ_level.")
 
   # id for age outputs
   if (summ_level == "district") {
@@ -2130,18 +2218,53 @@ magma_format_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_b
 
 
 ## format wrapper for TBR ----
-tbr_format_wraper <- function(which_dist, outraw, ma_dat, n_itr, n_burn, n_thin, n_chain, keepburn, summlevel, type = NULL) {
+
+#' TBR output format wrapper
+#'
+#' @param which_dist Function format raw magma output one district at a time. Identify district as 1, 2, ...
+#' @param outraw MAGMA output
+#' @param ma_dat MAGMA input data
+#' @param nreps The same as *nreps* in MAGMA model run
+#' @param nburn The same as *nburn* in MAGMA model run
+#' @param thin The same as *thin* in MAGMA model run
+#' @param nchains The same as *nchains* in MAGMA model run
+#' @param keep_burn The same as *keep_burn* in MAGMA model run
+#' @param summ_level Summarize at district or subdistrict level
+#' @param type Identify "pop" or "age" to summarize only populations or age class.
+#'   if you don't specify a "type", it will summarize both pop and age at the same time.
+#'
+#' @return Summary tables for reporting groups and/or age classes for the TBR fisheries.
+#' @export
+#' @importFrom magrittr %>%
+#'
+#' @examples
+#' # format data
+#' wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
+#' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+#'
+#' # model run
+#' magma_out <- magmatize_mdl(magma_data,
+#'   nreps = 50, nburn = 25, thin = 1, nchains = 3, tbr = TRUE)
+#'
+#' # summary
+#' magma_summ <- magmatize_summ_tbr(which_dist = 2,
+#'   outraw = magma_out,
+#'   ma_dat = magma_data,
+#'   nreps = 50, nburn = 25, thin = 1, nchains = 3,
+#'   summ_level = "district")
+#'
+magmatize_summ_tbr <- function(which_dist, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, type = NULL) {
 
   sub_dat <- list(
     x = ma_dat$x[which(ma_dat$metadat$district == which_dist), ],
     y = ma_dat$y,
 
     metadat = ma_dat$metadat %>%
-      filter(district == which_dist) %>%
-      mutate(district = 1), # chase
+      dplyr::filter(district == which_dist) %>%
+      dplyr::mutate(district = 1),
     harvest = ma_dat$harvest %>%
-      filter(DISTRICT == which_dist) %>%
-      mutate(DISTRICT = 1), # chase
+      dplyr::filter(DISTRICT == which_dist) %>%
+      dplyr::mutate(DISTRICT = 1),
 
     nstates = ma_dat$nstates,
     nalleles = ma_dat$nalleles,
@@ -2160,10 +2283,9 @@ tbr_format_wraper <- function(which_dist, outraw, ma_dat, n_itr, n_burn, n_thin,
   )
 
   S <- ma_dat$metadat %>%
-    group_by(district) %>%
-    summarise(S = n_distinct(subdist),
-              .groups = "drop") %>%
-    pull(S) # number of subdistricts
+    dplyr::group_by(district) %>%
+    dplyr::summarise(S = dplyr::n_distinct(subdist), .groups = "drop") %>%
+    dplyr::pull(S) # number of subdistricts
   W <- dplyr::n_distinct(ma_dat$metadat$week) # number of weeks
   KH <- nrow(ma_dat$y)
 
@@ -2171,131 +2293,24 @@ tbr_format_wraper <- function(which_dist, outraw, ma_dat, n_itr, n_burn, n_thin,
     lapply(outraw, function(dis) {
       lapply(dis[[which_dist]], function(subdis) {
         lapply(subdis, function(wk) {
-          wk %>% bind_rows() %>% unlist()
+          wk %>% dplyr::bind_rows() %>% unlist()
         }) %>% unlist()
       }) %>% unlist()
     })  %>% unlist %>%
-    array(., dim = c((ma_dat$C)* (n_itr- n_burn)/ n_thin, KH+2, W, S[which_dist], 1, 1, n_chain))
+    array(., dim = c((ma_dat$C)* (nreps- isFALSE(keep_burn)*nburn)/ thin, KH+2, W, S[which_dist], 1, nchains))
 
   if (is.null(type)) {
-    sub_out <- magma_format_out(holder, sub_dat, n_itr, n_burn, n_thin, n_chain, keepburn, summlevel)
+    sub_out <- magmatize_summ(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level)
   } else if (type == "pop") {
-    sub_out <- magma_format_pop(holder, sub_dat, n_itr, n_burn, n_thin, n_chain, keepburn, summlevel)
+    sub_out <- magmatize_pop(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level)
   } else if (type == "age") {
-    sub_out <- magma_format_age(holder, sub_dat, n_itr, n_burn, n_thin, n_chain, keepburn, summlevel)
+    sub_out <- magmatize_age(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level)
   }
 
   return(sub_out)
 
-  # wraper to format raw magma output one district at a time
-
-  # Example:
-  #
-  # nreps = 100
-  # nburn = 50
-  # thin = 5
-  # nchains = 5
-  # keep_burn = TRUE
-  #
-  # out2 <- format_wraper(which_dist = 2,
-  #                       outraw = out_raw,
-  #                       ma_dat = magmadat,
-  #                       n_itr = nreps,
-  #                       n_burn = nburn,
-  #                       n_thin = thin,
-  #                       n_chain = nchains,
-  #                       keepburn = keep_burn,
-  #                       summlevel = "district",
-  #                       type = "pop")
-
-  ## if you don't specify "type", it will summarize both pop and age at the same time
-
 }
 
-# format_wraper <- function(which_dist, outraw, ma_dat, n_itr, n_burn, n_thin, n_chain, keepburn, summlevel, type = NULL) {
-#
-#   sub_dat <- list(
-#     x = ma_dat$x[which(ma_dat$metadat$district == which_dist), ],
-#     y = ma_dat$y,
-#
-#     metadat = ma_dat$metadat %>%
-#       filter(district == which_dist) %>%
-#       mutate(district = 1), # chase
-#     harvest = ma_dat$harvest %>%
-#       filter(DISTRICT == which_dist) %>%
-#       mutate(DISTRICT = 1), # chase
-#
-#     nstates = ma_dat$nstates,
-#     nalleles = ma_dat$nalleles,
-#     C = ma_dat$C,
-#     groups = cbind(ma_dat$groups[, which_dist, drop = FALSE]),
-#     group_names = cbind(ma_dat$group_names[, which_dist, drop = FALSE]),
-#
-#     age_class = ma_dat$age_class,
-#     age_classes = ma_dat$age_classes,
-#     wildpops = ma_dat$wildpops,
-#     hatcheries = ma_dat$hatcheries,
-#
-#     districts = ma_dat$districts[which_dist, drop = FALSE],
-#     subdistricts = ma_dat$subdistricts[which_dist, drop = FALSE],
-#     stat_weeks = ma_dat$stat_weeks
-#   )
-#
-#   holder <- array(NA, c(dim(outraw)[1:4], 1, 1, n_chain))
-#   holder[seq(dim(outraw)[1]), seq(dim(outraw)[2]), seq(dim(outraw)[3]), seq(dim(outraw)[4]), 1, 1, seq(n_chain)] <- outraw[seq(dim(outraw)[1]), seq(dim(outraw)[2]), seq(dim(outraw)[3]), seq(dim(outraw)[4]), which_dist, 1, seq(n_chain)]
-#
-#   if (is.null(type)) {
-#     sub_out <- magma_format_out(holder, sub_dat, n_itr, n_burn, n_thin, n_chain, keepburn, summlevel)
-#   } else if (type == "pop") {
-#     sub_out <- magma_format_pop(holder, sub_dat, n_itr, n_burn, n_thin, n_chain, keepburn, summlevel)
-#   } else if (type == "age") {
-#     sub_out <- magma_format_age(holder, sub_dat, n_itr, n_burn, n_thin, n_chain, keepburn, summlevel)
-#   }
-#
-#   return(sub_out)
-#
-#   # wraper to format raw magma output one district at a time
-#
-#   # Example:
-#   #
-#   # nreps = 100
-#   # nburn = 50
-#   # thin = 5
-#   # nchains = 5
-#   # keep_burn = TRUE
-#   #
-#   # out2 <- format_wraper(which_dist = 2,
-#   #                       outraw = out_raw,
-#   #                       ma_dat = magmadat,
-#   #                       n_itr = nreps,
-#   #                       n_burn = nburn,
-#   #                       n_thin = thin,
-#   #                       n_chain = nchains,
-#   #                       keepburn = keep_burn,
-#   #                       summlevel = "district",
-#   #                       type = "pop")
-#
-#   ## if you don't specify "type", it will summarize both pop and age at the same time
-#
-# }
-
-
-## traceplot ----
-ggtr_plt <- function (obj, nburn = 0, thin = 1) {
-
-  if ("grpvec" %in% names(obj)) obj <- select(obj, -grpvec)
-
-  pivot_longer({{obj}}, cols = -c(chain, itr)) %>%
-    ggplot() +
-    geom_line(aes(x = itr, y = value, color = factor(chain))) +
-    {if (nburn > 0) {
-      annotate("rect", fill = "red", alpha = 0.15,
-               xmin = 0, xmax = nburn/thin, ymin = -Inf, ymax = Inf)
-    }} +
-    facet_grid(name ~ ., scales = "free") +
-    labs(color = "MC chain")
-
-} # nburn = 0 if keep_burn = FALSE
 
 
 
