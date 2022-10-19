@@ -36,7 +36,7 @@
 #' # model run
 #' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
 #'
-magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_priors = "weak", cond_gsi = TRUE, out_path = NULL, seed = NULL, tbr = FALSE) {
+magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_priors = "weak", cond_gsi = TRUE, out_path = NULL, seed = NULL) {
 
   ### ballroom categories ### ----
 
@@ -210,7 +210,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   doParallel::registerDoParallel(cl, cores = nchains)
   if (!is.null(seed)) doRNG::registerDoRNG(seed, once = TRUE)
 
-  out_list <- foreach::foreach(
+  magma_out <- foreach::foreach(
     ch = chains, .packages = c("magrittr", "tidyr", "dplyr")
     ) %dorng% {
 
@@ -311,27 +311,27 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
 
   parallel::stopCluster(cl)
 
-
-  if (tbr) {
-    out <- out_list
-  } else {
-    out <- lapply(out_list, function(ch) {
-      lapply(ch, function(dis) {
-        sapply(dis, function(subdist) {
-          sapply(subdist, function(wk) {
-            wk %>% dplyr::bind_rows()
-          }) %>% unlist(.)
-        }) %>% unlist(.)
-      }) %>% unlist(.)
-    }) %>% sapply(., function(ol) ol) %>%
-      array(., dim = c(C * (nreps - nburn) / thin, K + H + 2, W, max(S), D, nchains))
-  } # R can't handle big ass TBR dataset
-
-  if (!is.null(out_path)) save(out, file = out_path)
+  if (!is.null(out_path)) save(magma_out, file = out_path)
 
   print(Sys.time() - run_time)
   message(Sys.time())
 
-  return(out)
+  return(magma_out)
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

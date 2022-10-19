@@ -2,7 +2,7 @@
 
 ## file contains functions for formatting non-TBR and TBR magma output
 
-## summarize non-TBR output ----
+## summarize both pop and age ----
 
 #' Format district
 #'
@@ -30,7 +30,6 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
   harvest <- dat_in$harvest %>% # for calculating p0
     dplyr::mutate(n = apply(.[, 2:4], 1, function(aa) {
       dplyr::filter(metadat,
-                    # year == aa[1],
                     district == aa[1],
                     subdist == aa[2],
                     week == aa[3]) %>% nrow()
@@ -800,18 +799,9 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
 #' @export
 #' @importFrom magrittr %>%
 #'
-#' @examples
-#' # format data
-#' wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
-#' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+#' @noRd
 #'
-#' # model run
-#' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
-#'
-#' # summary
-#' magma_summ <- magmatize_summ(magma_out, magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3, summ_level = "district")
-#'
-magmatize_summ <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level) {
+magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level) {
 
   ### info needed ### ----
   C <- dat_in$C # number of age classes
@@ -963,7 +953,7 @@ magmatize_summ <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bur
 
 
 
-## pop and age separately ----
+## summarize pop and age separately ----
 
 # district
 
@@ -2217,11 +2207,11 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 }
 
 
-## format wrapper for TBR ----
+## format wrapper ----
 
-#' TBR output format wrapper
+#' Output format wrapper
 #'
-#' @param which_dist Function format raw magma output one district at a time. Identify district as 1, 2, ...
+#' @param which_dist Function format raw magma output one district at a time. Identify district as 1, 2, ... Default = NULL will summarize all districts.
 #' @param outraw MAGMA output
 #' @param ma_dat MAGMA input data
 #' @param nreps The same as *nreps* in MAGMA model run
@@ -2233,7 +2223,7 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #' @param type Identify "pop" or "age" to summarize only populations or age class.
 #'   if you don't specify a "type", it will summarize both pop and age at the same time.
 #'
-#' @return Summary tables for reporting groups and/or age classes for the TBR fisheries.
+#' @return Summary tables for reporting groups and/or age classes.
 #' @export
 #' @importFrom magrittr %>%
 #'
@@ -2244,27 +2234,29 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #'
 #' # model run
 #' magma_out <- magmatize_mdl(magma_data,
-#'   nreps = 50, nburn = 25, thin = 1, nchains = 3, tbr = TRUE)
+#'   nreps = 50, nburn = 25, thin = 1, nchains = 3)
 #'
 #' # summary
-#' magma_summ <- magmatize_summ_tbr(which_dist = 2,
+#' magma_summ <- magmatize_summ(which_dist = 2,
 #'   outraw = magma_out,
 #'   ma_dat = magma_data,
 #'   nreps = 50, nburn = 25, thin = 1, nchains = 3,
-#'   summ_level = "district")
+#'   summ_level = "district", type = "pop")
 #'
-magmatize_summ_tbr <- function(which_dist, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, type = NULL) {
+magmatize_summ <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, type = NULL) {
+
+  if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
 
   sub_dat <- list(
-    x = ma_dat$x[which(ma_dat$metadat$district == which_dist), ],
+    x = ma_dat$x[which(ma_dat$metadat$district %in% which_dist), ],
     y = ma_dat$y,
 
     metadat = ma_dat$metadat %>%
-      dplyr::filter(district == which_dist) %>%
-      dplyr::mutate(district = 1),
+      dplyr::filter(district %in% which_dist) %>%
+      { if (length(which_dist) == 1) dplyr::mutate(., district = 1) else . },
     harvest = ma_dat$harvest %>%
-      dplyr::filter(DISTRICT == which_dist) %>%
-      dplyr::mutate(DISTRICT = 1),
+      dplyr::filter(DISTRICT %in% which_dist) %>%
+      { if (length(which_dist) == 1) dplyr::mutate(., DISTRICT = 1) else . },
 
     nstates = ma_dat$nstates,
     nalleles = ma_dat$nalleles,
@@ -2289,18 +2281,31 @@ magmatize_summ_tbr <- function(which_dist, outraw, ma_dat, nreps, nburn, thin, n
   W <- dplyr::n_distinct(ma_dat$metadat$week) # number of weeks
   KH <- nrow(ma_dat$y)
 
-  holder <-
-    lapply(outraw, function(dis) {
-      lapply(dis[[which_dist]], function(subdis) {
-        lapply(subdis, function(wk) {
-          wk %>% dplyr::bind_rows() %>% unlist()
+  if (length(which_dist) > 1) {
+    holder <- lapply(outraw, function(ch) {
+      lapply(ch, function(dis) {
+        sapply(dis[which_dist], function(subdist) {
+          sapply(subdist, function(wk) {
+            wk %>% dplyr::bind_rows()
+          }) %>% unlist(.)
+        }) %>% unlist(.)
+      }) %>% unlist(.)
+    }) %>% sapply(., function(ol) ol) %>%
+      array(., dim = c(ma_dat$C * (nreps - nburn*isFALSE(keep_burn)) / thin, KH + 2, W, max(S[which_dist]), length(which_dist), nchains))
+  } else {
+    holder <-
+      lapply(outraw, function(dis) {
+        lapply(dis[[which_dist]], function(subdis) {
+          lapply(subdis, function(wk) {
+            wk %>% dplyr::bind_rows() %>% unlist()
+          }) %>% unlist()
         }) %>% unlist()
-      }) %>% unlist()
-    })  %>% unlist %>%
-    array(., dim = c((ma_dat$C)* (nreps- isFALSE(keep_burn)*nburn)/ thin, KH+2, W, S[which_dist], 1, nchains))
+      })  %>% unlist() %>%
+      array(., dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, S[which_dist], 1, nchains))
+  }
 
   if (is.null(type)) {
-    sub_out <- magmatize_summ(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level)
+    sub_out <- magmatize_all(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level)
   } else if (type == "pop") {
     sub_out <- magmatize_pop(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level)
   } else if (type == "age") {
