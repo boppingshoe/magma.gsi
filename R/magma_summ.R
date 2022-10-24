@@ -64,8 +64,8 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
   if (isFALSE(keep_burn)|keep_burn == "false") keep_burn = FALSE
 
   ### prepare output ### ----
-  # organization of out_list:
-  # [[chain]][[yr]][[dist]][[sub]][[week]][age, pop, itr]
+  # organization of outraw:
+  # [age * (nreps - nburn) / thin, pop + 2, week, sub, dist, chains]
 
   ap_prop <- ap_prop2 <- ap_prop2b <- ap_prop2c <- ap_combo_dis <- list()
   ap_prop_all_1 <- ap_prop_all_2 <- list()
@@ -1115,7 +1115,7 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
   # exclude burn-in while calculate r hat
   keep_list <- ((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn)))[!((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn))) %% thin] / thin
 
-  # place holders/empty objects for age/pop summaries
+  # place holders/empty objects for pop summaries
   p_combo <- mc_pop <- summ_pop <- list()
   p_combo_all <- mc_pop_all <- summ_pop_all <- list()
   p_idx <- 0
@@ -1476,7 +1476,7 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
 # subdistrict
 
-#' Title
+#' Format subdistrict populations
 #'
 #' @param outraw
 #' @param dat_in
@@ -1750,7 +1750,7 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 }
 
 
-#' Title
+#' Format subdistrict age classes
 #'
 #' @param outraw
 #' @param dat_in
@@ -2011,8 +2011,6 @@ magmatize_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
     dplyr::pull(S) # number of subdistricts
   W <- max(dplyr::n_distinct(dat_in$metadat$week), length(dat_in$stat_weeks)) # number of stats weeks
 
-  ng <- apply(dat_in$groups, 2, max) # number of groups
-
   if (!is.null(dat_in$districts)) dist_names <- dat_in$districts
   if (!is.null(dat_in$subdistricts)) subdist_names <- dat_in$subdistricts
   if (!is.null(dat_in$stat_weeks)) week_names <- dat_in$stat_weeks
@@ -2211,7 +2209,8 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 
 #' Output format wrapper
 #'
-#' @param which_dist Function format raw magma output one district at a time. Identify district as 1, 2, ... Default = NULL will summarize all districts.
+#' @param which_dist Function format raw magma output one district at a time.
+#'   Identify district as 1, 2, ... Default = NULL will summarize all districts.
 #' @param outraw MAGMA output
 #' @param ma_dat MAGMA input data
 #' @param nreps The same as *nreps* in MAGMA model run
@@ -2222,6 +2221,7 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #' @param summ_level Summarize at district or subdistrict level
 #' @param type Identify "pop" or "age" to summarize only populations or age class.
 #'   if you don't specify a "type", it will summarize both pop and age at the same time.
+#' @param malia = TRUE if the output is from program malia.
 #'
 #' @return Summary tables for reporting groups and/or age classes.
 #' @export
@@ -2243,7 +2243,7 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #'   nreps = 50, nburn = 25, thin = 1, nchains = 3,
 #'   summ_level = "district", type = "pop")
 #'
-magmatize_summ <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, type = NULL) {
+magmatize_summ <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, type = NULL, malia = FALSE) {
 
   if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
 
@@ -2281,27 +2281,34 @@ magmatize_summ <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin
   W <- dplyr::n_distinct(ma_dat$metadat$week) # number of weeks
   KH <- nrow(ma_dat$y)
 
-  if (length(which_dist) > 1) {
-    holder <- lapply(outraw, function(ch) {
-      lapply(ch, function(dis) {
-        sapply(dis[which_dist], function(subdist) {
-          sapply(subdist, function(wk) {
-            wk %>% dplyr::bind_rows()
+  # organization of outraw:
+  # [[chain]][[dist]][[sub]][[week]][age, pop, itr]
+
+  if (isTRUE(malia)) {
+    holder <- array(outraw[ , , , , which_dist, ], dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, max(S), length(which_dist), nchains))
+  } else {
+    if (length(which_dist) > 1) {
+      holder <- lapply(outraw, function(ch) {
+        lapply(ch, function(dis) {
+          sapply(dis[which_dist], function(subdist) {
+            sapply(subdist, function(wk) {
+              wk %>% dplyr::bind_rows()
+            }) %>% unlist(.)
           }) %>% unlist(.)
         }) %>% unlist(.)
-      }) %>% unlist(.)
-    }) %>% sapply(., function(ol) ol) %>%
-      array(., dim = c(ma_dat$C * (nreps - nburn*isFALSE(keep_burn)) / thin, KH + 2, W, max(S[which_dist]), length(which_dist), nchains))
-  } else {
-    holder <-
-      lapply(outraw, function(dis) {
-        lapply(dis[[which_dist]], function(subdis) {
-          lapply(subdis, function(wk) {
-            wk %>% dplyr::bind_rows() %>% unlist()
+      }) %>% sapply(., function(ol) ol) %>%
+        array(., dim = c(ma_dat$C * (nreps - nburn*isFALSE(keep_burn)) / thin, KH + 2, W, max(S[which_dist]), length(which_dist), nchains))
+    } else {
+      holder <-
+        lapply(outraw, function(ch) {
+          lapply(ch[[which_dist]], function(subdis) {
+            lapply(subdis, function(wk) {
+              wk %>% dplyr::bind_rows() %>% unlist()
+            }) %>% unlist()
           }) %>% unlist()
-        }) %>% unlist()
-      })  %>% unlist() %>%
-      array(., dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, S[which_dist], 1, nchains))
+        })  %>% unlist() %>%
+        array(., dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, S[which_dist], 1, nchains))
+    }
   }
 
   if (is.null(type)) {
