@@ -15,8 +15,7 @@ magmatize_mdl(
   age_priors = "weak",
   cond_gsi = TRUE,
   out_path = NULL,
-  seed = NULL,
-  tbr = FALSE
+  seed = NULL
 )
 }
 \arguments{
@@ -36,14 +35,22 @@ magmatize_mdl(
 
 \item{cond_gsi}{Option to use conditional GSI model. The default is \code{TRUE}.}
 
-\item{out_path}{File path for saving the output. The default is \code{NULL} for not saving the output.}
+\item{out_path}{File path for saving the output.
+The default is \code{NULL} for not saving the output.}
 
-\item{seed}{Option to initialize a pseudo-random number generator (set random seed) so the output can be reproduced exactly. Just pick a seed number and make note of it for future reference. The default is \code{NULL}.}
+\item{seed}{Option to initialize a pseudo-random number generator (set random seed)
+so the output can be reproduced exactly.
+Just pick a seed number and make note of it for future reference.
+The default is \code{NULL}.}
 
-\item{age_prior}{Specify the level of prior influence for age. The default is "weak", which has sum of age priors = 1. If specify \code{age_prior = "strong"}, it will have sum of age priors = number of specified age classes.}
+\item{age_prior}{Specify the level of prior influence for age.
+The default is "weak", which has sum of age priors = 1.
+If specify \code{age_prior = "strong"}, it will have sum of age priors
+= number of specified age classes.}
 }
 \value{
-The raw output of MAGMA is a multi-way array that need to be summarized using summary functions.
+The raw output of MAGMA is a multi-way array that need to be summarized
+using summary functions.
 }
 \description{
 Run MAGMA model
@@ -52,6 +59,8 @@ Run MAGMA model
 # format data
 wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+
 # model run
 magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
+
 }

@@ -2,6 +2,11 @@
 
 export(magmatize_data)
 export(magmatize_mdl)
+export(magmatize_summ)
+export(magmatize_summ_tbr1)
+export(magmatize_summ_tbr2)
+export(magmatize_summ_tbr3)
+export(tr_plot)
 importFrom(doRNG,"%dorng%")
 importFrom(foreach,"%dopar%")
 importFrom(magrittr,"%>%")

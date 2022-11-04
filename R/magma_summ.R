@@ -18,7 +18,6 @@
 #' @param S
 #' @param W
 #'
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @noRd
@@ -414,7 +413,6 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
 #' @param S
 #' @param W
 #'
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @noRd
@@ -796,7 +794,6 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
 #'
 #' @return Summary tables for reporting groups and age classes
 #'
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @noRd
@@ -971,7 +968,6 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #' @param S
 #' @param W
 #'
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @noRd
@@ -1263,7 +1259,6 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 #' @param S
 #' @param W
 #'
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @noRd
@@ -1490,7 +1485,6 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 #' @param S
 #' @param W
 #'
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @noRd
@@ -1764,7 +1758,6 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 #' @param S
 #' @param W
 #'
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @noRd
@@ -1995,7 +1988,6 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 #' @param keep_burn
 #' @param summ_level
 #'
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @noRd
@@ -2109,7 +2101,6 @@ magmatize_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #' @param keep_burn
 #' @param summ_level
 #'
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @noRd

@@ -24,4 +24,5 @@ Preparing MAGMA input data
 \examples{
 wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+
 }
