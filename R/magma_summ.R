@@ -6,17 +6,17 @@
 
 #' Format district
 #'
-#' @param outraw
-#' @param dat_in
-#' @param nreps
-#' @param nburn
-#' @param thin
-#' @param nchains
-#' @param keep_burn
-#' @param C
-#' @param D
-#' @param S
-#' @param W
+#' @param outraw MAGMA output
+#' @param dat_in MAGMA data
+#' @param nreps same as MAGMA model run
+#' @param nburn same as MAGMA model run
+#' @param thin same as MAGMA model run
+#' @param nchains same as MAGMA model run
+#' @param keep_burn same as MAGMA model run
+#' @param C Age classes
+#' @param D Districts
+#' @param S Subdistricts
+#' @param W Weeks
 #'
 #' @importFrom magrittr %>%
 #'
@@ -401,17 +401,17 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
 
 #' Format subdistrict
 #'
-#' @param outraw
-#' @param dat_in
-#' @param nreps
-#' @param nburn
-#' @param thin
-#' @param nchains
-#' @param keep_burn
-#' @param C
-#' @param D
-#' @param S
-#' @param W
+#' @param outraw MAGMA output
+#' @param dat_in MAGMA data
+#' @param nreps same as MAGMA model run
+#' @param nburn same as MAGMA model run
+#' @param thin same as MAGMA model run
+#' @param nchains same as MAGMA model run
+#' @param keep_burn same as MAGMA model run
+#' @param C Age classes
+#' @param D Districts
+#' @param S Subdistricts
+#' @param W Weeks
 #'
 #' @importFrom magrittr %>%
 #'
@@ -462,7 +462,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
   # organization of out_list:
   # [[chain]][[yr]][[dist]][[sub]][[week]][age, pop, itr]
 
-  ap_prop <- ap_prop2 <- ap_prop2b <- ap_prop2c <- ap_combo_subdis <- list()
+  ap_prop <- ap_combo_subdis <- list()
   ap_prop_all_1 <- ap_prop_all_2 <- list()
 
   for (d_idx in 1:D) {
@@ -956,17 +956,17 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 
 #' Format district populations
 #'
-#' @param outraw
-#' @param dat_in
-#' @param nreps
-#' @param nburn
-#' @param thin
-#' @param nchains
-#' @param keep_burn
-#' @param C
-#' @param D
-#' @param S
-#' @param W
+#' @param outraw MAGMA output
+#' @param dat_in MAGMA data
+#' @param nreps same as MAGMA model run
+#' @param nburn same as MAGMA model run
+#' @param thin same as MAGMA model run
+#' @param nchains same as MAGMA model run
+#' @param keep_burn same as MAGMA model run
+#' @param C Age classes
+#' @param D Districts
+#' @param S Subdistricts
+#' @param W Weeks
 #'
 #' @importFrom magrittr %>%
 #'
@@ -988,9 +988,9 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
   groups <- dat_in$groups # vector id for reporting groups (aka groupvec)
   group_names <- dat_in$group_names # reporting groups
-  age_class <- dat_in$age_class # vector id for age classes
-  age_classes <- dat_in$age_classes # reporting age classes
-  age_classes <- age_classes[sort(unique(age_class))]
+  # age_class <- dat_in$age_class # vector id for age classes
+  # age_classes <- dat_in$age_classes # reporting age classes
+  # age_classes <- age_classes[sort(unique(age_class))]
 
   wildpops <- dat_in$wildpops
   K <- length(wildpops)
@@ -1247,17 +1247,17 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
 #' Format district age classes
 #'
-#' @param outraw
-#' @param dat_in
-#' @param nreps
-#' @param nburn
-#' @param thin
-#' @param nchains
-#' @param keep_burn
-#' @param C
-#' @param D
-#' @param S
-#' @param W
+#' @param outraw MAGMA output
+#' @param dat_in MAGMA data
+#' @param nreps same as MAGMA model run
+#' @param nburn same as MAGMA model run
+#' @param thin same as MAGMA model run
+#' @param nchains same as MAGMA model run
+#' @param keep_burn same as MAGMA model run
+#' @param C Age classes
+#' @param D Districts
+#' @param S Subdistricts
+#' @param W Weeks
 #'
 #' @importFrom magrittr %>%
 #'
@@ -1473,17 +1473,17 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
 
 #' Format subdistrict populations
 #'
-#' @param outraw
-#' @param dat_in
-#' @param nreps
-#' @param nburn
-#' @param thin
-#' @param nchains
-#' @param keep_burn
-#' @param C
-#' @param D
-#' @param S
-#' @param W
+#' @param outraw MAGMA output
+#' @param dat_in MAGMA data
+#' @param nreps same as MAGMA model run
+#' @param nburn same as MAGMA model run
+#' @param thin same as MAGMA model run
+#' @param nchains same as MAGMA model run
+#' @param keep_burn same as MAGMA model run
+#' @param C Age classes
+#' @param D Districts
+#' @param S Subdistricts
+#' @param W Weeks
 #'
 #' @importFrom magrittr %>%
 #'
@@ -1505,9 +1505,9 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 
   groups <- dat_in$groups # vector id for reporting groups (aka groupvec)
   group_names <- dat_in$group_names # reporting groups
-  age_class <- dat_in$age_class # vector id for age classes
-  age_classes <- dat_in$age_classes # reporting age classes
-  age_classes <- age_classes[sort(unique(age_class))]
+  # age_class <- dat_in$age_class # vector id for age classes
+  # age_classes <- dat_in$age_classes # reporting age classes
+  # age_classes <- age_classes[sort(unique(age_class))]
 
   wildpops <- dat_in$wildpops
   K <- length(wildpops)
@@ -1746,17 +1746,17 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 
 #' Format subdistrict age classes
 #'
-#' @param outraw
-#' @param dat_in
-#' @param nreps
-#' @param nburn
-#' @param thin
-#' @param nchains
-#' @param keep_burn
-#' @param C
-#' @param D
-#' @param S
-#' @param W
+#' @param outraw MAGMA output
+#' @param dat_in MAGMA data
+#' @param nreps same as MAGMA model run
+#' @param nburn same as MAGMA model run
+#' @param thin same as MAGMA model run
+#' @param nchains same as MAGMA model run
+#' @param keep_burn same as MAGMA model run
+#' @param C Age classes
+#' @param D Districts
+#' @param S Subdistricts
+#' @param W Weeks
 #'
 #' @importFrom magrittr %>%
 #'
@@ -1793,12 +1793,12 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
     H <- length(hatcheries)
   }
 
-  p_zero <- array(
-    apply(
-      table(metadat[, c("district", "subdist", "week", "iden")], exclude = NULL),
-      seq(3),
-      function(alf) any(alf!= 0) # prop = 0 if no sample
-    ), c(D, max(S), W, K+ H))
+  # p_zero <- array(
+  #   apply(
+  #     table(metadat[, c("district", "subdist", "week", "iden")], exclude = NULL),
+  #     seq(3),
+  #     function(alf) any(alf!= 0) # prop = 0 if no sample
+  #   ), c(D, max(S), W, K+ H))
 
   if (isFALSE(keep_burn)|keep_burn == "false") keep_burn = FALSE
 
@@ -1979,14 +1979,14 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
 
 #' Summarize population part of MAGMA output
 #'
-#' @param outraw
-#' @param dat_in
-#' @param nreps
-#' @param nburn
-#' @param thin
-#' @param nchains
-#' @param keep_burn
-#' @param summ_level
+#' @param outraw MAGMA output
+#' @param dat_in MAGMA data
+#' @param nreps same as MAGMA model run
+#' @param nburn same as MAGMA model run
+#' @param thin same as MAGMA model run
+#' @param nchains same as MAGMA model run
+#' @param keep_burn same as MAGMA model run
+#' @param summ_level Summarize to district or subdistrict
 #'
 #' @importFrom magrittr %>%
 #'
@@ -2092,14 +2092,14 @@ magmatize_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 
 #' Summarize age part of MAGMA output
 #'
-#' @param outraw
-#' @param dat_in
-#' @param nreps
-#' @param nburn
-#' @param thin
-#' @param nchains
-#' @param keep_burn
-#' @param summ_level
+#' @param outraw MAGMA output
+#' @param dat_in MAGMA data
+#' @param nreps same as MAGMA model run
+#' @param nburn same as MAGMA model run
+#' @param thin same as MAGMA model run
+#' @param nchains same as MAGMA model run
+#' @param keep_burn same as MAGMA model run
+#' @param summ_level Summarize to district or subdistrict
 #'
 #' @importFrom magrittr %>%
 #'
