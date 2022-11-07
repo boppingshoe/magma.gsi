@@ -151,7 +151,7 @@ magmatize_data <-
 
     C <- length(euro_ages)
 
-    if (age_classes == "all") age_classes <- euro_ages
+    if ("all" %in% age_classes) age_classes <- euro_ages
 
     A <- length(age_classes)
 
