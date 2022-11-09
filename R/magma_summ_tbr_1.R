@@ -41,8 +41,8 @@ magmatize_summ_tbr1 <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn,
   if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
 
   sub_dat <- list(
-    x = ma_dat$x[which(ma_dat$metadat$district %in% which_dist), ],
-    y = ma_dat$y,
+    # x = ma_dat$x[which(ma_dat$metadat$district %in% which_dist), ],
+    # y = ma_dat$y,
 
     metadat = ma_dat$metadat %>%
       dplyr::filter(district %in% which_dist) %>%
@@ -80,7 +80,8 @@ magmatize_summ_tbr1 <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn,
     dplyr::summarise(S = dplyr::n_distinct(subdist), .groups = "drop") %>%
     dplyr::pull(S) # number of subdistricts
   W <- dplyr::n_distinct(ma_dat$metadat$week) # number of weeks
-  KH <- nrow(ma_dat$y)
+  # KH <- nrow(ma_dat$y)
+  KH <- length(c(ma_dat$wildpops, ma_dat$hatcheries))
 
   # organization of outraw:
   # [[chain]][[dist]][[sub]][[week]][age, pop, itr]
