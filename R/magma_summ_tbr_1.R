@@ -28,15 +28,15 @@
 #'   nreps = 50, nburn = 25, thin = 1, nchains = 3)
 #'
 #' # summary step 1
-#' tbr1 <- magmatize_summ_tbr1(which_dist = 2,
+#' tbr1 <- magmatize_summ_tbr1(which_dist = 3,
 #'   outraw = magma_out,
 #'   ma_dat = magma_data,
-#'   nreps = 50, nburn = 25, thin = 1, nchains = 3,
-#'   summ_level = "district", type = "pop")
+#'   nreps = 50, nburn = 25, thin = 1, nchains = 3)
 #'
-magmatize_summ_tbr1 <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, type = NULL, malia = FALSE) {
+magmatize_summ_tbr1 <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, malia = FALSE) {#, summ_level, type = NULL) {
 
-  if (is.null(which_dist) | is.null(type)) stop("Must declare which_dist and a type.")
+  # if (is.null(which_dist) | is.null(type)) stop("Must declare which_dist and a type.")
+  if (is.null(which_dist)) stop("Must declare which_dist.")
 
   if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
 
@@ -70,9 +70,9 @@ magmatize_summ_tbr1 <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn,
     nburn = nburn,
     thin = thin,
     nchains = nchains,
-    keep_burn = keep_burn,
-    summ_level = summ_level,
-    type = type
+    keep_burn = keep_burn#,
+    # summ_level = summ_level,
+    # type = type
   )
 
   S <- ma_dat$metadat %>%

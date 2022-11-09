@@ -13,8 +13,6 @@ magmatize_summ_tbr1(
   thin,
   nchains,
   keep_burn = FALSE,
-  summ_level,
-  type = NULL,
   malia = FALSE
 )
 }
@@ -36,11 +34,11 @@ Identify district as 1, 2, ... Default = NULL will summarize all districts.}
 
 \item{keep_burn}{The same as \emph{keep_burn} in MAGMA model run.}
 
+\item{malia}{= TRUE if the output is from program malia.}
+
 \item{summ_level}{Summarize at district or subdistrict level.}
 
 \item{type}{Identify "pop" or "age" to summarize populations or age class.}
-
-\item{malia}{= TRUE if the output is from program malia.}
 }
 \value{
 Model output in multiway array and subset of metadata as a list object.
@@ -58,10 +56,9 @@ magma_out <- magmatize_mdl(magma_data,
   nreps = 50, nburn = 25, thin = 1, nchains = 3)
 
 # summary step 1
-tbr1 <- magmatize_summ_tbr1(which_dist = 2,
+tbr1 <- magmatize_summ_tbr1(which_dist = 3,
   outraw = magma_out,
   ma_dat = magma_data,
-  nreps = 50, nburn = 25, thin = 1, nchains = 3,
-  summ_level = "district", type = "pop")
+  nreps = 50, nburn = 25, thin = 1, nchains = 3)
 
 }

@@ -25,13 +25,12 @@ magma_out <- magmatize_mdl(magma_data,
   nreps = 50, nburn = 25, thin = 1, nchains = 3)
 
 # summary steps 1 and 2
-tbr1 <- magmatize_summ_tbr1(which_dist = 2,
+tbr1 <- magmatize_summ_tbr1(which_dist = 3,
   outraw = magma_out,
   ma_dat = magma_data,
-  nreps = 50, nburn = 25, thin = 1, nchains = 3,
-  summ_level = "district", type = "pop")
+  nreps = 50, nburn = 25, thin = 1, nchains = 3)
 
-tbr2 <- magmatize_summ_tbr2(tbr1)
+tbr2 <- magmatize_summ_tbr2(tbr1, summ_level = "district", type = "pop")
 
 tbr3 <- magmatize_summ_tbr3(tbr2)
 
