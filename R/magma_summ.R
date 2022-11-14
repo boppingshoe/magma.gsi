@@ -2212,7 +2212,6 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #' @param summ_level Summarize at district or subdistrict level
 #' @param type Identify "pop" or "age" to summarize only populations or age class.
 #'   if you don't specify a "type", it will summarize both pop and age at the same time.
-#' @param malia = TRUE if the output is from program malia.
 #'
 #' @return Summary tables for reporting groups and/or age classes.
 #' @export
@@ -2234,7 +2233,7 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #'   nreps = 50, nburn = 25, thin = 1, nchains = 3,
 #'   summ_level = "district", type = "pop")
 #'
-magmatize_summ <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, type = NULL, malia = FALSE) {
+magmatize_summ <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, type = NULL) {
 
   if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
 
@@ -2275,7 +2274,7 @@ magmatize_summ <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin
   # organization of outraw:
   # [[chain]][[dist]][[sub]][[week]][age, pop, itr]
 
-  if (isTRUE(malia)) {
+  if (is.array(outraw)) {
     holder <- array(outraw[ , , , , which_dist, ], dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, max(S), length(which_dist), nchains))
   } else {
     if (length(which_dist) > 1) {

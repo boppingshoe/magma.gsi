@@ -12,7 +12,6 @@
 #' @param keep_burn The same as *keep_burn* in MAGMA model run.
 #' @param summ_level Summarize at district or subdistrict level.
 #' @param type Identify "pop" or "age" to summarize populations or age class.
-#' @param malia = TRUE if the output is from program malia.
 #'
 #' @return Model output in multiway array and subset of metadata as a list object.
 #' @export
@@ -33,7 +32,7 @@
 #'   ma_dat = magma_data,
 #'   nreps = 50, nburn = 25, thin = 1, nchains = 3)
 #'
-magmatize_summ_tbr1 <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, malia = FALSE) {#, summ_level, type = NULL) {
+magmatize_summ_tbr1 <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE) {#, summ_level, type = NULL) {
 
   # if (is.null(which_dist) | is.null(type)) stop("Must declare which_dist and a type.")
   if (is.null(which_dist)) stop("Must declare which_dist.")
@@ -86,7 +85,7 @@ magmatize_summ_tbr1 <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn,
   # organization of outraw:
   # [[chain]][[dist]][[sub]][[week]][age, pop, itr]
 
-  if (isTRUE(malia)) {
+  if (is.array(outraw)) {
     holder <- array(outraw[ , , , , which_dist, ], dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, S[which_dist], 1, nchains))
   } else {
     holder <-
