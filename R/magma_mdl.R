@@ -243,7 +243,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
           seq(3), rdirich),
         c(2:4, 1))
 
-      if (cond_gsi | rep <= nadapt) { # cond gsi or adapt stage
+      if ((cond_gsi & rep %% 10 != 0) | rep <= nadapt) { # cond gsi or adapt stage
 
         t_pi <- apply(
           beta[, ages] + table(metadat$iden, metadat$age),
@@ -259,17 +259,17 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
             dimnames = dimnames(y)
           )
 
-        x_sum[as.integer(sort(unique(metadat$iden))),] <-
-          rowsum(x, group = metadat$iden) # colsums for new assignment
+        # x_sum[as.integer(sort(unique(metadat$iden))),] <-
+        #   rowsum(x, group = metadat$iden) # colsums for new assignment
         # (this is the original code for tallying. It does not account for new age assignments
         # because x is not updated during sampling)
 
-        # x_sum[as.integer(levels(metadat$iden)), seq.int(sum(nalleles))] <-
-        #   apply(x[, seq.int(sum(nalleles))], 2, function(x_t) tapply(x_t, metadat$iden, sum)) %>%
-        #   tidyr::replace_na(0) # colsums for new assignment
-        #
-        # x_sum[, -seq.int(sum(nalleles))] <-
-        #   table(metadat$iden, metadat$age) # update age identity
+        x_sum[as.integer(levels(metadat$iden)), seq.int(sum(nalleles))] <-
+          apply(x[, seq.int(sum(nalleles))], 2, function(x_t) tapply(x_t, metadat$iden, sum)) %>%
+          tidyr::replace_na(0) # colsums for new assignment
+
+        x_sum[, -seq.int(sum(nalleles))] <-
+          table(metadat$iden, metadat$age) # update age identity
 
         beta_prm <- y + beta + x_sum # posterior q ~ dirich(b')
 
