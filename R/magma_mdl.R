@@ -311,7 +311,8 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
 
   parallel::stopCluster(cl)
 
-  if (!is.null(out_path)) save(magma_out, file = out_path)
+  # if (!is.null(out_path)) save(magma_out, file = out_path)
+  if (!is.null(out_path)) saveRDS(magma_out, file = out_path, compress = FALSE)
 
   print(Sys.time() - run_time)
   message(Sys.time())
