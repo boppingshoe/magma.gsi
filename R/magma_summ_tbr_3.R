@@ -119,13 +119,13 @@ magmatize_pop_b <- function(out2, dat_in, nreps, nburn, thin, nchains, keep_burn
             if (all(exists("dist_names"), exists("subdist_names"), exists("week_names"))) {
               paste(paste0("(", j, ")"),
                     paste0("D", dist_names[d_i]),
-                    paste0("Sub", subdist_names[[d_i]][s_i]),
+                    paste0("SubD", subdist_names[[d_i]][s_i]),
                     paste0("Wk", week_names[w_i]),
                     sep = "_")
             } else {
               paste(paste0("(", j, ")"),
                     paste0("D", d_i),
-                    paste0("Sub", s_i),
+                    paste0("SubD", s_i),
                     paste0("Wk", w_i),
                     sep = "_")
             }
