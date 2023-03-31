@@ -9,7 +9,7 @@
 #'
 #' @examples
 #' # format data
-#' wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
+#' wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 #' # model run
@@ -710,7 +710,9 @@ format_district_age_b <- function(ageout_a, dat_in, nreps, nburn, thin, nchains,
                }) %>%
         dplyr::bind_rows() %>%
         dplyr::group_by(itr, grpvec) %>%
-        dplyr::summarise(across(.fns = sum), .groups = "drop") %>%
+        dplyr::summarise(across(.cols = everything(),
+                                .fns = sum),
+                         .groups = "drop") %>%
         tidyr::pivot_longer(-c(itr, grpvec)) %>%
         dplyr::group_by(itr, grpvec) %>%
         dplyr::mutate(value = prop.table(value)) %>%
@@ -877,7 +879,9 @@ format_subdistrict_age_b <- function(ageout_a, dat_in, nreps, nburn, thin, nchai
                  }) %>%
           dplyr::bind_rows() %>%
           dplyr::group_by(itr, grpvec) %>%
-          dplyr::summarise(across(.fns = sum), .groups = "drop") %>%
+          dplyr::summarise(across(.cols = everything(),
+                                  .fns = sum),
+                           .groups = "drop") %>%
           tidyr::pivot_longer(-c(itr, grpvec)) %>%
           dplyr::group_by(itr, grpvec) %>%
           dplyr::mutate(value = prop.table(value)) %>%

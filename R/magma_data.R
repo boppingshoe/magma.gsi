@@ -63,7 +63,7 @@ check_loci <- function(loci_pr, loci_mix, loci_base) {
 #' @importFrom foreach %dopar%
 #'
 #' @examples
-#' wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
+#' wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 magmatize_data <-
@@ -439,7 +439,7 @@ magmatize_data <-
       })
     harvest$STAT_WEEK <-
       as.integer(factor(harvest$STAT_WEEK, levels = stat_weeks))
-    harvest$HARVEST <- as.integer(harvest$HARVEST)
+    harvest$HARVEST <- as.numeric(harvest$HARVEST)
 
 
     #### save data and format output #### ----

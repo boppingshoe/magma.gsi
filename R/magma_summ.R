@@ -288,7 +288,9 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
                }) %>%
         dplyr::bind_rows() %>%
         dplyr::group_by(itr, grpvec) %>%
-        dplyr::summarise(across(.fns = sum), .groups = "drop") %>%
+        dplyr::summarise(across(.cols = everything(),
+                                .fns = sum),
+                         .groups = "drop") %>%
         tidyr::pivot_longer(-c(itr, grpvec)) %>%
         dplyr::group_by(itr, grpvec) %>%
         dplyr::mutate(value = prop.table(value)) %>%
@@ -669,7 +671,9 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
                  }) %>%
           dplyr::bind_rows() %>%
           dplyr::group_by(itr, grpvec) %>%
-          dplyr::summarise(across(.fns = sum), .groups = "drop") %>%
+          dplyr::summarise(across(.cols = everything(),
+                                  .fns = sum),
+                           .groups = "drop") %>%
           tidyr::pivot_longer(-c(itr, grpvec)) %>%
           dplyr::group_by(itr, grpvec) %>%
           dplyr::mutate(value = prop.table(value)) %>%
@@ -1384,7 +1388,9 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
                }) %>%
         dplyr::bind_rows() %>%
         dplyr::group_by(itr, grpvec) %>%
-        dplyr::summarise(across(.fns = sum), .groups = "drop") %>%
+        dplyr::summarise(across(.cols = everything(),
+                                .fns = sum),
+                         .groups = "drop") %>%
         tidyr::pivot_longer(-c(itr, grpvec)) %>%
         dplyr::group_by(itr, grpvec) %>%
         dplyr::mutate(value = prop.table(value)) %>%
@@ -1889,7 +1895,9 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
                  }) %>%
           dplyr::bind_rows() %>%
           dplyr::group_by(itr, grpvec) %>%
-          dplyr::summarise(across(.fns = sum), .groups = "drop") %>%
+          dplyr::summarise(across(.cols = everything(),
+                                  .fns = sum),
+                           .groups = "drop") %>%
           tidyr::pivot_longer(-c(itr, grpvec)) %>%
           dplyr::group_by(itr, grpvec) %>%
           dplyr::mutate(value = prop.table(value)) %>%
@@ -2131,7 +2139,7 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
     out <- format_district_age(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W)
   } else if (summ_level == "subdistrict") {
     out <- format_subdistrict_age(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W)
-  } else stop("INvalid summ_level.")
+  } else stop("Invalid summ_level.")
 
   # id for age outputs
   if (summ_level == "district") {
@@ -2219,7 +2227,7 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #'
 #' @examples
 #' # format data
-#' wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
+#' wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 #' # model run
