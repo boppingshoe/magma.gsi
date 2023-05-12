@@ -244,6 +244,8 @@ format_district_pop_b <- function(popout_a, dat_in, nreps, nburn, thin, nchains,
         p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx) %>% dplyr::pull(sum_harv) )))),
         .groups = "drop"
       ) %>%
+      dplyr::mutate(name = factor(name, levels = c(group_names[seq(ncol(p_combo_all[[d_idx]][[1]])), d_idx]))) %>%
+      dplyr::arrange(name) %>%
       dplyr::mutate(
         GR = {if (nchains > 1) {
           coda::gelman.diag(mc_pop_all[[d_idx]],
@@ -291,6 +293,8 @@ format_district_pop_b <- function(popout_a, dat_in, nreps, nburn, thin, nchains,
           p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , w_idx, ])* harvest %>% dplyr::group_by(DISTRICT, STAT_WEEK) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, STAT_WEEK== w_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
+        dplyr::mutate(name = factor(name, levels = c(group_names[seq(ncol(p_combo_all[[d_idx]][[1]])), d_idx]))) %>%
+        dplyr::arrange(name) %>%
         dplyr::mutate(
           GR = {if (nchains > 1) {
             coda::gelman.diag(mc_pop[[p_idx]],
@@ -435,6 +439,8 @@ format_subdistrict_pop_b <- function(popout_a, dat_in, nreps, nburn, thin, nchai
           p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT, SUBDISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
+        dplyr::mutate(name = factor(name, levels = c(group_names[seq(ncol(p_combo_all[[max(S)*(d_idx-1)+s_idx]][[1]])), d_idx]))) %>%
+        dplyr::arrange(name) %>%
         dplyr::mutate(
           GR = {if (nchains > 1) {
             coda::gelman.diag(mc_pop_all[[max(S)*(d_idx-1)+s_idx]],
@@ -484,6 +490,8 @@ format_subdistrict_pop_b <- function(popout_a, dat_in, nreps, nburn, thin, nchai
             p0 = mean(value < (0.5/ max(1, (any(p_zero[d_idx, s_idx, w_idx, ])* dplyr::filter(harvest, DISTRICT== d_idx, SUBDISTRICT== s_idx, STAT_WEEK== w_idx)$HARVEST)))),
             .groups = "drop"
           ) %>%
+          dplyr::mutate(name = factor(name, levels = c(group_names[seq(ncol(p_combo_all[[max(S)*(d_idx-1)+s_idx]][[1]])), d_idx]))) %>%
+          dplyr::arrange(name) %>%
           dplyr::mutate(
             GR = {if (nchains > 1) {
               coda::gelman.diag(mc_pop[[p_idx]],
