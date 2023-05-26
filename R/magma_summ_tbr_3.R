@@ -18,9 +18,8 @@
 #'
 #' # summary steps 1 and 2
 #' tbr1 <- magmatize_summ_tbr1(which_dist = 3,
-#'   outraw = magma_out,
-#'   ma_dat = magma_data,
-#'   nreps = 50, nburn = 25, thin = 1, nchains = 3)
+#'   ma_out = magma_out,
+#'   ma_dat = magma_data)
 #'
 #' tbr2 <- magmatize_summ_tbr2(tbr1, summ_level = "district", type = "pop")
 #'

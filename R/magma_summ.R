@@ -2226,13 +2226,8 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #'
 #' @param which_dist Function format raw magma output one district at a time.
 #'   Identify district as 1, 2, ... Default = NULL will summarize all districts.
-#' @param outraw MAGMA output
+#' @param ma_out MAGMA output
 #' @param ma_dat MAGMA input data
-#' @param nreps The same as *nreps* in MAGMA model run
-#' @param nburn The same as *nburn* in MAGMA model run
-#' @param thin The same as *thin* in MAGMA model run
-#' @param nchains The same as *nchains* in MAGMA model run
-#' @param keep_burn The same as *keep_burn* in MAGMA model run
 #' @param summ_level Summarize at district or subdistrict level
 #' @param type Identify "pop" or "age" to summarize only populations or age class.
 #'   if you don't specify a "type", it will summarize both pop and age at the same time.
@@ -2252,12 +2247,11 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #'
 #' # summary
 #' magma_summ <- magmatize_summ(which_dist = 2,
-#'   outraw = magma_out,
+#'   ma_out = magma_out,
 #'   ma_dat = magma_data,
-#'   nreps = 50, nburn = 25, thin = 1, nchains = 3,
 #'   summ_level = "district", type = "pop")
 #'
-magmatize_summ <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, type = NULL) {
+magmatize_summ <- function(which_dist = NULL, ma_out, ma_dat, summ_level, type = NULL) {
 
   if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
 
@@ -2297,6 +2291,12 @@ magmatize_summ <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin
 
   # organization of outraw:
   # [[chain]][[dist]][[sub]][[week]][age, pop, itr]
+  outraw <- ma_out$outraw
+  nreps <- ma_out$specs["nreps"]
+  nburn <- ma_out$specs["nburn"]
+  thin <- ma_out$specs["thin"]
+  nchains <- ma_out$specs["nchains"]
+  keep_burn <- ma_out$specs["keep_burn"] == 1
 
   if (is.array(outraw)) {
     holder <- array(outraw[ , , , , which_dist, ], dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, max(S), length(which_dist), nchains))

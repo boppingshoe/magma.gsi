@@ -210,7 +210,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   doParallel::registerDoParallel(cl, cores = nchains)
   if (!is.null(seed)) doRNG::registerDoRNG(seed, once = TRUE)
 
-  magma_out <- foreach::foreach(
+  outraw <- foreach::foreach(
     ch = chains, .packages = c("magrittr", "tidyr", "dplyr")
     ) %dorng% {
 
@@ -310,6 +310,11 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
     } # end parallel chains
 
   parallel::stopCluster(cl)
+
+  specs <- c(nreps, nburn, thin, nchains, keep_burn) %>%
+    setNames(c("nreps", "nburn", "thin", "nchains", "keep_burn"))
+
+  magma_out <- list(outraw = outraw, specs = specs)
 
   # if (!is.null(out_path)) save(magma_out, file = out_path)
   if (!is.null(out_path)) saveRDS(magma_out, file = out_path, compress = FALSE)

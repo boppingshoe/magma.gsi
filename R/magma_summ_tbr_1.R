@@ -3,15 +3,8 @@
 #'
 #' @param which_dist Function format raw magma output one district at a time.
 #'   Identify district as 1, 2, ... Default = NULL will summarize all districts.
-#' @param outraw MAGMA output.
+#' @param ma_out MAGMA output.
 #' @param ma_dat The same MAGMA input data for model run.
-#' @param nreps The same as *nreps* in MAGMA model run.
-#' @param nburn The same as *nburn* in MAGMA model run.
-#' @param thin The same as *thin* in MAGMA model run.
-#' @param nchains The same as *nchains* in MAGMA model run.
-#' @param keep_burn The same as *keep_burn* in MAGMA model run.
-#' @param summ_level Summarize at district or subdistrict level.
-#' @param type Identify "pop" or "age" to summarize populations or age class.
 #'
 #' @return Model output in multiway array and subset of metadata as a list object.
 #' @export
@@ -28,16 +21,20 @@
 #'
 #' # summary step 1
 #' tbr1 <- magmatize_summ_tbr1(which_dist = 3,
-#'   outraw = magma_out,
-#'   ma_dat = magma_data,
-#'   nreps = 50, nburn = 25, thin = 1, nchains = 3)
+#'   ma_out = magma_out,
+#'   ma_dat = magma_data)
 #'
-magmatize_summ_tbr1 <- function(which_dist = NULL, outraw, ma_dat, nreps, nburn, thin, nchains, keep_burn = FALSE) {#, summ_level, type = NULL) {
+magmatize_summ_tbr1 <- function(which_dist = NULL, ma_out, ma_dat) {
 
-  # if (is.null(which_dist) | is.null(type)) stop("Must declare which_dist and a type.")
   if (is.null(which_dist)) stop("Must declare which_dist.")
+  # if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
 
-  if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
+  outraw <- ma_out$outraw
+  nreps <- ma_out$specs["nreps"]
+  nburn <- ma_out$specs["nburn"]
+  thin <- ma_out$specs["thin"]
+  nchains <- ma_out$specs["nchains"]
+  keep_burn <- ma_out$specs["keep_burn"] == 1
 
   sub_dat <- list(
     # x = ma_dat$x[which(ma_dat$metadat$district %in% which_dist), ],

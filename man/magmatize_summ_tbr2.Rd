@@ -8,6 +8,10 @@ magmatize_summ_tbr2(out1, summ_level, type)
 }
 \arguments{
 \item{out1}{Output from step 1}
+
+\item{summ_level}{Summarize at district or subdistrict level}
+
+\item{type}{Identify "pop" or "age" to summarize only populations or age class.}
 }
 \value{
 Model output in process and metadata as a list object.
@@ -17,7 +21,7 @@ TBR output format wrapper step 2
 }
 \examples{
 # format data
-wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
+wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 
 # model run
@@ -26,9 +30,8 @@ magma_out <- magmatize_mdl(magma_data,
 
 # summary steps 1 and 2
 tbr1 <- magmatize_summ_tbr1(which_dist = 3,
-  outraw = magma_out,
-  ma_dat = magma_data,
-  nreps = 50, nburn = 25, thin = 1, nchains = 3)
+  ma_out = magma_out,
+  ma_dat = magma_data)
 
 tbr2 <- magmatize_summ_tbr2(tbr1, summ_level = "district", type = "pop")
 

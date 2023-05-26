@@ -57,7 +57,7 @@ Run MAGMA model
 }
 \examples{
 # format data
-wd <- "D:/bobby_adfg/backup_013122/projects/magma/test_TBR" # path to data folder
+wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 
 # model run
