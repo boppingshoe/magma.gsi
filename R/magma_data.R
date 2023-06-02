@@ -183,15 +183,18 @@ magmatize_data <-
         stringsAsFactors = FALSE
       )
 
+    hatcheries <- sort(unique(metadat0$SOURCE[metadat0$SOURCE != "WILD"]))
+
+    # identify hatcheries show up in metadat but missing from groups
+    miss_hatch_grp <- hatcheries[!hatcheries %in% rownames(groups0)]
+
     G <- apply(group_names, 2, function(g) {
-      which(g == "Other")
-    })
+      ifelse("Other" %in% g, which(g == "Other"), 0)
+    }) # group number for "Other" group
 
-    hatcheries <-
-      sort(unique(metadat0$SOURCE[metadat0$SOURCE != "WILD"]))
-
-    miss_hatch_grp <- # identify hatcheries show up in metadat but missing from groups
-      hatcheries[!hatcheries %in% rownames(groups0)]
+    if (sum(G) == 0 & length(miss_hatch_grp) > 0) {
+      stop(paste("unidentified hatchery groups:", miss_hatch_grp, sep = " "))
+    }
 
     groups <-
       rbind(groups0,
