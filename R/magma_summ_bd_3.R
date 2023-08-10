@@ -3,7 +3,6 @@
 #' @param out2 Output from step 2
 #'
 #' @return Model output in process and metadata as a list object.
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @examples
@@ -24,6 +23,7 @@
 #'
 #' tbr3 <- magmatize_summ_bd3(tbr2)
 #'
+#' @export
 magmatize_summ_bd3 <- function(out2) {
 
   nreps <- out2$sub_dat$nreps
