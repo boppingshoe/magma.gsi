@@ -56,10 +56,10 @@ Run MAGMA model
 }
 \examples{
 # format data
-wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
+wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 
 # model run
-magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
+magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 2)
 
 }

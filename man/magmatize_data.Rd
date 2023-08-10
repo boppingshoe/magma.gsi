@@ -22,7 +22,7 @@ A list objects as the input data for \code{msgsi_mdl()}
 Preparing MAGMA input data
 }
 \examples{
-wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
+wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 
 }

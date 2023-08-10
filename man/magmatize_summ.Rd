@@ -2,7 +2,7 @@
 % Please edit documentation in R/magma_summ.R
 \name{magmatize_summ}
 \alias{magmatize_summ}
-\title{Output format wrapper}
+\title{Summarize model output}
 \usage{
 magmatize_summ(which_dist = NULL, ma_out, ma_dat, summ_level, type = NULL)
 }
@@ -23,21 +23,22 @@ if you don't specify a "type", it will summarize both pop and age at the same ti
 Summary tables for reporting groups and/or age classes.
 }
 \description{
-Output format wrapper
+Use this function to summarize "smaller" output (i.e., not TBR).
 }
 \examples{
 # format data
-wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
+wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 
 # model run
 magma_out <- magmatize_mdl(magma_data,
-  nreps = 50, nburn = 25, thin = 1, nchains = 3)
+  nreps = 50, nburn = 25, thin = 1, nchains = 2)
 
 # summary
-magma_summ <- magmatize_summ(which_dist = 2,
+magma_summ <- magmatize_summ(which_dist = 1,
   ma_out = magma_out,
   ma_dat = magma_data,
-  summ_level = "district", type = "pop")
+  summ_level = "district",
+  type = "pop")
 
 }
