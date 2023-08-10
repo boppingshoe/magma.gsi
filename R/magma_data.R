@@ -508,7 +508,7 @@ magmatize_data <-
 #' @param magma_data Magma data object made using `magmatize_data()` function.
 #' @param path A designated directory where you set up for malia data set.
 #'
-#' @return items in magma data object saved as text files
+#' @return Items in magma data object saved as text files
 #'
 #' @importFrom magrittr %>%
 #'

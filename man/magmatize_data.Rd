@@ -7,16 +7,16 @@
 magmatize_data(wd, age_classes = "all", loci_names = NULL, save_data = TRUE)
 }
 \arguments{
-\item{wd}{Directory where you have the \emph{data} folder.}
+\item{wd}{Directory where you set up the \emph{data} folder.}
 
-\item{age_classes}{Class categories to group ages.}
+\item{age_classes}{Hard code class categories for group ages.}
 
-\item{loci_names}{An optional string containing loci names.}
+\item{loci_names}{Optional. String containing loci names.}
 
-\item{save_data}{Option to save the data in the \emph{analysis} folder. Default is TRUE.}
+\item{save_data}{Logical (with default = TRUE). Option to save the data in the \emph{data} folder.}
 }
 \value{
-A list objects as the input data for msgsi_mdl()
+A list objects as the input data for \code{msgsi_mdl()}
 }
 \description{
 Preparing MAGMA input data
