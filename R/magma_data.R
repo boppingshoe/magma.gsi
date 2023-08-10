@@ -62,7 +62,7 @@ check_loci <- function(loci_pr, loci_mix, loci_base) {
 #' @importFrom foreach %dopar%
 #'
 #' @examples
-#' wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
+#' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 #' @export

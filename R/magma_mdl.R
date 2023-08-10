@@ -4,38 +4,37 @@
 #' @param dat_in Input data list.
 #' @param nreps Amount of simulations to run.
 #' @param nburn Number of burn-in simulations to discard.
-#' @param thin Interval to keep the simulations.
+#' @param thin At what interval to keep the simulations.
 #' @param nchains Number of independent MCMC chains run in the simulation.
-#' @param nadapt Amount of warm-up/adapt runs before the simulation.
-#' @param keep_burn Keep the burn-ins in the output or not. The default is `FALSE`.
+#' @param nadapt Amount of warm-up/adapt runs before the simulation (only for fully Bayesian mode).
+#' @param keep_burn Logical (default = FALSE.). To keep the burn-ins in the output or not.
 #' @param age_prior Specify the level of prior influence for age.
 #'   The default is "weak", which has sum of age priors = 1.
 #'   If specify `age_prior = "strong"`, it will have sum of age priors
 #'   = number of specified age classes.
-#' @param cond_gsi Option to use conditional GSI model. The default is `TRUE`.
-#' @param out_path File path for saving the output.
+#' @param cond_gsi Logical (default = TRUE). Option to use conditional GSI model.
+#' @param out_path File path for saving the output. Need to type out the full path.
 #'   The default is `NULL` for not saving the output.
 #' @param seed Option to initialize a pseudo-random number generator (set random seed)
 #'   so the output can be reproduced exactly.
 #'   Just pick a seed number and make note of it for future reference.
 #'   The default is `NULL`.
 #'
-#' @return The raw output of MAGMA is a multi-way array that need to be summarized
-#'   using summary functions.
+#' @return A list object contains 1) the raw output of MAGMA as a list/multi-way array that need to be further summarized using summary functions, and 2) specifications for the model run (information needed for summary).
 #'
-#' @export
 #' @importFrom magrittr %>%
 #' @importFrom doRNG %dorng%
 #' @importFrom foreach %dopar%
 #'
 #' @examples
 #' # format data
-#' wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
+#' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 #' # model run
-#' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
+#' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 2)
 #'
+#' @export
 magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_priors = "weak", cond_gsi = TRUE, out_path = NULL, seed = NULL) {
 
   ### ballroom categories ### ----

@@ -1,7 +1,3 @@
-
-
-## file contains functions for formatting non-TBR and TBR magma output
-
 ## summarize both pop and age ----
 
 #' Format district
@@ -2220,9 +2216,11 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 }
 
 
-## format wrapper ----
+## Wrapper for model output summarizers (only one that is exported) ----
 
-#' Output format wrapper
+#' Summarize model output
+#'
+#' Use this function to summarize "smaller" output (i.e., not TBR).
 #'
 #' @param which_dist Function format raw magma output one district at a time.
 #'   Identify district as 1, 2, ... Default = NULL will summarize all districts.
@@ -2233,24 +2231,26 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #'   if you don't specify a "type", it will summarize both pop and age at the same time.
 #'
 #' @return Summary tables for reporting groups and/or age classes.
-#' @export
+#'
 #' @importFrom magrittr %>%
 #'
 #' @examples
 #' # format data
-#' wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
+#' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 #' # model run
 #' magma_out <- magmatize_mdl(magma_data,
-#'   nreps = 50, nburn = 25, thin = 1, nchains = 3)
+#'   nreps = 50, nburn = 25, thin = 1, nchains = 2)
 #'
 #' # summary
-#' magma_summ <- magmatize_summ(which_dist = 2,
+#' magma_summ <- magmatize_summ(which_dist = 1,
 #'   ma_out = magma_out,
 #'   ma_dat = magma_data,
-#'   summ_level = "district", type = "pop")
+#'   summ_level = "district",
+#'   type = "pop")
 #'
+#' @export
 magmatize_summ <- function(which_dist = NULL, ma_out, ma_dat, summ_level, type = NULL) {
 
   if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)

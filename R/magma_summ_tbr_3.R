@@ -1,5 +1,4 @@
-
-#' TBR output format wrapper step 3
+#' Summarize big daddy model output ste 3
 #'
 #' @param out2 Output from step 2
 #'
@@ -9,23 +8,23 @@
 #'
 #' @examples
 #' # format data
-#' wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
+#' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 #' # model run
 #' magma_out <- magmatize_mdl(magma_data,
-#'   nreps = 50, nburn = 25, thin = 1, nchains = 3)
+#'   nreps = 50, nburn = 25, thin = 1, nchains = 2)
 #'
-#' # summary steps 1 and 2
-#' tbr1 <- magmatize_summ_tbr1(which_dist = 3,
+#' # summary steps 1 to 3
+#' tbr1 <- magmatize_summ_bd1(which_dist = 1,
 #'   ma_out = magma_out,
 #'   ma_dat = magma_data)
 #'
-#' tbr2 <- magmatize_summ_tbr2(tbr1, summ_level = "district", type = "pop")
+#' tbr2 <- magmatize_summ_bd2(tbr1, summ_level = "district", type = "pop")
 #'
-#' tbr3 <- magmatize_summ_tbr3(tbr2)
+#' tbr3 <- magmatize_summ_bd3(tbr2)
 #'
-magmatize_summ_tbr3 <- function(out2) {
+magmatize_summ_bd3 <- function(out2) {
 
   nreps <- out2$sub_dat$nreps
   nburn <- out2$sub_dat$nburn

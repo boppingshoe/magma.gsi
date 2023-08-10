@@ -25,17 +25,17 @@ magmatize_mdl(
 
 \item{nburn}{Number of burn-in simulations to discard.}
 
-\item{thin}{Interval to keep the simulations.}
+\item{thin}{At what interval to keep the simulations.}
 
 \item{nchains}{Number of independent MCMC chains run in the simulation.}
 
-\item{nadapt}{Amount of warm-up/adapt runs before the simulation.}
+\item{nadapt}{Amount of warm-up/adapt runs before the simulation (only for fully Bayesian mode).}
 
-\item{keep_burn}{Keep the burn-ins in the output or not. The default is \code{FALSE}.}
+\item{keep_burn}{Logical (default = FALSE.). To keep the burn-ins in the output or not.}
 
-\item{cond_gsi}{Option to use conditional GSI model. The default is \code{TRUE}.}
+\item{cond_gsi}{Logical (default = TRUE). Option to use conditional GSI model.}
 
-\item{out_path}{File path for saving the output.
+\item{out_path}{File path for saving the output. Need to type out the full path.
 The default is \code{NULL} for not saving the output.}
 
 \item{seed}{Option to initialize a pseudo-random number generator (set random seed)
@@ -49,8 +49,7 @@ If specify \code{age_prior = "strong"}, it will have sum of age priors
 = number of specified age classes.}
 }
 \value{
-The raw output of MAGMA is a multi-way array that need to be summarized
-using summary functions.
+A list object contains 1) the raw output of MAGMA as a list/multi-way array that need to be further summarized using summary functions, and 2) specifications for the model run (information needed for summary).
 }
 \description{
 Run MAGMA model

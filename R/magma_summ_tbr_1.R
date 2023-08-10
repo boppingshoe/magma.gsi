@@ -1,5 +1,6 @@
-
-#' TBR output format wrapper step 1
+#' Summarize big daddy model output step 1
+#'
+#' Use this function for summarize big daddy model output (e.g., TBR)
 #'
 #' @param which_dist Function format raw magma output one district at a time.
 #'   Identify district as 1, 2, ... Default = NULL will summarize all districts.
@@ -7,24 +8,24 @@
 #' @param ma_dat The same MAGMA input data for model run.
 #'
 #' @return Model output in multiway array and subset of metadata as a list object.
-#' @export
 #' @importFrom magrittr %>%
 #'
 #' @examples
 #' # format data
-#' wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
+#' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 #' # model run
 #' magma_out <- magmatize_mdl(magma_data,
-#'   nreps = 50, nburn = 25, thin = 1, nchains = 3)
+#'   nreps = 50, nburn = 25, thin = 1, nchains = 2)
 #'
 #' # summary step 1
-#' tbr1 <- magmatize_summ_tbr1(which_dist = 3,
+#' tbr1 <- magmatize_summ_bd1(which_dist = 1,
 #'   ma_out = magma_out,
 #'   ma_dat = magma_data)
 #'
-magmatize_summ_tbr1 <- function(which_dist = NULL, ma_out, ma_dat) {
+#' @export
+magmatize_summ_bd1 <- function(which_dist = NULL, ma_out, ma_dat) {
 
   if (is.null(which_dist)) stop("Must declare which_dist.")
   # if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
