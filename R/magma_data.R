@@ -50,14 +50,13 @@ check_loci <- function(loci_pr, loci_mix, loci_base) {
 
 #' Preparing MAGMA input data
 #'
-#' @param wd Directory where you have the *data* folder.
-#' @param age_classes Class categories to group ages.
-#' @param loci_names An optional string containing loci names.
-#' @param save_data Option to save the data in the *analysis* folder. Default is TRUE.
+#' @param wd Directory where you set up the *data* folder.
+#' @param age_classes Hard code class categories for group ages.
+#' @param loci_names Optional. String containing loci names.
+#' @param save_data Logical (with default = TRUE). Option to save the data in the *data* folder.
 #'
-#' @return A list objects as the input data for msgsi_mdl()
+#' @return A list objects as the input data for `msgsi_mdl()`
 #'
-#' @export
 #' @importFrom magrittr %>%
 #' @importFrom doRNG %dorng%
 #' @importFrom foreach %dopar%
@@ -66,6 +65,7 @@ check_loci <- function(loci_pr, loci_mix, loci_base) {
 #' wd <- "D:/bobby_adfg/projects/magma/test_TBR" # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
+#' @export
 magmatize_data <-
   function(wd, age_classes = "all", loci_names = NULL, save_data = TRUE) {
 
@@ -261,11 +261,6 @@ magmatize_data <-
     }
 
     if (is.null(loci_names)) {
-      # loci <-
-      #   dplyr::tibble(locus = names(base_data)) %>%
-      #   dplyr::filter(grepl("\\.1$", locus)) %>%
-      #   dplyr::mutate(locus = substr(locus, 1, nchar(locus) - 2)) %>%
-      #   dplyr::pull(locus)
       loci <- loci_mix
     } else {
       loci <- loci_names
@@ -318,15 +313,6 @@ magmatize_data <-
 
     #### Mixture #### ----
 
-    # mix_sillys <-
-    #   unique(sapply(stringr::str_split(rownames(metadat0), "_"), "[", 1))
-    #
-    # mixture_data <-
-    #   sapply(mix_sillys, function(silly) {
-    #     get(paste0(silly, ".gcl"), pos = 1)
-    #   }, simplify = FALSE) %>%
-    #   dplyr::bind_rows() # all gcl objects into a list, for parallel process
-    #
     if (length(mix_sillys) > 1) {
 
       ncores <- min(length(mix_sillys), 4)
@@ -413,7 +399,6 @@ magmatize_data <-
 
     metadat <-
       data.frame(
-        # year = year,
         district = district,
         subdist = subdistrict,
         week = stat_week,
@@ -429,8 +414,6 @@ magmatize_data <-
                   sep = "\t",
                   stringsAsFactors = FALSE
       )
-    # harvest$YEAR <-
-    #   as.integer(factor(harvest$YEAR, levels = years2run))
     harvest$DISTRICT <-
       as.integer(factor(harvest$DISTRICT, levels = districts))
     harvest$SUBDISTRICT <-
@@ -497,7 +480,7 @@ magmatize_data <-
           "dat_out")
 
       save(list = magma_data_names,
-           file = paste0(wd, "/analysis/magma_data", fishery, ".RData"))
+           file = paste0(wd, "/data/magma_data", fishery, ".RData"))
     }
 
     detach(paste0("file:", wd, "/data/mixture.RData"), character.only = TRUE)
@@ -518,6 +501,67 @@ magmatize_data <-
   }
 
 
+#' Prepare malia data
+#'
+#' Take a magma data object and save the items as text files in a designated directory.
+#'
+#' @param magma_data Magma data object made using `magmatize_data()` function.
+#' @param path A designated directory where you set up for malia data set.
+#'
+#' @return items in magma data object saved as text files
+#'
+#' @importFrom magrittr %>%
+#'
+#' @examples
+#' \dontrun{
+#' prep_malia_data(magma_data, "D:/bobby_adfg/projects/magma/malia/data/bb2022")
+#' }
+#'
+#' @export
+prep_malia_data <- function(magma_data, path) {
+
+  magma_data$metadat %>%
+    tibble::rownames_to_column(var = "name") %>%
+    tibble::as_tibble() %>%
+    tidyr::replace_na(list(iden=0, age=0)) %>%
+    as.matrix %>%
+    trimws %>%
+    write.table(., paste0(path, "/metadat.txt"), row.names = FALSE)
+
+  readr::write_lines(magma_data$C, paste0(path, "/c.txt"))
+
+  tibble::enframe(magma_data$nstates) %>%
+    dplyr::rename(n_state = value) %>%
+    as.matrix %>%
+    trimws %>%
+    write.table(., paste0(path, "/nstates.txt"), row.names = FALSE)
+
+  tibble::enframe(magma_data$nalleles) %>%
+    dplyr::rename(n_allele = value) %>%
+    as.matrix %>%
+    trimws %>%
+    write.table(., paste0(path, "/nalleles.txt"), row.names = FALSE)
+
+  readr::write_lines(magma_data$wildpops, paste0(path, "/wildpops.txt"))
+
+  readr::write_lines(magma_data$hatcheries, paste0(path, "/hatcheries.txt"))
+
+  magma_data$groups %>%
+    tibble::rownames_to_column(var = "grp_name") %>%
+    as.matrix %>%
+    trimws %>%
+    write.table(., paste0(path, "/groups.txt"), row.names = FALSE)
+
+  tibble::enframe(magma_data$age_class) %>%
+    dplyr::rename(class = value) %>%
+    as.matrix %>%
+    trimws %>%
+    write.table(., paste0(path, "/age_class.txt"), row.names = FALSE)
+
+  write.table(magma_data$x, paste0(path, "/x.txt"), row.names = FALSE)
+  write.table(magma_data$y, paste0(path, "/y.txt"), row.names = FALSE)
+
+}
 
 
 
