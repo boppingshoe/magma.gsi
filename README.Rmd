@@ -1,0 +1,68 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# magma.gsi
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+*MAGMA* is a slowing moving but powerful model that combine mark and age information with genetic mixture analysis. Mainly, *MAGMA* estimates two sets of parameters: stock and age. A composition of the two, information that is often required for run reconstruction models, is simply the product of these two sets of parameters. After all age/stock compositions in other strata are calculated in the same fashion, they are multiplied by the harvest proportions of their corresponding strata and summed up to get a weighted average age/stock composition.
+
+## Installation
+
+You can install the development version of magma.gsi from [GitHub](https://github.com/boppingshoe/magma.gsi) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("boppingshoe/magma.gsi")
+```
+
+## Example
+
+Once you have the data sets up at a designated directory, you can compile the input object:
+
+```{r inp}
+library(magma.gsi)
+
+wd <- getwd() # path to data folder
+magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+
+```
+
+Run the model:
+
+```{r run model}
+magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
+
+```
+
+Summarize the results:
+
+```{r summary}
+magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district", type = "age")
+
+magma_summ$age_summ[1]
+
+```
+
+There's a function in the package to make trace plots and inspect mixing of chains.
+
+```{r example_trace_plot}
+tr_plot(magma_summ$age_prop[[1]])
+
+```
+
+To see more examples on using MAGMA, you can call the manual using `vignette("magma_vignette")` after you installed *magma.gsi*.
+
