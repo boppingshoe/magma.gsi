@@ -147,11 +147,24 @@ magmatize_data <-
     sw_ages <- seq.int(sw_age_range[1], sw_age_range[2])
 
     euro_ages <-
-      sort(apply(expand.grid(fw_ages, sw_ages), 1 , paste, collapse = ""))
+      apply(expand.grid(fw_ages, sw_ages), 1 , paste, collapse = "")
+
+    extra_ages <-
+      age_classes[which(!age_classes %in% c(euro_ages, "0X", "other"))]
+
+    euro_ages <-
+      sort(c(extra_ages, euro_ages))
 
     C <- length(euro_ages)
 
-    if ("all" %in% age_classes) age_classes <- euro_ages
+    if ("all" %in% age_classes) {
+      age_classes <- euro_ages
+    } else if (any(!na.omit(euro_age) %in% age_classes) & !"other" %in% age_classes) {
+      stop("Unspecified age class(es) found in metadata. Include an 'other' age class to catch unspecified age classes.")
+    } else if (!all(c("0X", "other") %in% age_classes)) {
+      euro_ages <- age_classes
+      C <- length(euro_ages)
+    }
 
     A <- length(age_classes)
 
@@ -159,6 +172,7 @@ magmatize_data <-
 
     if ('0X' %in% age_classes) {
       age_class[substring(euro_ages, 1, 1) == "0"] <- 1L
+      if (!any(substring(euro_ages, 1, 1) == "0")) warning("You have 0X age class, but no 0 age detected in metadata.")
     } # for instances when we do not want to hard code age 0 composite class.
 
     age_class[euro_ages %in% age_classes] <-
