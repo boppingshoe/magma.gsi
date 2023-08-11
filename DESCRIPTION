@@ -27,3 +27,7 @@ Imports:
     tidyr
 URL: https://github.com/boppingshoe/magma.gsi
 BugReports: https://github.com/boppingshoe/magma.gsi/issues
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
