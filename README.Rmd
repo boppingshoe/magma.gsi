@@ -26,7 +26,7 @@ You can install the development version of magma.gsi from [GitHub](https://githu
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("boppingshoe/magma.gsi")
+devtools::install_github("boppingshoe/magma.gsi", build_vignettes = TRUE)
 ```
 
 ## Example
