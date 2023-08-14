@@ -32,25 +32,23 @@ Before running `magmatize_data()` function, we need to set up a *data* folder an
 *group_namesXXX.txt* and *groupsXXX.txt* are saved with fishery extension. For example, *group_namesFAKE.txt* and *groupsFAKE.txt* are files for the "FAKE" fishery. *group_namesXXX.txt* contains the names of the reporting groups in order of their group identifying numbers (groupvec). *groupsXXX.txt* contains the groupvec for each population in the data. The following shows the format of *group_namesXXX.txt* and *groupsXXX.txt*.
 
 ```{r groupvec}
-dirt <- "D:/bobby_adfg/projects/magma/magma.gsi"
+readr::read_table("data/group_namesFAKE.txt")
 
-readr::read_table(paste0(dirt, "/data/group_namesFAKE.txt"))
-
-readr::read_table(paste0(dirt, "/data/groupsFAKE.txt"))
+readr::read_table("data/groupsFAKE.txt")
 
 ```
 
 *harvestXXX.txt* is also saved with a fishery extension. Harvest file contains the number of harvest for each sampling week in each district and subdistrict. The following shows an example for the "FAKE" fishery harvest. Note that the column names in the harvest file have to be in all capital letters.
 
 ```{r harvest}
-readr::read_table(paste0(dirt, "/data/harvestFAKE.txt"))
+readr::read_table("data/harvestFAKE.txt")
 
 ```
 
 *metadata.txt* contains the information where (district and subdistrict) and when (week) each fish in the data set was collected. Each fish is identified by `SILLY_VIAL`, an unique identifier. *metadata.txt* also contains information for age and origin for each fish, if they are observed. The following shows the format for *metadata.txt*. Note that the column names have to be in all capital letters.
 
 ```{r metadat}
-head(readr::read_table(paste0(dirt, "/data/metadata.txt")))
+head(readr::read_table("data/metadata.txt"))
 
 ```
 
@@ -65,7 +63,7 @@ Age classes for the analysis is identified at this step. User can specify the ag
 `magmatize_data()` function automatically formats the input data as a list. Users will need to assign the list as an *R* object as shown in the code below.
 
 ```{r run-magma-data, message=FALSE}
-yomamafat <- magmatize_data(wd = dirt, age_classes <- c(13, 21, 22, 23, 31, 32, "other"), save_data = FALSE)
+yomamafat <- magmatize_data(wd = getwd(), age_classes <- c(13, 21, 22, 23, 31, 32, "other"), save_data = FALSE)
 
 str(yomamafat)
 
