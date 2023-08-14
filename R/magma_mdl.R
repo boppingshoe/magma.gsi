@@ -8,7 +8,7 @@
 #' @param nchains Number of independent MCMC chains run in the simulation.
 #' @param nadapt Amount of warm-up/adapt runs before the simulation (only for fully Bayesian mode).
 #' @param keep_burn Logical (default = FALSE.). To keep the burn-ins in the output or not.
-#' @param age_prior Specify the level of prior influence for age.
+#' @param age_priors Specify the level of prior influence for age.
 #'   The default is "weak", which has sum of age priors = 1.
 #'   If specify `age_prior = "strong"`, it will have sum of age priors
 #'   = number of specified age classes.

@@ -33,6 +33,11 @@ magmatize_mdl(
 
 \item{keep_burn}{Logical (default = FALSE.). To keep the burn-ins in the output or not.}
 
+\item{age_priors}{Specify the level of prior influence for age.
+The default is "weak", which has sum of age priors = 1.
+If specify \code{age_prior = "strong"}, it will have sum of age priors
+= number of specified age classes.}
+
 \item{cond_gsi}{Logical (default = TRUE). Option to use conditional GSI model.}
 
 \item{out_path}{File path for saving the output. Need to type out the full path.
@@ -42,11 +47,6 @@ The default is \code{NULL} for not saving the output.}
 so the output can be reproduced exactly.
 Just pick a seed number and make note of it for future reference.
 The default is \code{NULL}.}
-
-\item{age_prior}{Specify the level of prior influence for age.
-The default is "weak", which has sum of age priors = 1.
-If specify \code{age_prior = "strong"}, it will have sum of age priors
-= number of specified age classes.}
 }
 \value{
 A list object contains 1) the raw output of MAGMA as a list/multi-way array that need to be further summarized using summary functions, and 2) specifications for the model run (information needed for summary).
