@@ -16,6 +16,7 @@ Model output in process and metadata as a list object.
 Summarize big daddy model output ste 3
 }
 \examples{
+\dontrun{
 # format data
 wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
@@ -32,5 +33,6 @@ tbr1 <- magmatize_summ_bd1(which_dist = 1,
 tbr2 <- magmatize_summ_bd2(tbr1, summ_level = "district", type = "pop")
 
 tbr3 <- magmatize_summ_bd3(tbr2)
+}
 
 }

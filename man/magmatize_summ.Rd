@@ -26,6 +26,7 @@ Summary tables for reporting groups and/or age classes.
 Use this function to summarize "smaller" output (i.e., not TBR).
 }
 \examples{
+\dontrun{
 # format data
 wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
@@ -40,5 +41,6 @@ magma_summ <- magmatize_summ(which_dist = 1,
   ma_dat = magma_data,
   summ_level = "district",
   type = "pop")
+}
 
 }

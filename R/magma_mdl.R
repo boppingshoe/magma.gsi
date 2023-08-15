@@ -27,12 +27,14 @@
 #' @importFrom foreach %dopar%
 #'
 #' @examples
+#' \dontrun{
 #' # format data
 #' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 #' # model run
 #' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 2)
+#' }
 #'
 #' @export
 magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_priors = "weak", cond_gsi = TRUE, out_path = NULL, seed = NULL) {
@@ -326,7 +328,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
 }
 
 
-utils::globalVariables(c("district", "subdist")
+utils::globalVariables(c("district", "subdist"))
 
 
 

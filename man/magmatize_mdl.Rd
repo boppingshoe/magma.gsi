@@ -55,11 +55,13 @@ A list object contains 1) the raw output of MAGMA as a list/multi-way array that
 Run MAGMA model
 }
 \examples{
+\dontrun{
 # format data
 wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 
 # model run
 magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 2)
+}
 
 }

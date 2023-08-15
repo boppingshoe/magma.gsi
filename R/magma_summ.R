@@ -255,10 +255,10 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
         dplyr::group_by(name) %>%
         dplyr::summarise(
           mean = mean(value),
-          median = median(value),
-          sd = sd(value),
-          ci.05 = quantile(value, 0.05),
-          ci.95 = quantile(value, 0.95),
+          median = stats::median(value),
+          sd = stats::sd(value),
+          ci.05 = stats::quantile(value, 0.05),
+          ci.95 = stats::quantile(value, 0.95),
           p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , w_idx, ])* harvest %>% dplyr::group_by(DISTRICT, STAT_WEEK) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, STAT_WEEK== w_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
@@ -1146,7 +1146,7 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
     summ_pop_all[[d_idx]] <-
       lapply(p_combo_all[[d_idx]], function(rlist) rlist[keep_list,]) %>%
       dplyr::bind_rows() %>%
-      tidyr::pivot_longer(cols = everything()) %>%
+      tidyr::pivot_longer(cols = dplyr::everything()) %>%
       dplyr::group_by(name) %>%
       dplyr::summarise(
         mean = mean(value),
@@ -1195,7 +1195,7 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
       summ_pop[[p_idx]] <-
         lapply(p_combo[[p_idx]], function(rlist) rlist[keep_list,]) %>%
         dplyr::bind_rows() %>%
-        tidyr::pivot_longer(cols = everything()) %>%
+        tidyr::pivot_longer(cols = dplyr::everything()) %>%
         dplyr::group_by(name) %>%
         dplyr::summarise(
           mean = mean(value),
@@ -1647,7 +1647,7 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
       summ_pop_all[[max(S)*(d_idx-1)+s_idx]] <-
         lapply(p_combo_all[[max(S)*(d_idx-1)+s_idx]], function(rlist) rlist[keep_list,]) %>%
         dplyr::bind_rows() %>%
-        tidyr::pivot_longer(cols = everything()) %>%
+        tidyr::pivot_longer(cols = dplyr::everything()) %>%
         dplyr::group_by(name) %>%
         dplyr::summarise(
           mean = mean(value),
@@ -1698,7 +1698,7 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
         summ_pop[[p_idx]] <-
           lapply(p_combo[[p_idx]], function(rlist) rlist[keep_list,]) %>%
           dplyr::bind_rows() %>%
-          tidyr::pivot_longer(cols = everything()) %>%
+          tidyr::pivot_longer(cols = dplyr::everything()) %>%
           dplyr::group_by(name) %>%
           dplyr::summarise(
             mean = mean(value),
@@ -2235,6 +2235,7 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #' @importFrom magrittr %>%
 #'
 #' @examples
+#' \dontrun{
 #' # format data
 #' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
@@ -2249,6 +2250,7 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #'   ma_dat = magma_data,
 #'   summ_level = "district",
 #'   type = "pop")
+#' }
 #'
 #' @export
 magmatize_summ <- function(which_dist = NULL, ma_out, ma_dat, summ_level, type = NULL) {
@@ -2339,7 +2341,7 @@ magmatize_summ <- function(which_dist = NULL, ma_out, ma_dat, summ_level, type =
 
 
 utils::globalVariables(c(".", "district", "subdist", "week", "HARVEST", "n", "agevec",
-                         "grpvec", "ppi", "DISTRICT", "SUBDISTRCT", "STAT_WEEK",
+                         "grpvec", "ppi", "DISTRICT", "SUBDISTRICT", "STAT_WEEK",
                          "prop_harv", "p", "sum_harv", "stock_prop", "group", "age"))
 
 

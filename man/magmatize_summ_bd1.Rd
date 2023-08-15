@@ -21,6 +21,7 @@ Model output in multiway array and subset of metadata as a list object.
 Use this function for summarize big daddy model output (e.g., TBR)
 }
 \examples{
+\dontrun{
 # format data
 wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
@@ -33,5 +34,6 @@ magma_out <- magmatize_mdl(magma_data,
 tbr1 <- magmatize_summ_bd1(which_dist = 1,
   ma_out = magma_out,
   ma_dat = magma_data)
+}
 
 }

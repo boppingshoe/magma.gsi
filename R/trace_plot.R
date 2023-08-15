@@ -13,6 +13,7 @@
 #' @importFrom magrittr %>%
 #'
 #' @examples
+#' \dontrun{
 #' # format data
 #' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
@@ -30,6 +31,7 @@
 #'
 #' # trace plot
 #' tr_plot(obj = magma_summ$pop_prop[[1]])
+#' }
 #'
 #' @export
 tr_plot <- function (obj, nburn = 0, thin = 1, name_order = NULL) {
@@ -52,6 +54,7 @@ tr_plot <- function (obj, nburn = 0, thin = 1, name_order = NULL) {
     ggplot2::labs(color = "MC chain")
 
 } # nburn = 0 if keep_burn = FALSE
+
 
 utils::globalVariables(c("chain", "itr", "name", "value"))
 

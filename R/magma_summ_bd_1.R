@@ -11,6 +11,7 @@
 #' @importFrom magrittr %>%
 #'
 #' @examples
+#' \dontrun{
 #' # format data
 #' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
@@ -23,6 +24,7 @@
 #' tbr1 <- magmatize_summ_bd1(which_dist = 1,
 #'   ma_out = magma_out,
 #'   ma_dat = magma_data)
+#' }
 #'
 #' @export
 magmatize_summ_bd1 <- function(which_dist = NULL, ma_out, ma_dat) {

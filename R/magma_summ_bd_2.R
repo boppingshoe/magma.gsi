@@ -8,6 +8,7 @@
 #' @importFrom magrittr %>%
 #'
 #' @examples
+#' \dontrun{
 #' # format data
 #' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
@@ -22,6 +23,7 @@
 #'   ma_dat = magma_data)
 #'
 #' tbr2 <- magmatize_summ_bd2(tbr1, summ_level = "district", type = "pop")
+#' }
 #'
 #' @export
 magmatize_summ_bd2 <- function(out1, summ_level, type) {
@@ -567,7 +569,7 @@ format_subdistrict_age_a <- function(outraw, dat_in, nreps, nburn, thin, nchains
 # end age ----
 
 
-utils::globalVariables(c("district", "subdist"))
+utils::globalVariables(c("district", "subdist", "SUBDISTRICT"))
 
 
 

@@ -62,8 +62,10 @@ check_loci <- function(loci_pr, loci_mix, loci_base) {
 #' @importFrom foreach %dopar%
 #'
 #' @examples
+#' \dontrun{
 #' wd <- getwd() # path to data folder
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+#' }
 #'
 #' @export
 magmatize_data <-

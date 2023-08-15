@@ -25,6 +25,7 @@ Trace plot in ggplot
 Plot MCMC trace
 }
 \examples{
+\dontrun{
 # format data
 wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
@@ -42,5 +43,6 @@ magma_summ <- magmatize_summ(which_dist = 1,
 
 # trace plot
 tr_plot(obj = magma_summ$pop_prop[[1]])
+}
 
 }

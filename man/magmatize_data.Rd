@@ -22,7 +22,9 @@ A list objects as the input data for \code{msgsi_mdl()}
 Preparing MAGMA input data
 }
 \examples{
+\dontrun{
 wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+}
 
 }
