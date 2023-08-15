@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-You can install the development version of magma.gsi from [GitHub](https://github.com/boppingshoe/magma.gsi) with:
+You can install the development version of *magma.gsi* from [GitHub](https://github.com/boppingshoe/magma.gsi) with:
 
 ``` r
 # install.packages("devtools")
@@ -64,5 +64,5 @@ tr_plot(magma_summ$age_prop[[1]])
 
 ```
 
-To see more examples on using MAGMA, you can call the manual using `vignette("magma_vignette")` after you installed *magma.gsi*.
+To see more examples on using *magma.gsi*, you can call the manual using `vignette("magma_vignette")` after you installed *magma.gsi*.
 
