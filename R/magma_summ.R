@@ -206,10 +206,10 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
       dplyr::group_by(name) %>%
       dplyr::summarise(
         mean = mean(value),
-        median = median(value),
-        sd = sd(value),
-        ci.05 = quantile(value, 0.05),
-        ci.95 = quantile(value, 0.95),
+        median = stats::median(value),
+        sd = stats::sd(value),
+        ci.05 = stats::quantile(value, 0.05),
+        ci.95 = stats::quantile(value, 0.95),
         p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx) %>% dplyr::pull(sum_harv) )))),
         .groups = "drop"
       ) %>%
@@ -288,7 +288,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
                }) %>%
         dplyr::bind_rows() %>%
         dplyr::group_by(itr, grpvec) %>%
-        dplyr::summarise(across(.cols = everything(),
+        dplyr::summarise(dplyr::across(.cols = dplyr::everything(),
                                 .fns = sum),
                          .groups = "drop") %>%
         tidyr::pivot_longer(-c(itr, grpvec)) %>%
@@ -330,10 +330,10 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
         dplyr::group_by(name, grpvec) %>%
         dplyr::summarise(
           mean = mean(value),
-          median = median(value),
-          sd = sd(value),
-          ci.05 = quantile(value, 0.05),
-          ci.95 = quantile(value, 0.95),
+          median = stats::median(value),
+          sd = stats::sd(value),
+          ci.05 = stats::quantile(value, 0.05),
+          ci.95 = stats::quantile(value, 0.95),
           p0 = mean( value < (0.5/ max(1, harv_dis* stock_prop)) ),
           .groups = "drop"
         ) %>%
@@ -590,10 +590,10 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
         dplyr::group_by(name) %>%
         dplyr::summarise(
           mean = mean(value),
-          median = median(value),
-          sd = sd(value),
-          ci.05 = quantile(value, 0.05),
-          ci.95 = quantile(value, 0.95),
+          median = stats::median(value),
+          sd = stats::sd(value),
+          ci.05 = stats::quantile(value, 0.05),
+          ci.95 = stats::quantile(value, 0.95),
           p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT, SUBDISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
@@ -641,10 +641,10 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
           dplyr::group_by(name) %>%
           dplyr::summarise(
             mean = mean(value),
-            median = median(value),
-            sd = sd(value),
-            ci.05 = quantile(value, 0.05),
-            ci.95 = quantile(value, 0.95),
+            median = stats::median(value),
+            sd = stats::sd(value),
+            ci.05 = stats::quantile(value, 0.05),
+            ci.95 = stats::quantile(value, 0.95),
             p0 = mean(value < (0.5/ max(1, (any(p_zero[d_idx, s_idx, w_idx, ])* dplyr::filter(harvest, DISTRICT== d_idx, SUBDISTRICT== s_idx, STAT_WEEK== w_idx)$HARVEST)))),
             .groups = "drop"
           ) %>%
@@ -675,7 +675,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
                  }) %>%
           dplyr::bind_rows() %>%
           dplyr::group_by(itr, grpvec) %>%
-          dplyr::summarise(across(.cols = everything(),
+          dplyr::summarise(dplyr::across(.cols = dplyr::everything(),
                                   .fns = sum),
                            .groups = "drop") %>%
           tidyr::pivot_longer(-c(itr, grpvec)) %>%
@@ -717,10 +717,10 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
           dplyr::group_by(name, grpvec) %>%
           dplyr::summarise(
             mean = mean(value),
-            median = median(value),
-            sd = sd(value),
-            ci.05 = quantile(value, 0.05),
-            ci.95 = quantile(value, 0.95),
+            median = stats::median(value),
+            sd = stats::sd(value),
+            ci.05 = stats::quantile(value, 0.05),
+            ci.95 = stats::quantile(value, 0.95),
             p0 = mean( value < (0.5/ max(1, harv_subdis* stock_prop)) ),
             .groups = "drop"
           ) %>%
@@ -1150,10 +1150,10 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
       dplyr::group_by(name) %>%
       dplyr::summarise(
         mean = mean(value),
-        median = median(value),
-        sd = sd(value),
-        ci.05 = quantile(value, 0.05),
-        ci.95 = quantile(value, 0.95),
+        median = stats::median(value),
+        sd = stats::sd(value),
+        ci.05 = stats::quantile(value, 0.05),
+        ci.95 = stats::quantile(value, 0.95),
         p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx) %>% dplyr::pull(sum_harv) )))),
         .groups = "drop"
       ) %>%
@@ -1199,10 +1199,10 @@ format_district_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
         dplyr::group_by(name) %>%
         dplyr::summarise(
           mean = mean(value),
-          median = median(value),
-          sd = sd(value),
-          ci.05 = quantile(value, 0.05),
-          ci.95 = quantile(value, 0.95),
+          median = stats::median(value),
+          sd = stats::sd(value),
+          ci.05 = stats::quantile(value, 0.05),
+          ci.95 = stats::quantile(value, 0.95),
           p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , w_idx, ])* harvest %>% dplyr::group_by(DISTRICT, STAT_WEEK) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, STAT_WEEK== w_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
@@ -1396,7 +1396,7 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
                }) %>%
         dplyr::bind_rows() %>%
         dplyr::group_by(itr, grpvec) %>%
-        dplyr::summarise(across(.cols = everything(),
+        dplyr::summarise(dplyr::across(.cols = dplyr::everything(),
                                 .fns = sum),
                          .groups = "drop") %>%
         tidyr::pivot_longer(-c(itr, grpvec)) %>%
@@ -1408,7 +1408,7 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
         stats::setNames(., c("grpvec", age_classes))
     } # combine all individual districts
 
-    for (grp in group_names[, d_idx] %>% na.omit) {
+    for (grp in stats::na.omit(group_names[, d_idx])) {
       a_idx <- a_idx + 1
 
       ap_prop_grp[[a_idx]] <-
@@ -1438,10 +1438,10 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
         dplyr::group_by(name, grpvec) %>%
         dplyr::summarise(
           mean = mean(value),
-          median = median(value),
-          sd = sd(value),
-          ci.05 = quantile(value, 0.05),
-          ci.95 = quantile(value, 0.95),
+          median = stats::median(value),
+          sd = stats::sd(value),
+          ci.05 = stats::quantile(value, 0.05),
+          ci.95 = stats::quantile(value, 0.95),
           p0 = mean( value < (0.5/ max(1, harv_dis* stock_prop)) ),
           .groups = "drop"
         ) %>%
@@ -1651,10 +1651,10 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
         dplyr::group_by(name) %>%
         dplyr::summarise(
           mean = mean(value),
-          median = median(value),
-          sd = sd(value),
-          ci.05 = quantile(value, 0.05),
-          ci.95 = quantile(value, 0.95),
+          median = stats::median(value),
+          sd = stats::sd(value),
+          ci.05 = stats::quantile(value, 0.05),
+          ci.95 = stats::quantile(value, 0.95),
           p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT, SUBDISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
@@ -1702,10 +1702,10 @@ format_subdistrict_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
           dplyr::group_by(name) %>%
           dplyr::summarise(
             mean = mean(value),
-            median = median(value),
-            sd = sd(value),
-            ci.05 = quantile(value, 0.05),
-            ci.95 = quantile(value, 0.95),
+            median = stats::median(value),
+            sd = stats::sd(value),
+            ci.05 = stats::quantile(value, 0.05),
+            ci.95 = stats::quantile(value, 0.95),
             p0 = mean(value < (0.5/ max(1, (any(p_zero[d_idx, s_idx, w_idx, ])* dplyr::filter(harvest, DISTRICT== d_idx, SUBDISTRICT== s_idx, STAT_WEEK== w_idx)$HARVEST)))),
             .groups = "drop"
           ) %>%
@@ -1907,7 +1907,7 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
                  }) %>%
           dplyr::bind_rows() %>%
           dplyr::group_by(itr, grpvec) %>%
-          dplyr::summarise(across(.cols = everything(),
+          dplyr::summarise(dplyr::across(.cols = dplyr::everything(),
                                   .fns = sum),
                            .groups = "drop") %>%
           tidyr::pivot_longer(-c(itr, grpvec)) %>%
@@ -1919,7 +1919,7 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
           stats::setNames(., c("grpvec", age_classes))
       } # combine all individual districts
 
-      for (grp in group_names[, d_idx] %>% na.omit) {
+      for (grp in stats::na.omit(group_names[, d_idx])) {
         a_idx <- a_idx + 1
 
         ap_prop_grp[[a_idx]] <-
@@ -1949,10 +1949,10 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
           dplyr::group_by(name, grpvec) %>%
           dplyr::summarise(
             mean = mean(value),
-            median = median(value),
-            sd = sd(value),
-            ci.05 = quantile(value, 0.05),
-            ci.95 = quantile(value, 0.95),
+            median = stats::median(value),
+            sd = stats::sd(value),
+            ci.05 = stats::quantile(value, 0.05),
+            ci.95 = stats::quantile(value, 0.95),
             p0 = mean( value < (0.5/ max(1, harv_subdis* stock_prop)) ),
             .groups = "drop"
           ) %>%
@@ -2337,6 +2337,10 @@ magmatize_summ <- function(which_dist = NULL, ma_out, ma_dat, summ_level, type =
 
 }
 
+
+utils::globalVariables(c(".", "district", "subdist", "week", "HARVEST", "n", "agevec",
+                         "grpvec", "ppi", "DISTRICT", "SUBDISTRCT", "STAT_WEEK",
+                         "prop_harv", "p", "sum_harv", "stock_prop", "group", "age"))
 
 
 

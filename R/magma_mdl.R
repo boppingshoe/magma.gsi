@@ -311,7 +311,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   parallel::stopCluster(cl)
 
   specs <- c(nreps, nburn, thin, nchains, keep_burn) %>%
-    setNames(c("nreps", "nburn", "thin", "nchains", "keep_burn"))
+    stats::setNames(c("nreps", "nburn", "thin", "nchains", "keep_burn"))
 
   magma_out <- list(outraw = outraw, specs = specs)
 
@@ -326,6 +326,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
 }
 
 
+utils::globalVariables(c("district", "subdist")
 
 
 

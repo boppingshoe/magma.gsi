@@ -105,6 +105,7 @@ magmatize_summ_bd1 <- function(which_dist = NULL, ma_out, ma_dat) {
 }
 
 
+utils::globalVariables(c(".", "district", "subdist", "week", "DISTRICT"))
 
 
 

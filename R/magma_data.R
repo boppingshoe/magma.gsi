@@ -120,7 +120,7 @@ magmatize_data <-
     #### Age Data #### ----
 
     metadat0 <-
-      read.table(
+      utils::read.table(
         file = paste0(wd, "/data/metadata.txt"),
         sep = "\t",
         header = TRUE,
@@ -128,7 +128,7 @@ magmatize_data <-
         row.names = 1
       )
 
-    euro_age <- setNames(metadat0$AGE_EUROPEAN, rownames(metadat0))
+    euro_age <- stats::setNames(metadat0$AGE_EUROPEAN, rownames(metadat0))
 
     euro_age[!is.na(euro_age)] <-
       sapply(euro_age[!is.na(euro_age)], function(chr) {
@@ -159,7 +159,7 @@ magmatize_data <-
 
     if ("all" %in% age_classes) {
       age_classes <- euro_ages
-    } else if (any(!na.omit(euro_age) %in% age_classes) & !"other" %in% age_classes) {
+    } else if (any(!stats::na.omit(euro_age) %in% age_classes) & !"other" %in% age_classes) {
       stop("Unspecified age class(es) found in metadata. Include an 'other' age class to catch unspecified age classes.")
     } else if (!all(c("0X", "other") %in% age_classes)) {
       euro_ages <- age_classes
@@ -181,7 +181,7 @@ magmatize_data <-
     #### Baseline Data #### ----
 
     groups0 <-
-      read.table(
+      utils::read.table(
         file = paste0(wd, "/data/groups", fishery, ".txt"),
         header = TRUE,
         row.names = 1,
@@ -190,7 +190,7 @@ magmatize_data <-
       )
 
     group_names <-
-      read.table(
+      utils::read.table(
         file = paste0(wd, "/data/group_names", fishery, ".txt"),
         header = TRUE,
         sep = "\t",
@@ -373,7 +373,7 @@ magmatize_data <-
     #       else c(rep(0, ag - 1), 1, rep(0, C - ag))
     #     })) %>%
     #         dplyr::as_tibble(.name_repair = "minimal") %>%
-    #         setNames(paste0("age_", seq(C)))}
+    #         stats::setNames(paste0("age_", seq(C)))}
     #     )
 
 
@@ -382,7 +382,7 @@ magmatize_data <-
     i <- as.integer(factor(metadat0$SOURCE, levels = hatcheries)) + K
 
     districts <-
-      setNames(as.character(sort(unique(
+      stats::setNames(as.character(sort(unique(
         metadat0$DISTRICT
       ))), sort(unique(metadat0$DISTRICT)))
     D <- length(districts)
@@ -391,7 +391,7 @@ magmatize_data <-
 
     subdistricts <-
       lapply(districts, function(d) {
-        setNames(sort(unique(
+        stats::setNames(sort(unique(
           subset(metadat0, DISTRICT == d)$SUBDISTRICT
         )), sort(unique(
           subset(metadat0, DISTRICT == d)$SUBDISTRICT
@@ -423,7 +423,7 @@ magmatize_data <-
       )
 
     harvest <-
-      read.table( paste0(wd, "/data/harvest", fishery, ".txt"),
+      utils::read.table( paste0(wd, "/data/harvest", fishery, ".txt"),
                   header = TRUE,
                   sep = "\t",
                   stringsAsFactors = FALSE
@@ -540,7 +540,7 @@ prep_malia_data <- function(magma_data, path) {
     tidyr::replace_na(list(iden=0, age=0)) %>%
     as.matrix %>%
     trimws %>%
-    write.table(., paste0(path, "/metadat.txt"), row.names = FALSE)
+    utils::write.table(., paste0(path, "/metadat.txt"), row.names = FALSE)
 
   readr::write_lines(magma_data$C, paste0(path, "/c.txt"))
 
@@ -548,13 +548,13 @@ prep_malia_data <- function(magma_data, path) {
     dplyr::rename(n_state = value) %>%
     as.matrix %>%
     trimws %>%
-    write.table(., paste0(path, "/nstates.txt"), row.names = FALSE)
+    utils::write.table(., paste0(path, "/nstates.txt"), row.names = FALSE)
 
   tibble::enframe(magma_data$nalleles) %>%
     dplyr::rename(n_allele = value) %>%
     as.matrix %>%
     trimws %>%
-    write.table(., paste0(path, "/nalleles.txt"), row.names = FALSE)
+    utils::write.table(., paste0(path, "/nalleles.txt"), row.names = FALSE)
 
   readr::write_lines(magma_data$wildpops, paste0(path, "/wildpops.txt"))
 
@@ -564,20 +564,23 @@ prep_malia_data <- function(magma_data, path) {
     tibble::rownames_to_column(var = "grp_name") %>%
     as.matrix %>%
     trimws %>%
-    write.table(., paste0(path, "/groups.txt"), row.names = FALSE)
+    utils::write.table(., paste0(path, "/groups.txt"), row.names = FALSE)
 
   tibble::enframe(magma_data$age_class) %>%
     dplyr::rename(class = value) %>%
     as.matrix %>%
     trimws %>%
-    write.table(., paste0(path, "/age_class.txt"), row.names = FALSE)
+    utils::write.table(., paste0(path, "/age_class.txt"), row.names = FALSE)
 
-  write.table(magma_data$x, paste0(path, "/x.txt"), row.names = FALSE)
-  write.table(magma_data$y, paste0(path, "/y.txt"), row.names = FALSE)
+  utils::write.table(magma_data$x, paste0(path, "/x.txt"), row.names = FALSE)
+  utils::write.table(magma_data$y, paste0(path, "/y.txt"), row.names = FALSE)
 
 }
 
 
+utils::globalVariables(c("SillySource", "locus", "n", "altyp", "n_allele",
+                         "fishery", "SILLY_CODE", "mix", ".",
+                         "collection", "DISTRICT"))
 
 
 

@@ -975,6 +975,7 @@ format_subdistrict_age_b <- function(ageout_a, dat_in, nreps, nburn, thin, nchai
 # end age ----
 
 
+utils::globalVariables(c("district", "subdist"))
 
 
 
