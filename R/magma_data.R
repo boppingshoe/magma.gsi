@@ -152,7 +152,7 @@ magmatize_data <-
       apply(expand.grid(fw_ages, sw_ages), 1 , paste, collapse = "")
 
     extra_ages <-
-      age_classes[which(!age_classes %in% c(euro_ages, "0X", "other"))]
+      age_classes[which(!age_classes %in% c(euro_ages, "0X", "other", "all"))]
 
     euro_ages <-
       sort(c(extra_ages, euro_ages))
@@ -162,6 +162,8 @@ magmatize_data <-
     if ("all" %in% age_classes) {
       age_classes <- euro_ages
     } else if (any(!stats::na.omit(euro_age) %in% age_classes) & !"other" %in% age_classes) {
+      detach(paste0("file:", wd, "/data/mixture.RData"), character.only = TRUE)
+      detach(paste0("file:", wd, "/data/baseline.RData"), character.only = TRUE)
       stop("Unspecified age class(es) found in metadata. Include an 'other' age class to catch unspecified age classes.")
     } else if (!all(c("0X", "other") %in% age_classes)) {
       euro_ages <- age_classes
@@ -209,6 +211,8 @@ magmatize_data <-
     }) # group number for "Other" group
 
     if (sum(G) == 0 & length(miss_hatch_grp) > 0) {
+      detach(paste0("file:", wd, "/data/mixture.RData"), character.only = TRUE)
+      detach(paste0("file:", wd, "/data/baseline.RData"), character.only = TRUE)
       stop(paste("unidentified hatchery groups:", miss_hatch_grp, sep = " "))
     }
 
