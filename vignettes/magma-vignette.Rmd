@@ -76,7 +76,9 @@ Finally, if `hatcheries` were left out of the input data, program would assume n
 
 Use `magmatize_mdl()` function to run the model. You'll need to assign the output as an object as shown in the code below. `magmatize_mdl()` functions will **not** automatically save the model output, but there is an option to do so.
 
-Burn-ins are excluded in the summary calculations even if a user choose to keep the burn-in output. There is an option to make the age priors slightly more influential in the MCMC sampling. Lastly, `keep_burn`, `age_prior`, and `out_path` use the default values if not specified by the user.
+Burn-ins are excluded in the summary calculations even if a user choose to keep the burn-in output. There is an option to make the age priors slightly more influential in the MCMC sampling. Lastly, `keep_burn`, `flat_age_prior`, and `out_path` use the default values if not specified by the user.
+
+`flat_age_prior = TRUE` set an equal weight across the age groups. Setting `flat_age_prior` to `FALSE` will concentrate the prior weight on the major age groups and force the unobserved age groups to (near) zero.
 
 ```{r run-magama}
 

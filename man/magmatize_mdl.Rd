@@ -12,7 +12,7 @@ magmatize_mdl(
   nchains,
   nadapt = 50,
   keep_burn = FALSE,
-  age_priors = "weak",
+  flat_age_priors = TRUE,
   cond_gsi = TRUE,
   out_path = NULL,
   seed = NULL
@@ -31,12 +31,9 @@ magmatize_mdl(
 
 \item{nadapt}{Amount of warm-up/adapt runs before the simulation (only for fully Bayesian mode).}
 
-\item{keep_burn}{Logical (default = FALSE.). To keep the burn-ins in the output or not.}
+\item{keep_burn}{Logical (default = FALSE). To keep the burn-ins in the output or not.}
 
-\item{age_priors}{Specify the level of prior influence for age.
-The default is "weak", which has sum of age priors = 1.
-If specify \code{age_prior = "strong"}, it will have sum of age priors
-= number of specified age classes.}
+\item{flat_age_priors}{Logical (default = TRUE). If FALSE, prior weight will concentrate on the major age groups that are observed in metadata.}
 
 \item{cond_gsi}{Logical (default = TRUE). Option to use conditional GSI model.}
 

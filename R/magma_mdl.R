@@ -7,11 +7,8 @@
 #' @param thin At what interval to keep the simulations.
 #' @param nchains Number of independent MCMC chains run in the simulation.
 #' @param nadapt Amount of warm-up/adapt runs before the simulation (only for fully Bayesian mode).
-#' @param keep_burn Logical (default = FALSE.). To keep the burn-ins in the output or not.
-#' @param age_priors Specify the level of prior influence for age.
-#'   The default is "weak", which has sum of age priors = 1.
-#'   If specify `age_prior = "strong"`, it will have sum of age priors
-#'   = number of specified age classes.
+#' @param keep_burn Logical (default = FALSE). To keep the burn-ins in the output or not.
+#' @param flat_age_priors Logical (default = TRUE). If FALSE, prior weight will concentrate on the major age groups that are observed in metadata.
 #' @param cond_gsi Logical (default = TRUE). Option to use conditional GSI model.
 #' @param out_path File path for saving the output. Need to type out the full path.
 #'   The default is `NULL` for not saving the output.
@@ -37,7 +34,7 @@
 #' }
 #'
 #' @export
-magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_priors = "weak", cond_gsi = TRUE, out_path = NULL, seed = NULL) {
+magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, flat_age_priors = TRUE, cond_gsi = TRUE, out_path = NULL, seed = NULL) {
 
   ### ballroom categories ### ----
 
@@ -125,10 +122,10 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
     ) # genetic part of prior (beta)
   beta[allpops, ages] <-
     matrix(
-      if (age_priors == "weak") {
-        rep(1/ table(age_class), table(age_class)) / max(age_class)
+      if (isTRUE(flat_age_priors)) {
+        rep(1/ table(age_class), table(age_class)) / length(unique(age_class))
       } else {
-        rep(1/ table(age_class), table(age_class))
+        rep(1/ table(age_class), table(age_class)) / length(unique(age_class)) * (seq.int(length(age_class)) %in% metadat$age) %>% ifelse(. == 0, 1e-5, .) %>% {. / sum(.)}
       },
       nrow = K + H,
       ncol = C,
