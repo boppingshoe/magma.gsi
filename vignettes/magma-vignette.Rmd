@@ -1,8 +1,10 @@
 ---
-title: "magma-vignette"
-output: rmarkdown::html_vignette
+title: "How not to be engulfed by MAGMA: instructions and model descriptions"
+output:
+  rmarkdown::html_vignette:
+    toc: yes
 vignette: >
-  %\VignetteIndexEntry{magma-vignette}
+  %\VignetteIndexEntry{How not to be engulfed by MAGMA: instructions and model descriptions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -64,5 +64,5 @@ tr_plot(magma_summ$age_prop[[1]])
 
 ```
 
-To see more examples on using *magma.gsi*, you can call the manual using `vignette("magma_vignette")` after you installed *magma.gsi*.
+To see more examples on using *magma.gsi*, you can call the manual using `vignette("magma-vignette", package = "magma.gsi")` after you installed *magma.gsi*.
 
