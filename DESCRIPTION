@@ -5,8 +5,7 @@ Authors@R:
     person("Bobby", "Hsu", , "bobby.hsu@alaska.gov", role = c("aut", "cre"))
 Description: Conduct genetic stock identification that includes hatchery marking and age information,
     using fully Bayesian or conditional model.
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
