@@ -73,8 +73,8 @@ magmatize_data <-
 
     start_time <- Sys.time()
 
-    attach(paste0(wd, "/data/mixture.RData"))
-    attach(paste0(wd, "/data/baseline.RData"))
+    load(paste0(wd, "/data/mixture.RData"))
+    load(paste0(wd, "/data/baseline.RData"))
 
     message("Compiling input data, may take a minute or two...")
 
@@ -162,8 +162,6 @@ magmatize_data <-
     if ("all" %in% age_classes) {
       age_classes <- euro_ages
     } else if (any(!stats::na.omit(euro_age) %in% age_classes) & !"other" %in% age_classes) {
-      detach(paste0("file:", wd, "/data/mixture.RData"), character.only = TRUE)
-      detach(paste0("file:", wd, "/data/baseline.RData"), character.only = TRUE)
       stop("Unspecified age class(es) found in metadata. Include an 'other' age class to catch unspecified age classes.")
     } else if (!all(c("0X", "other") %in% age_classes)) {
       euro_ages <- age_classes
@@ -211,8 +209,6 @@ magmatize_data <-
     }) # group number for "Other" group
 
     if (sum(G) == 0 & length(miss_hatch_grp) > 0) {
-      detach(paste0("file:", wd, "/data/mixture.RData"), character.only = TRUE)
-      detach(paste0("file:", wd, "/data/baseline.RData"), character.only = TRUE)
       stop(paste("unidentified hatchery groups:", miss_hatch_grp, sep = " "))
     }
 
@@ -243,7 +239,7 @@ magmatize_data <-
 
     base_data <-
       sapply(wildpops, function(pop) {
-        get(paste0(pop, ".gcl"), pos = 1)
+        get(paste0(pop, ".gcl"), pos = -1)
       }, simplify = FALSE) %>%
       dplyr::bind_rows()
 
@@ -254,7 +250,7 @@ magmatize_data <-
 
     mixture_data <-
       sapply(mix_sillys, function(silly) {
-        get(paste0(silly, ".gcl"), pos = 1)
+        get(paste0(silly, ".gcl"), pos = -1)
       }, simplify = FALSE) %>%
       dplyr::bind_rows() # all gcl objects into a list, for parallel process
 
@@ -275,8 +271,6 @@ magmatize_data <-
     if (grepl("Unidentified", error_message[1])) {
       warning(error_message)
     } else if (!"good" %in% error_message) {
-      detach(paste0("file:", wd, "/data/mixture.RData"), character.only = TRUE)
-      detach(paste0("file:", wd, "/data/baseline.RData"), character.only = TRUE)
       stop(error_message)
     }
 
@@ -502,9 +496,6 @@ magmatize_data <-
       save(list = magma_data_names,
            file = paste0(wd, "/data/magma_data", fishery, ".RData"))
     }
-
-    detach(paste0("file:", wd, "/data/mixture.RData"), character.only = TRUE)
-    detach(paste0("file:", wd, "/data/baseline.RData"), character.only = TRUE)
 
     if(length(miss_hatch_grp) == 0) {
       message("No missing hatcheries")
