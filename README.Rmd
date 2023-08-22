@@ -37,7 +37,7 @@ Once you have the data sets up at a designated directory, you can compile the in
 library(magma.gsi)
 
 wd <- getwd() # path to data folder
-magma_data <- magmatize_data(wd = wd, save_data = FALSE)
+magma_data <- magmatize_data(wd = paste0(wd, "/vignettes"), save_data = FALSE)
 
 ```
 
