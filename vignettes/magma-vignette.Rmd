@@ -162,14 +162,22 @@ The age/stock composition[^1] for this stratum is:
 
 After all age/stock compositions in other strata are calculated in the same fashion, they are multiplied by the harvest proportions of their corresponding strata and summed up to get a weighted average age/stock composition.
 
-Age proportions are estimated by combining all mixtures/strata within a year, which can be counter-intuitive at first glance. After all, it may not be reasonable to assume that all mixtures share the same age distribution. However, in the MAGMA model, age compositions are adjusted according to stock proportions for each mixture population (i.e. stratum). Because stock proportions are different from mixtures to mixtures, the differences in stock compositions drive the differences in age compositions between mixtures populations as well. In the example above, Stock A consists mainly (50%) age 3 fish and is 70% of the total mixture population. Therefore, age 3 fish from stock A is the dominant class in the mixture population. In another stratum, stock B might be the majority of the mixture populations. In which case, we would expect to see that age 2 to be the dominant class because compositions are driven mostly by stock B.
+Age proportions are estimated by combining all mixtures/strata within a year, which can be counter-intuitive at first glance. After all, it may not be reasonable to assume that all mixtures share the same age distribution. However, in the MAGMA model, age compositions are adjusted according to stock proportions for each mixture population (i.e. stratum). Because stock proportions are different from mixtures to mixtures, the differences in stock compositions drive the differences in age compositions between mixtures. In the example above, stock A consists mainly (50%) age 3 fish and is 70% of the total mixture population. Therefore, age 3 fish from stock A is the dominant class in the mixture population. In another stratum, stock B might be the majority of the mixture populations. In which case, we would expect to see that age 2 to be the dominant class because compositions are driven mostly by stock B.
+
+It is not required that all individuals in the data set have an observed genotype or age. Base on data available, MAGMA model assign a most likely population identity and/or age to each individual that has an unobserved genotype and/or age. However, there should be an adequate sample of genotyped individuals to represent each stratum in the data set. When there is an inadequate number (small or zero sample size) of genotyped individuals in a stratum, MAGMA model estimates population proportions of that stratum based on the overall proportions of all strata combined.
 
 Estimation of age and population compositions in the MAGMA model is done through iterations of a algorithm called the Gibbs sampler. To initialize this process, all fish with unknown origin or age are stochastically assigned a population or age class, then proportions for populations and age groups are estimated in the following steps:
 
-1. Tally the numbers of fish in each age group for each population (assigned and observed) for both wild and hatchery individuals; 
-2. Estimate the population and age compositions from previous summaries (accounting for sampling error); 
-3. Stochastically assign each wild fish with genotypes to a wild population of origin based on the product of its genotypic frequency, age frequency, and population proportion; 
-4. Stochastically assign each wild fish without genotypes to a population of origin based on the product of its age frequency and population proportion; and
+1. Tally the numbers of fish in each age group for each population (assigned and observed) for both wild and hatchery individuals;
+
+2. Estimate the population and age compositions from previous summaries (accounting for sampling error);
+
+<!-- 3. Stochastically assign each wild fish with genotypes to a wild population of origin based on the product of its genotypic frequency, age frequency, and population proportion;  -->
+3. Stochastically assign each wild fish with genotypes to a wild population of origin based likelihood derived from its genotypic frequency and population proportion. If its age is unobserved, assign an age based on the age composition of its assigned population;
+
+<!-- 4. Stochastically assign each wild fish without genotypes to a population of origin based on the product of its age frequency and population proportion; and -->
+4. Stochastically assign each wild fish without genotypes to a population of origin based on population proportion. If its age is unobserved, assign an age based on the age composition of its assigned population; and
+
 5. Repeat steps 1-4 while updating the estimates of the stock proportions and age compositions with each iteration.
 
 This algorithm is repeated thousands of times, with the first half of iterations discarded. The point estimates and credible intervals for the age/population compositions and model convergence diagnostics are summarized in the output statistics.
