@@ -463,38 +463,42 @@ magmatize_data <-
       stat_weeks = stat_weeks
     )
 
-    if (save_data) {
-      magma_data_names <-
-        c("y", # baseline of allele freq
-          "x", # mixture data
-          "metadat", # metadata, where, when, age, otolith assignment (i)
-          "harvest", # harvest
-          "groups", # groupvec with all hatcheries
-          "group_names", # all reporting groups
-          "K", # wild pops
-          "H", # hatchery pops
-          "A", # age classes
-          "C", # total possible age classes
-          # "Yr", # year
-          "D", # District
-          "S", # Subdistrict
-          "W", # weeks
-          "age_class", # length = C; all possible
-          "age_classes", # length = A; age reporting groups
-          # "years2run", # year
-          "districts", # list of district names
-          "subdistricts", # subdistricts for each district
-          "stat_weeks", # which stat weeks
-          "loci", # list of loci
-          "nalleles", # number of possible alleles for each loci
-          "nstates", # number of possible alleles for each loci + number of possible ages
-          "hatcheries", # Hatcheries
-          "wildpops", # Wild populations
-          "magma_data_names",
-          "dat_out")
+    # if (save_data) {
+    #   magma_data_names <-
+    #     c("y", # baseline of allele freq
+    #       "x", # mixture data
+    #       "metadat", # metadata, where, when, age, otolith assignment (i)
+    #       "harvest", # harvest
+    #       "groups", # groupvec with all hatcheries
+    #       "group_names", # all reporting groups
+    #       "K", # wild pops
+    #       "H", # hatchery pops
+    #       "A", # age classes
+    #       "C", # total possible age classes
+    #       # "Yr", # year
+    #       "D", # District
+    #       "S", # Subdistrict
+    #       "W", # weeks
+    #       "age_class", # length = C; all possible
+    #       "age_classes", # length = A; age reporting groups
+    #       # "years2run", # year
+    #       "districts", # list of district names
+    #       "subdistricts", # subdistricts for each district
+    #       "stat_weeks", # which stat weeks
+    #       "loci", # list of loci
+    #       "nalleles", # number of possible alleles for each loci
+    #       "nstates", # number of possible alleles for each loci + number of possible ages
+    #       "hatcheries", # Hatcheries
+    #       "wildpops", # Wild populations
+    #       "magma_data_names",
+    #       "dat_out")
+    #
+    #   save(list = magma_data_names,
+    #        file = paste0(wd, "/data/magma_data", fishery, ".RData"))
+    # }
 
-      save(list = magma_data_names,
-           file = paste0(wd, "/data/magma_data", fishery, ".RData"))
+    if(isTRUE(save_data)) {
+      saveRDS(dat_out, file = paste0(wd, "/data/magma_data", fishery, ".Rds"))
     }
 
     if(length(miss_hatch_grp) == 0) {
