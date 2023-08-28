@@ -14,10 +14,12 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
 ```
 
 ```{r setup}
 library(magma.gsi)
+
 ```
 
 # Overview
@@ -33,7 +35,7 @@ Before running `magmatize_data()` function, we need to set up a *data* folder an
 
 *group_namesXXX.txt* and *groupsXXX.txt* are saved with fishery extension. For example, *group_namesFAKE.txt* and *groupsFAKE.txt* are files for the "FAKE" fishery. *group_namesXXX.txt* contains the names of the reporting groups in order of their group identifying numbers (groupvec). *groupsXXX.txt* contains the groupvec for each population in the data. The following shows the format of *group_namesXXX.txt* and *groupsXXX.txt*.
 
-```{r groupvec}
+```{r groupvec, message=FALSE}
 readr::read_table("data/group_namesFAKE.txt")
 
 readr::read_table("data/groupsFAKE.txt")
@@ -42,14 +44,14 @@ readr::read_table("data/groupsFAKE.txt")
 
 *harvestXXX.txt* is also saved with a fishery extension. Harvest file contains the number of harvest for each sampling week in each district and subdistrict. The following shows an example for the "FAKE" fishery harvest. Note that the column names in the harvest file have to be in all capital letters.
 
-```{r harvest}
+```{r harvest, message=FALSE}
 readr::read_table("data/harvestFAKE.txt")
 
 ```
 
-*metadata.txt* contains the information where (district and subdistrict) and when (week) each fish in the data set was collected. Each fish is identified by `SILLY_VIAL`, an unique identifier. *metadata.txt* also contains information for age and origin for each fish, if they are observed. The following shows the format for *metadata.txt*. Note that the column names have to be in all capital letters.
+*metadata.txt* contains the information where (district and subdistrict) and when (week) each fish in the data set was collected. Each fish is identified by `SILLY_VIAL`, an unique identifier. *metadata.txt* also contains information for age and origin for each fish, if they are observed. Age is recorded in the European system and without a "." between the fresh and salt water ages. Origin of the fish is recorded as "WILD" for the natural origin fish, and a designated four letter code for each specific hatchery. The following shows the format for *metadata.txt*. Note that the column names have to be in all capital letters.
 
-```{r metadat}
+```{r metadat, message=FALSE}
 head(readr::read_table("data/metadata.txt"))
 
 ```
@@ -58,62 +60,82 @@ head(readr::read_table("data/metadata.txt"))
 
 *mixture.RData* contains the fishery name (as a character string) and `.gcl` file(s) for the mixture (samples with genetic information).
 
-To run MAGMA model, the input file need to be compiled into a list object, and `magmatize_data()` is the function you would use to make that input data list object. The function gives you the option to save the compiled input data. The default is `save_data = TRUE`, and it will save the data as *magma_dataXXX.RData* in the *data* folder in the working directory. This file is saved with the fishery extension (e.g. *magma_dataFAKE.RData*). Saving the compiled list object is not required.
+
+## Compile Input Files
+
+To run MAGMA model, the input files need to be compiled first using `magmatize_data()`. The function automatically formats the input data as a list. Users will need to assign the list as an *R* object as shown in the code below.
+
+```{r run-magma-data}
+yomamafat <-
+  magmatize_data(wd = getwd(),
+                 age_classes = c(13, 21, 22, 23, 31, 32, "other"),
+                 loci_names = NULL,
+                 save_data = FALSE)
+
+```
+
+The function gives you the option to save the compiled input data. The default is `save_data = TRUE`, and it will save the data with the fishery extension as *magma_dataXXX.Rds* in the *data* folder in your specified directory.
 
 Age classes for the analysis is identified at this step. User can specify the age classes or let MAGMA choose what age classes to estimate. By default, MAGMA identifies the ranges for freshwater and saltwater ages in metadata and expand the age classes using the age ranges. For example, if the observed age classes are: 12, 13, 21, 22, 23, and 31, MAGMA would expand the age classes to 11, 12, 13, 21, 22, 23, 31, 32, and 33. If the analysis only has five major classes: 11, 12, 21, 22, and 31, user can specify an "other" group to include ages 13, 23, 32, and 33. In a similar fashion, user can specify a "0X" age to catch all 0 freshwater ages.
 
-`magmatize_data()` function automatically formats the input data as a list. Users will need to assign the list as an *R* object as shown in the code below.
+MAGMA user can provide a list of loci as a check against baseline and mixture data (optional). A warning message is returned if there are difference between the data sets and the list provided.
 
-```{r run-magma-data, message=FALSE}
-yomamafat <- magmatize_data(wd = getwd(), age_classes <- c(13, 21, 22, 23, 31, 32, "other"), save_data = FALSE)
+The formatted input files have the following structure:
 
+```{r, message=FALSE}
 str(yomamafat)
 
 ```
 
-Finally, if `hatcheries` were left out of the input data, program would assume no hatchery fish in the dataset. If there were hatchery fish in the data but no hatchery names were identified, MAGMA would throw an error.
-
 
 ## Running MAGMA
 
-Use `magmatize_mdl()` function to run the model. You'll need to assign the output as an object as shown in the code below. `magmatize_mdl()` functions will **not** automatically save the model output, but there is an option to do so.
-
-Burn-ins are excluded in the summary calculations even if a user choose to keep the burn-in output. There is an option to make the age priors slightly more influential in the MCMC sampling. Lastly, `keep_burn`, `flat_age_prior`, and `out_path` use the default values if not specified by the user.
-
-`flat_age_prior = TRUE` set an equal weight across the age groups. Setting `flat_age_prior` to `FALSE` will concentrate the prior weight on the major age groups and force the unobserved age groups to (near) zero.
+Use `magmatize_mdl()` function to run the model. You'll need to assign the output as an object as shown in the code below.
 
 ```{r run-magama}
-
-magma_out <- magmatize_mdl(yomamafat, nreps = 50, nburn = 25, thin = 1, nchains = 2, keep_burn = TRUE)
+magma_out <-
+  magmatize_mdl(dat_in = yomamafat,
+                nreps = 50, nburn = 25, thin = 1, nchains = 2, nadapt = 0,
+                keep_burn = TRUE, flat_age_priors = FALSE,
+                cond_gsi = TRUE, file = NULL, seed = NULL)
 
 ```
 
+Burn-ins are excluded in the summary calculations even if a user choose to keep the burn-in output. `nadapt`, `keep_burn`, `flat_age_prior`, `cond_gsi`, `file` and `seed` use the default values if not specified by the user.
+
+`cond_gsi` sets the option to run MAGMA model in the conditional GSI or fully Bayesian algorithm. `nadapt` allows for a "warm up" run in the conditional GSI mode before running the model in the fully Bayesian mode.
+
+`flat_age_prior = TRUE` set an equal weight across the age groups. Setting `flat_age_prior = FALSE` will concentrate the prior weight on the major age groups and force the undetected age groups to (near) zero.
+
+`seed` allows for setting a random seed for the pseudo-random number generator, so the output can be reproduced exactly. Just pick a number and make a note for future reference.
+
 The raw output of MAGMA is a multi-layered list of MCMC chains. Each chain contains a tibble with age class ($\times$ iterations) as rows and populations as columns. I call the output in "raw" format because it has not been summarized. The output also contains the specifications for running the model (iterations, burn-ins... all that good stuff).
 <!-- The raw output of MAGMA is a multi-way array with seven dimensions. Dimensions 1 and 2 identify the table with age class $\times$ iterations as rows and population, age class vector i.d. and iteration i.d. as columns. Dimensions 3 to 6 identify the week, sub-district, district, and year. Dimension 7 identifies the MCMC chain. I call the output in "raw" format because it has not been summarized in reporting groups. -->
+
+`file` specify the file path to save the output in `Rds` format at the end of the model run.
 
 
 ## Summarizing Output
 
 The MAGMA output is summarized using `magmatize_summ()` function. The function needs the raw output and the input data that was used for running the model.
 
-NEW! For big fisheries like TBR, output can be too large for our work laptops to process. The summary process has been broken down into three smaller steps to manage memory use. The three steps are done using `magmatize_summ_bd1()`, `magmatize_summ_bd2()`, and `magmatize_summ_bd3()`.
-
 ```{r format-magama}
-magma_summ <- magmatize_summ(which_dist = 1,
-   ma_out = magma_out,
-   ma_dat = yomamafat,
-   summ_level = "district",
-   type = "age")
-```
-
-The summarized output is organized as list items. The items with "`_prop`" are the posterior samples/simulations (i.e., trace) for age or population proportions in a data frame. The data frame contains output from all MCMC chains stacked together. In this example, I run two chains with 50 iterations, burn-ins of 25, and no thinning. Because I chose to keep the burn-ins, the results are 50 rows of output in each chain. Stacking the two chains we end up with 100 rows of posterior samples.
-
-```{r age-prop}
-magma_summ$age_prop
+magma_summ <-
+  magmatize_summ(which_dist = 1,
+                 ma_out = magma_out,
+                 ma_dat = yomamafat,
+                 summ_level = "district",
+                 type = "age")
 
 ```
 
-Summary table:
+For big fisheries like TBR in SEAK, output can be too large for our work laptops to process. The summary process is broken down into three smaller steps to manage memory use. The three steps are done using `magmatize_summ_bd1()`, `magmatize_summ_bd2()`, and `magmatize_summ_bd3()` (examples not shown).
+
+MAGMA estimates age/stock composition at the lowest stratum level (i.e., stat weeks), but sums up the lower strata (weighted by harvest numbers) to provide summaries at the district or subdistrict level. Setting `summ_level = "district"` provides the summaries at the district level, and `"subdistrict"` at the subdistrict level.
+
+The summarized output is organized as list items. The items with `_summ` are the summary table with posterior means, median, CI's and convergence diagnostics (Gelman-Rubin and effective size). For the district level, `age_summ` item provides summaries of age composition for each stock within a district. `pop_summ_all` and `pop_summ` provide stock proportion estimates for a district and summing across statistical weeks within a district, respectively. For the subdistrict level, `age_summ` item provides summaries of age composition for each stock within each subdistrict. `pop_summ_all` and `pop_summ` provide stock proportion estimates for each subdistrict and for each statistical week within a subdistrict, respectively. 
+
+An example of the summary table:
 
 ```{r age-summ}
 magma_summ$age_summ
@@ -122,8 +144,15 @@ magma_summ$age_summ
 
 $N_{eff}$ (or `n_eff` in the summary table) represents an estimate of independent sample size in the posterior sample. A large $N_{eff}$ is considered better than a small $N_{eff}$. Some says you would need at least blah blah number to properly estimate the credible intervals, but there is no "official" number to go by. My experience tells me to look at $N_{eff}$ together with other diagnostics. Sometimes you may see GR (Gelman-Rubin statistic, or $\hat R$) passes the test but $N_{eff}$ is small. You may want to investigate the trace plot for that particular output. Also, when the simulation iterations are small, the results for $N_{eff}$ can get wacky.
 
+The items with "`_prop`" are the posterior samples/simulations (i.e., trace) for age or population proportions in a data frame. The data frame contains output from all MCMC chains stacked together. In this example, I run two chains with 50 iterations, burn-ins of 25, and no thinning. Because I chose to keep the burn-ins, the results are 50 rows of output in each chain. Stacking the two chains we end up with 100 rows of posterior samples.
 
-### trace plot
+```{r age-prop}
+magma_summ$age_prop
+
+```
+
+
+### Trace Plot
 
 The posterior samples trace can be used to make trace plots with your own code or with function `tr_plot()`. If using `tr_plot()`, you need to specify the amount of burn-ins and thinning you had when you ran the model. If you forget, you can find them in your raw magma output (e.g., `magma_out$specs`). `tr_plot()` outputs one data frame (e.g. sampling period) at a time. The burn-in portion of the output is shaded in red.
 
