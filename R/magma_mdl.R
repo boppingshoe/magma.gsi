@@ -10,7 +10,7 @@
 #' @param keep_burn Logical (default = FALSE). To keep the burn-ins in the output or not.
 #' @param flat_age_priors Logical (default = TRUE). If FALSE, prior weight will concentrate on the major age groups that are observed in metadata.
 #' @param cond_gsi Logical (default = TRUE). Option to use conditional GSI model.
-#' @param out_path File path for saving the output. Need to type out the full path.
+#' @param file File path for saving the output in Rds file. Need to type out the full path, including file name and extension `.Rds`.
 #'   The default is `NULL` for not saving the output.
 #' @param seed Option to initialize a pseudo-random number generator (set random seed)
 #'   so the output can be reproduced exactly.
@@ -34,13 +34,15 @@
 #' }
 #'
 #' @export
-magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, flat_age_priors = TRUE, cond_gsi = TRUE, out_path = NULL, seed = NULL) {
+magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, flat_age_priors = TRUE, cond_gsi = TRUE, file = NULL, seed = NULL) {
 
-  ### ballroom categories ### ----
+  ### save test file ----
+  if(!is.null(file)) saveRDS(NULL, file = file, compress = FALSE)
 
+  ### ballroom categories ----
   categories <- c("Live, Werk, Pose", "Bring It Like Royalty", "Face", "Best Mother", "Best Dressed", "High Class In A Fur Coat", "Snow Ball", "Butch Queen Body", "Weather Girl", "Labels", "Mother-Daughter Realness", "Working Girl", "Linen Vs. Silk", "Perfect Tens", "Modele Effet", "Stone Cold Face", "Realness", "Intergalatic Best Dressed", "House Vs. House", "Femme Queen Vogue", "High Fashion In Feathers", "Femme Queen Runway", "Lofting", "Higher Than Heaven", "Once Upon A Time")
 
-  ### data input ### ----
+  ### data input ----
   x <- as.matrix(dat_in$x) # mixture
   y <- as.matrix(dat_in$y) # base
   metadat <- dat_in$metadat # age and iden info
@@ -87,7 +89,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   alleles <- states[seq.int(sum(nalleles))] # allele types
   ages <- states[-seq.int(sum(nalleles))] # age classes
 
-  ### specifications ### ----
+  ### specifications ----
   rdirich <- function(alpha0) {
     if (sum(alpha0) > 0) {
       vec = stats::rgamma(length(alpha0), alpha0, 1)
@@ -105,7 +107,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   message(paste0("Running model (and the category is... ", sample(categories, 1), "!)"))
   run_time <- Sys.time()
 
-  ### initial values ### ----
+  ### initial values ----
   # hyper-param for relative freq q (allele) and pi (age class)
   beta <- # actually beta and gamma
     matrix(0,
@@ -202,7 +204,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
       ), c(2:4, 1)
     )
 
-  ### parallel chains ### ----
+  ### parallel chains ----
   chains <- paste0("chain", seq(nchains))
   cl <- parallel::makePSOCKcluster(nchains)
   doParallel::registerDoParallel(cl, cores = nchains)
@@ -314,8 +316,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
 
   magma_out <- list(outraw = outraw, specs = specs)
 
-  # if (!is.null(out_path)) save(magma_out, file = out_path)
-  if (!is.null(out_path)) saveRDS(magma_out, file = out_path, compress = FALSE)
+  if (!is.null(file)) saveRDS(magma_out, file = file, compress = FALSE)
 
   print(Sys.time() - run_time)
   message(Sys.time())

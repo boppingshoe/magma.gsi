@@ -14,7 +14,7 @@ magmatize_mdl(
   keep_burn = FALSE,
   flat_age_priors = TRUE,
   cond_gsi = TRUE,
-  out_path = NULL,
+  file = NULL,
   seed = NULL
 )
 }
@@ -37,7 +37,7 @@ magmatize_mdl(
 
 \item{cond_gsi}{Logical (default = TRUE). Option to use conditional GSI model.}
 
-\item{out_path}{File path for saving the output. Need to type out the full path.
+\item{file}{File path for saving the output in Rds file. Need to type out the full path, including file name and extension \code{.Rds}.
 The default is \code{NULL} for not saving the output.}
 
 \item{seed}{Option to initialize a pseudo-random number generator (set random seed)
