@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# magma.gsi <img src="man/figures/logo.png" align="center" height="140" alt="" />
+# magma.gsi <img src="man/figures/logo.png" align="right" height="200" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -37,16 +37,16 @@ wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = paste0(wd, "/vignettes"), save_data = FALSE)
 #> Compiling input data, may take a minute or two...
 #> No missing hatcheries
-#> Time difference of 8.702406 secs
+#> Time difference of 8.675583 secs
 ```
 
 Run the model:
 
 ``` r
 magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
-#> Running model (and the category is... Working Girl!)
-#> Time difference of 1.995209 secs
-#> 2023-08-28 17:10:44.186345
+#> Running model (and the category is... Live, Werk, Pose!)
+#> Time difference of 2.01657 secs
+#> 2023-08-28 17:15:41.888492
 ```
 
 Summarize the results:
@@ -54,23 +54,23 @@ Summarize the results:
 ``` r
 magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district", type = "age")
 #> Preparing output (patience grasshopper...)
-#> Time difference of 0.5967751 secs
-#> 2023-08-28 17:10:44.827379
+#> Time difference of 0.5365539 secs
+#> 2023-08-28 17:15:42.465052
 
 magma_summ$age_summ[1]
 #> $`(1)_D1_Koyukuk`
 #> # A tibble: 9 × 10
-#>   group   age     mean  median     sd       ci.05  ci.95     p0    GR n_eff
-#>   <chr>   <chr>  <dbl>   <dbl>  <dbl>       <dbl>  <dbl>  <dbl> <dbl> <dbl>
-#> 1 Koyukuk 11    0.0151 0.00509 0.0269 0.000107    0.0717 0.12    1.02  77.5
-#> 2 Koyukuk 12    0.0176 0.00522 0.0339 0.0000499   0.0871 0.08    1.00  75  
-#> 3 Koyukuk 13    0.0134 0.00280 0.0242 0.000000428 0.0663 0.16    1.01  52.7
-#> 4 Koyukuk 21    0.0152 0.00323 0.0315 0.0000138   0.0684 0.187   1.04  62.6
-#> 5 Koyukuk 22    0.0599 0.0483  0.0487 0.0100      0.167  0       1.00  75  
-#> 6 Koyukuk 23    0.536  0.541   0.107  0.355       0.706  0       1.02  81.4
-#> 7 Koyukuk 31    0.303  0.296   0.103  0.152       0.492  0       1.06  75  
-#> 8 Koyukuk 32    0.0224 0.00530 0.0383 0.0000941   0.0983 0.0933  1.04  75  
-#> 9 Koyukuk 33    0.0174 0.00341 0.0259 0.0000143   0.0770 0.187   1.02  68.7
+#>   group   age     mean  median     sd     ci.05  ci.95     p0    GR n_eff
+#>   <chr>   <chr>  <dbl>   <dbl>  <dbl>     <dbl>  <dbl>  <dbl> <dbl> <dbl>
+#> 1 Koyukuk 11    0.0190 0.00882 0.0257 0.000163  0.0780 0.0533 1.07   75  
+#> 2 Koyukuk 12    0.0216 0.00609 0.0376 0.0000110 0.0873 0.12   0.999  75  
+#> 3 Koyukuk 13    0.0158 0.00369 0.0329 0.0000149 0.0797 0.147  1.02   75  
+#> 4 Koyukuk 21    0.0223 0.00773 0.0364 0.0000600 0.0995 0.0667 1.03   70.8
+#> 5 Koyukuk 22    0.0541 0.0350  0.0469 0.00467   0.139  0      0.989  75  
+#> 6 Koyukuk 23    0.516  0.518   0.115  0.343     0.718  0      1.02   62.8
+#> 7 Koyukuk 31    0.318  0.327   0.100  0.179     0.496  0      1.06   75  
+#> 8 Koyukuk 32    0.0178 0.00577 0.0309 0.0000184 0.0764 0.173  1.06   75  
+#> 9 Koyukuk 33    0.0156 0.00372 0.0265 0.0000321 0.0647 0.12   1.24   76.5
 ```
 
 There’s a function in the package to make trace plots and inspect mixing
