@@ -163,7 +163,7 @@ magmatize_data <-
       age_classes <- euro_ages
     } else if (any(!stats::na.omit(euro_age) %in% age_classes) & !"other" %in% age_classes) {
       stop("Unspecified age class(es) found in metadata. Include an 'other' age class to catch unspecified age classes.")
-    } else if (!all(c("0X", "other") %in% age_classes)) {
+    } else if (!all(c("0X", "other") %in% age_classes) & length(age_classes) > length(euro_ages)) {
       euro_ages <- age_classes
       C <- length(euro_ages)
     }
