@@ -42,6 +42,8 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   ### ballroom categories ----
   categories <- c("Live, Werk, Pose", "Bring It Like Royalty", "Face", "Best Mother", "Best Dressed", "High Class In A Fur Coat", "Snow Ball", "Butch Queen Body", "Weather Girl", "Labels", "Mother-Daughter Realness", "Working Girl", "Linen Vs. Silk", "Perfect Tens", "Modele Effet", "Stone Cold Face", "Realness", "Intergalatic Best Dressed", "House Vs. House", "Femme Queen Vogue", "High Fashion In Feathers", "Femme Queen Runway", "Lofting", "Higher Than Heaven", "Once Upon A Time")
 
+  encouragements <- c("I'm proud of ", "keep your ", "be a ", "find strength in ", "worry will never change ", "work for a cause, not for ", "gradtitude turns what we have into ", "good things come to ", "your attitude determines your ", "the only limits in life are ", "find joy in ", "surround yourself with only ", "if oppotunity doesn't knock, build ")
+
   ### data input ----
   x <- as.matrix(dat_in$x) # mixture
   y <- as.matrix(dat_in$y) # base
@@ -104,7 +106,9 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   if (cond_gsi) nadapt = 0
   if (keep_burn) nburn = 0
 
-  message(paste0("Running model (and the category is... ", sample(categories, 1), "!)"))
+  # message(paste0("Running model (and the category is... ", sample(categories, 1), "!)"))
+  message(paste0("Running model... and ", sample(encouragements, 1), sample(categories, 1), "!"))
+
   run_time <- Sys.time()
 
   ### initial values ----
