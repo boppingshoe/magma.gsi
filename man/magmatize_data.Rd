@@ -4,7 +4,13 @@
 \alias{magmatize_data}
 \title{Preparing MAGMA input data}
 \usage{
-magmatize_data(wd, age_classes = "all", loci_names = NULL, save_data = TRUE)
+magmatize_data(
+  wd,
+  age_classes = "all",
+  fishery = NULL,
+  loci_names = NULL,
+  save_data = TRUE
+)
 }
 \arguments{
 \item{wd}{Directory where you set up the \emph{data} folder.}
