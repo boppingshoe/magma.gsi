@@ -58,7 +58,7 @@ head(readr::read_table("data/metadata.txt"))
 
 *baseline.RData* contains the genetic information for the baseline populations in `.gcl` files.
 
-*mixture.RData* contains the fishery name (as a character string) and `.gcl` file(s) for the mixture (samples with genetic information).
+*mixture.RData* contains the `.gcl` file(s) for the mixture (samples with genetic information) and the fishery name (as a character string). Including the fishery name here is optional and can be specified in the `magmatized_data()` function instead. If you specified at both places with different fishery names, the one in the `mixture.RData` will take precedence.
 
 
 ## Compile Input Files
@@ -69,6 +69,7 @@ To run MAGMA model, the input files need to be compiled first using `magmatize_d
 yomamafat <-
   magmatize_data(wd = getwd(),
                  age_classes = c(13, 21, 22, 23, 31, 32, "other"),
+                 fishery = NULL,
                  loci_names = NULL,
                  save_data = FALSE)
 
