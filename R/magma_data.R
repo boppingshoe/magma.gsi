@@ -69,7 +69,7 @@ check_loci <- function(loci_pr, loci_mix, loci_base) {
 #'
 #' @export
 magmatize_data <-
-  function(wd, age_classes = "all", loci_names = NULL, save_data = TRUE) {
+  function(wd, age_classes = "all", fishery = NULL, loci_names = NULL, save_data = TRUE) {
 
     start_time <- Sys.time()
 
@@ -580,7 +580,7 @@ prep_malia_data <- function(magma_data, path) {
 
 
 utils::globalVariables(c("SillySource", "locus", "n", "altyp", "n_allele",
-                         "fishery", "SILLY_CODE", "mix", ".",
+                         "SILLY_CODE", "mix", ".",#"fishery",
                          "collection", "DISTRICT"))
 
 
