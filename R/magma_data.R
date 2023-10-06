@@ -53,7 +53,7 @@ check_loci <- function(loci_pr, loci_mix, loci_base) {
 #' @param wd Directory where you set up the *data* folder.
 #' @param age_classes Hard code class categories for group ages.
 #' @param loci_names Optional. String containing loci names.
-#' @param save_data Logical (with default = TRUE). Option to save the data in the *data* folder.
+#' @param save_data Logical (with default = `TRUE`). Option to save the data in the *data* folder.
 #'
 #' @return A list objects as the input data for `msgsi_mdl()`
 #'
