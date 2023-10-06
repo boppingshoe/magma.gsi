@@ -19,7 +19,7 @@ magmatize_data(
 
 \item{loci_names}{Optional. String containing loci names.}
 
-\item{save_data}{Logical (with default = TRUE). Option to save the data in the \emph{data} folder.}
+\item{save_data}{Logical (with default = \code{TRUE}). Option to save the data in the \emph{data} folder.}
 }
 \value{
 A list objects as the input data for \code{msgsi_mdl()}

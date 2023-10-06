@@ -31,15 +31,15 @@ magmatize_mdl(
 
 \item{nadapt}{Amount of warm-up/adapt runs before the simulation (only for fully Bayesian mode).}
 
-\item{keep_burn}{Logical (default = FALSE). To keep the burn-ins in the output or not.}
+\item{keep_burn}{Logical (default = \code{FALSE}). To keep the burn-ins in the output or not.}
 
-\item{flat_age_priors}{Logical (default = TRUE). Option to adjust prior weight on the age class proportions.
+\item{flat_age_priors}{Logical (default = \code{TRUE}). Option to adjust prior weight on the age class proportions.
 \itemize{
 \item \code{TRUE}: conventional setup that puts a flat prior on the age proportions.
 \item \code{FALSE}: prior weight will concentrate on the major age groups that are observed in metadata (i.e., "zero out" the unobserved age classes).
 }}
 
-\item{cond_gsi}{Logical (default = TRUE). Option to use conditional GSI model. See vignette for details.
+\item{cond_gsi}{Logical (default = \code{TRUE}). Option to use conditional GSI model. See vignette for details.
 \itemize{
 \item \code{TRUE}: run MAGMA with a hybrid algorithm of conditional GSI and fully Bayesian.
 \item \code{FALSE}: run MAGMA with fully Bayesian algorithm.
