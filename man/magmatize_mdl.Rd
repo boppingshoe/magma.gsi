@@ -33,9 +33,17 @@ magmatize_mdl(
 
 \item{keep_burn}{Logical (default = FALSE). To keep the burn-ins in the output or not.}
 
-\item{flat_age_priors}{Logical (default = TRUE). If FALSE, prior weight will concentrate on the major age groups that are observed in metadata.}
+\item{flat_age_priors}{Logical (default = TRUE). Option to adjust prior weight on the age class proportions.
+\itemize{
+\item \code{TRUE}: conventional setup that puts a flat prior on the age proportions.
+\item \code{FALSE}: prior weight will concentrate on the major age groups that are observed in metadata (i.e., "zero out" the unobserved age classes).
+}}
 
-\item{cond_gsi}{Logical (default = TRUE). Option to use conditional GSI model.}
+\item{cond_gsi}{Logical (default = TRUE). Option to use conditional GSI model. See vignette for details.
+\itemize{
+\item \code{TRUE}: run MAGMA with a hybrid algorithm of conditional GSI and fully Bayesian.
+\item \code{FALSE}: run MAGMA with fully Bayesian algorithm.
+}}
 
 \item{file}{File path for saving the output in Rds file. Need to type out the full path, including file name and extension \code{.Rds}.
 The default is \code{NULL} for not saving the output.}

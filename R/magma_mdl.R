@@ -8,8 +8,12 @@
 #' @param nchains Number of independent MCMC chains run in the simulation.
 #' @param nadapt Amount of warm-up/adapt runs before the simulation (only for fully Bayesian mode).
 #' @param keep_burn Logical (default = FALSE). To keep the burn-ins in the output or not.
-#' @param flat_age_priors Logical (default = TRUE). If FALSE, prior weight will concentrate on the major age groups that are observed in metadata.
-#' @param cond_gsi Logical (default = TRUE). Option to use conditional GSI model.
+#' @param flat_age_priors Logical (default = TRUE). Option to adjust prior weight on the age class proportions.
+#'  * `TRUE`: conventional setup that puts a flat prior on the age proportions.
+#'  * `FALSE`: prior weight will concentrate on the major age groups that are observed in metadata (i.e., "zero out" the unobserved age classes).
+#' @param cond_gsi Logical (default = TRUE). Option to use conditional GSI model. See vignette for details.
+#'  * `TRUE`: run MAGMA with a hybrid algorithm of conditional GSI and fully Bayesian.
+#'  * `FALSE`: run MAGMA with fully Bayesian algorithm.
 #' @param file File path for saving the output in Rds file. Need to type out the full path, including file name and extension `.Rds`.
 #'   The default is `NULL` for not saving the output.
 #' @param seed Option to initialize a pseudo-random number generator (set random seed)
