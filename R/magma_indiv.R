@@ -122,6 +122,7 @@ magmatize_indiv <- function(magma_dat, out_repunit = FALSE) {
 }
 
 
+utils::globalVariables(c("indiv"))
 
 
 

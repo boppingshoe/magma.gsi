@@ -17,6 +17,9 @@ magmatize_data(
 
 \item{age_classes}{Hard code class categories for group ages.}
 
+\item{fishery}{Name of the fishery. It is optional to declare the fishery name here.
+\code{fishery} can be included with \code{mixture.RData} in the data folder.}
+
 \item{loci_names}{Optional. String containing loci names.}
 
 \item{save_data}{Logical (with default = \code{TRUE}). Option to save the data in the \emph{data} folder.}
