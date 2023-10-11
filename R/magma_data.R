@@ -170,7 +170,9 @@ magmatize_data <-
       C <- length(euro_ages)
     }
 
-    A <- length(age_classes)
+    if ("other" %in% age_classes) {
+      A <- match("other", age_classes)
+    } else A <- length(age_classes)
 
     age_class <- stats::setNames(rep(A, C), euro_ages)
 
