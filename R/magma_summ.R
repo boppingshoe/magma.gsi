@@ -219,17 +219,17 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
           coda::gelman.diag(mc_pop_all[[d_idx]],
                             transform = TRUE,
                             autoburnin = FALSE,
-                            multivariate = FALSE)$psrf[,"Point est."] # alphabetically ordered too
-        } else {NA}},
+                            multivariate = FALSE)$psrf[,"Point est."]
+        } else {NA}}, # alphabetically ordered too
         n_eff = coda::effectiveSize(mc_pop_all[[d_idx]])
       ) %>%
       dplyr::arrange(group)
 
     for (w_idx in 1:W) {
-      ## pop ##
-      # sum over ages and combine pop groups
-      p_idx <- p_idx + 1 # index individual sampling period
+      ## pop (combine across subdists for each week) ##
+      p_idx <- p_idx + 1 # index individual sampling period/week
 
+      # sum over ages and combine pop groups
       p_combo[[p_idx]] <-
         lapply(ap_prop2c[[d_idx]][[w_idx]],
                function(apfile) {
@@ -265,11 +265,9 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
             coda::gelman.diag(mc_pop[[p_idx]],
                               transform = TRUE,
                               autoburnin = FALSE,
-                              multivariate = FALSE)$psrf[,"Point est."] %>%
-              .[order(group_names[seq(ncol(p_combo[[p_idx]][[1]])), d_idx])]
+                              multivariate = FALSE)$psrf[,"Point est."]
           } else {NA}},
-          n_eff = coda::effectiveSize(mc_pop[[p_idx]]) %>%
-            .[order(group_names[seq(ncol(p_combo[[p_idx]][[1]])), d_idx])]
+          n_eff = coda::effectiveSize(mc_pop[[p_idx]])
         ) %>%
         dplyr::arrange(group)
     } # W
@@ -560,7 +558,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
   for (d_idx in 1:D) {
     for (s_idx in 1:S[d_idx]) {
 
-      ## pops all dist ##
+      ## pops all subdist ##
       # sum over ages and combine pop groups
 
       p_combo_all[[max(S)*(d_idx-1)+s_idx]] <-
@@ -581,8 +579,8 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
       summ_pop_all[[max(S)*(d_idx-1)+s_idx]] <-
         lapply(p_combo_all[[max(S)*(d_idx-1)+s_idx]], function(rlist) rlist[keep_list,]) %>%
         dplyr::bind_rows() %>%
-        tidyr::pivot_longer(cols = 1:ncol(.)) %>%
-        dplyr::group_by(name) %>%
+        tidyr::pivot_longer(cols = 1:ncol(.), names_to = "group") %>%
+        dplyr::group_by(group) %>%
         dplyr::summarise(
           mean = mean(value),
           median = stats::median(value),
@@ -592,27 +590,24 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
           p0 = mean(value < (0.5/ max(1, ( any(p_zero[d_idx, , , ])* harvest %>% dplyr::group_by(DISTRICT, SUBDISTRICT) %>% dplyr::summarise(sum_harv = sum(HARVEST), .groups = "drop") %>% dplyr::filter(DISTRICT == d_idx, SUBDISTRICT == s_idx) %>% dplyr::pull(sum_harv) )))),
           .groups = "drop"
         ) %>%
-        dplyr::mutate(name = factor(name, levels = c(group_names[seq(ncol(p_combo_all[[max(S)*(d_idx-1)+s_idx]][[1]])), d_idx]))) %>%
-        dplyr::arrange(name) %>%
         dplyr::mutate(
+          group = factor(group, levels = c(group_names[seq(ncol(p_combo_all[[max(S)*(d_idx-1)+s_idx]][[1]])), d_idx])),
           GR = {if (nchains > 1) {
             coda::gelman.diag(mc_pop_all[[max(S)*(d_idx-1)+s_idx]],
                               transform = TRUE,
                               autoburnin = FALSE,
-                              multivariate = FALSE)$psrf[,"Point est."] %>%
-              .[order(group_names[seq(ncol(p_combo_all[[max(S)*(d_idx-1)+s_idx]][[1]])), d_idx])]
+                              multivariate = FALSE)$psrf[,"Point est."]
           } else {NA}},
-          n_eff = coda::effectiveSize(mc_pop_all[[max(S)*(d_idx-1)+s_idx]]) %>%
-            .[order(group_names[seq(ncol(p_combo_all[[max(S)*(d_idx-1)+s_idx]][[1]])), d_idx])]
+          n_eff = coda::effectiveSize(mc_pop_all[[max(S)*(d_idx-1)+s_idx]])
         ) %>%
-        dplyr::rename(group = name)
+        dplyr::arrange(group)
 
       for (w_idx in 1:W) {
 
-        ## pop ##
-        # sum over ages and combine pop groups
+        ## pop individual week ##
         p_idx <- p_idx + 1 # index individual sampling period
 
+        # sum over ages and combine pop groups
         p_combo[[p_idx]] <-
           lapply(ap_prop[[d_idx]][[s_idx]][[w_idx]],
                  function(apfile) {
@@ -621,8 +616,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
                      dplyr::group_by(itr, grpvec) %>%
                      dplyr::summarise(p = sum(value), .groups = "drop") %>%
                      tidyr::pivot_wider(names_from = grpvec, values_from = p) %>%
-                     dplyr::select(-itr) #%>%
-                   # stats::setNames(group_names[seq(ncol(.)), d_idx])
+                     dplyr::select(-itr)
                  })
 
         mc_pop[[p_idx]] <- coda::as.mcmc.list(
@@ -632,8 +626,8 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
         summ_pop[[p_idx]] <-
           lapply(p_combo[[p_idx]], function(rlist) rlist[keep_list,]) %>%
           dplyr::bind_rows() %>%
-          tidyr::pivot_longer(cols = 1:ncol(.)) %>%
-          dplyr::group_by(name) %>%
+          tidyr::pivot_longer(cols = 1:ncol(.), names_to = "group") %>%
+          dplyr::group_by(group) %>%
           dplyr::summarise(
             mean = mean(value),
             median = stats::median(value),
@@ -643,20 +637,17 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
             p0 = mean(value < (0.5/ max(1, (any(p_zero[d_idx, s_idx, w_idx, ])* dplyr::filter(harvest, DISTRICT== d_idx, SUBDISTRICT== s_idx, STAT_WEEK== w_idx)$HARVEST)))),
             .groups = "drop"
           ) %>%
-          dplyr::mutate(name = factor(name, levels = c(group_names[seq(ncol(p_combo_all[[max(S)*(d_idx-1)+s_idx]][[1]])), d_idx]))) %>%
-          dplyr::arrange(name) %>%
           dplyr::mutate(
+            group = factor(group, levels = c(group_names[seq(ncol(p_combo_all[[max(S)*(d_idx-1)+s_idx]][[1]])), d_idx])),
             GR = {if (nchains > 1) {
               coda::gelman.diag(mc_pop[[p_idx]],
                                 transform = TRUE,
                                 autoburnin = FALSE,
-                                multivariate = FALSE)$psrf[,"Point est."] %>%
-                .[order(group_names[seq(ncol(p_combo[[p_idx]][[1]])), d_idx])]
+                                multivariate = FALSE)$psrf[,"Point est."]
             } else {NA}},
-            n_eff = coda::effectiveSize(mc_pop[[p_idx]]) %>%
-              .[order(group_names[seq(ncol(p_combo[[p_idx]][[1]])), d_idx])]
+            n_eff = coda::effectiveSize(mc_pop[[p_idx]])
           ) %>%
-          dplyr::rename(group = name)
+          dplyr::arrange(group)
 
       } # W
 
@@ -690,7 +681,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
             ar_temp <- aoc %>%
               dplyr::filter(grpvec == grp) %>%
               stats::setNames(., c("grpvec", age_classes))
-            return(ar_temp)# %>% select(-grpvec))
+            return(ar_temp)
           }) # separate rep groups into its own output
 
         mc_age[[a_idx]] <-
@@ -708,8 +699,8 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
           lapply(ap_prop_grp[[a_idx]], function(rlist) rlist[keep_list,]) %>%
           dplyr::bind_rows() %>%
           dplyr::mutate(stock_prop = rowSums(.[,-1])) %>%
-          tidyr::pivot_longer(-c(stock_prop, grpvec)) %>%
-          dplyr::group_by(name, grpvec) %>%
+          tidyr::pivot_longer(-c(stock_prop, grpvec), names_to = "age") %>%
+          dplyr::group_by(age, grpvec) %>%
           dplyr::summarise(
             mean = mean(value),
             median = stats::median(value),
@@ -724,14 +715,11 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
               coda::gelman.diag(mc_age[[a_idx]],
                                 transform = TRUE,
                                 autoburnin = FALSE,
-                                multivariate = FALSE)$psrf[,"Point est."] %>%
-                .[order(age_classes)]
+                                multivariate = FALSE)$psrf[,"Point est."]
             } else {NA}},
-            n_eff = coda::effectiveSize(mc_age[[a_idx]]) %>%
-              .[order(age_classes)]
+            n_eff = coda::effectiveSize(mc_age[[a_idx]])
           ) %>%
-          dplyr::rename(age = name,
-                 group = grpvec) %>%
+          dplyr::rename(group = grpvec) %>%
           dplyr::relocate(group, .before = age)
       } # grp
 
