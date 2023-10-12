@@ -8,9 +8,10 @@
 #' @param nchains Number of independent MCMC chains run in the simulation.
 #' @param nadapt Amount of warm-up/adapt runs before the simulation (only for fully Bayesian mode).
 #' @param keep_burn Logical (default = `FALSE`). To keep the burn-ins in the output or not.
-#' @param flat_age_priors Logical (default = `TRUE`). Option to adjust prior weight on the age class proportions.
-#'  * `TRUE`: conventional setup that puts a flat prior on the age proportions.
-#'  * `FALSE`: prior weight will concentrate on the major age groups that are observed in metadata (i.e., "zero out" the unobserved age classes).
+#' @param age_prior Option to adjust prior weight on the age class proportions.
+#'  * `flat` (default): conventional setup that puts a flat prior on the age proportions.
+#'  * `zero_out`: prior weight will concentrate on the major age groups that are observed in metadata (i.e., "zero out" the unobserved age classes).
+#'  * `weak_flat`: a less influential flat prior than the conventional one
 #' @param cond_gsi Logical (default = `TRUE`). Option to use conditional GSI model. See vignette for details.
 #'  * `TRUE`: run MAGMA with a hybrid algorithm of conditional GSI and fully Bayesian.
 #'  * `FALSE`: run MAGMA with fully Bayesian algorithm.
@@ -38,7 +39,7 @@
 #' }
 #'
 #' @export
-magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, flat_age_priors = TRUE, cond_gsi = TRUE, file = NULL, seed = NULL) {
+magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_prior = "flat", cond_gsi = TRUE, file = NULL, seed = NULL) {
 
   ### save test file ----
   if(!is.null(file)) saveRDS(NULL, file = file, compress = FALSE)
@@ -122,6 +123,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
            nrow = nrow(y),
            ncol = ncol(y),
            dimnames = dimnames(y))
+
   beta[wildpops, alleles] <-
     matrix(
       rep(1 / nalleles, nalleles),
@@ -130,12 +132,17 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
       byrow = TRUE,
       dimnames = list(wildpops, alleles)
     ) # genetic part of prior (beta)
+
   beta[allpops, ages] <-
     matrix(
-      if (isTRUE(flat_age_priors)) {
+      if (age_prior == "flat") {
         rep(1/ table(age_class), table(age_class)) / length(unique(age_class))
-      } else {
+      } else if (age_prior == "zero_out") {
         rep(1/ table(age_class), table(age_class)) / length(unique(age_class)) * (seq.int(length(age_class)) %in% metadat$age) %>% ifelse(. == 0, 1e-5, .) %>% {. / sum(.)}
+      } else if (age_prior == "weak_flat") {
+        rep(1/ table(age_class), table(age_class)) / (length(unique(age_class)) * 10)
+      } else {
+        stop("Wrong specification for argument 'age_prior'. Choices are 'flat', 'zero_out', or 'weak_flat'")
       },
       nrow = K + H,
       ncol = C,
