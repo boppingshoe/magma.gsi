@@ -58,7 +58,7 @@ head(readr::read_table("data/metadata.txt"))
 
 *baseline.RData* contains the genetic information for the baseline populations in `.gcl` files.
 
-*mixture.RData* contains the `.gcl` file(s) for the mixture (samples with genetic information) and the fishery name (as a character string). Including the fishery name here is optional and can be specified in the `magmatized_data()` function instead. If you specified at both places with different fishery names, the one in the `mixture.RData` will take precedence.
+*mixture.RData* contains the `.gcl` file(s) for the mixture (samples with genetic information) and the fishery name (as a character string). Including the fishery name here is optional and can be specified in the `magmatized_data()` function instead. If you specified at both places with different fishery names, the one in the `mixture.RData` will take precedence. This option allows users to summarize MAGMA output under different setups without rerunning the model again.
 
 
 ## Compile Input Files
@@ -97,7 +97,7 @@ Use `magmatize_mdl()` function to run the model. You'll need to assign the outpu
 magma_out <-
   magmatize_mdl(dat_in = yomamafat,
                 nreps = 50, nburn = 25, thin = 1, nchains = 2, nadapt = 0,
-                keep_burn = TRUE, flat_age_priors = FALSE,
+                keep_burn = TRUE, age_prior = "zero_out",
                 cond_gsi = TRUE, file = NULL, seed = NULL)
 
 ```
@@ -132,9 +132,25 @@ magma_summ <-
 
 For big fisheries like TBR in SEAK, output can be too large for our work laptops to process. The summary process is broken down into three smaller steps to manage memory use. The three steps are done using `magmatize_summ_bd1()`, `magmatize_summ_bd2()`, and `magmatize_summ_bd3()` (examples not shown).
 
-MAGMA estimates age/stock composition at the lowest stratum level (i.e., stat weeks), but sums up the lower strata (weighted by harvest numbers) to provide summaries at the district or subdistrict level. Setting `summ_level = "district"` provides the summaries at the district level, and `"subdistrict"` at the subdistrict level.
+MAGMA estimates age/stock composition at the lowest stratum level (i.e., statistical weeks), but sums up the lower strata (weighted by harvest numbers) to provide summaries at the district or subdistrict level by setting `summ_level = "district"` or `"subdistrict"`, respectively. Summaries are provided in forms of stock proportions and age-by-stock compositions.
 
-The summarized output is organized as list items. The items with `_summ` are the summary table with posterior means, median, CI's and convergence diagnostics (Gelman-Rubin and effective size). For the district level, `age_summ` item provides summaries of age composition for each stock within a district. `pop_summ_all` and `pop_summ` provide stock proportion estimates for a district and summing across statistical weeks within a district, respectively. For the subdistrict level, `age_summ` item provides summaries of age composition for each stock within each subdistrict. `pop_summ_all` and `pop_summ` provide stock proportion estimates for each subdistrict and for each statistical week within a subdistrict, respectively. 
+For the stock proportions at the district level, estimates of each statistical week are summed up across subdistricts within each district. There is also a summary that summed up with all estimated proportions of subdistrict and statistical weeks within each district.
+
+<!-- figure explain summary schemes -->
+
+For the age-by-stock composition at the district level, estimates of age class proportions are summarized for each reporting group within each district.
+
+<!-- figure explain summary schemes -->
+
+For the stock proportions at the subdistrict level, estimates of each statistical week are summarized for each subdistrict and each district. There is also a summary that summed up all estimated proportions of statistical weeks within each subdistrict for each district.
+
+<!-- figure explain summary schemes -->
+
+For the age-by-stock composition at the subdistrict level, estimates of age class proportions are summarized for each reporting group within each subdistrict.
+
+<!-- figure explain summary schemes -->
+
+The summarized MAGMA output is organized as list items. The items with `_summ` are the summary table with posterior means, median, CrI's and convergence diagnostics (Gelman-Rubin and effective size). At the district level, `age_summ` item provides summaries of age-by-stock composition within a district. `pop_summ_all` and `pop_summ` provide summaries of reporting group proportions for a district and summing across statistical weeks within a district, respectively. At the subdistrict level, `age_summ` item provides summaries of age-by-stock composition within each subdistrict. `pop_summ_all` and `pop_summ` provide summaries of reporting group proportions for each subdistrict and for each statistical week within a subdistrict, respectively. 
 
 An example of the summary table:
 
@@ -161,6 +177,20 @@ The posterior samples trace can be used to make trace plots with your own code o
 tr_plot(magma_summ$age_prop[[1]], nburn = 25)
 
 ```
+
+
+### Individual (group membership) assignment
+
+`magmatize_indiv()` calculates the likelihood of group membership for each individual in the metadata. The likelihoods are standardized in the scale of 0 to 1, and the scaled likelihood summaries can be organized in populations or combined into reporting groups (for single district only).
+
+```{r ia}
+magma_indiv <- magmatize_indiv(magma_dat = yomamafat, out_repunit = TRUE)
+
+magma_indiv
+
+```
+
+The likelihoods of group membership of each individual are calculated using allele frequencies if available. Otherwise, the likelihoods are based on priors or known identities, which provide no additional useful information on the group membership. The first column of the group membership likelihood summary provides the unique id of each individual in the data set, which allows users to filter individuals by names.
 
 
 # Background and Methods
