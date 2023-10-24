@@ -385,7 +385,7 @@ magmatize_data <-
 
     i <- as.integer(factor(metadat0$SOURCE, levels = hatcheries)) + K
 
-    districts <-
+    districts <- # district names
       stats::setNames(as.character(sort(unique(
         metadat0$DISTRICT
       ))), sort(unique(metadat0$DISTRICT)))
@@ -393,7 +393,7 @@ magmatize_data <-
     district <-
       as.integer(factor(metadat0$DISTRICT, levels = districts))
 
-    subdistricts <-
+    subdistricts <- # subdistrict names
       lapply(districts, function(d) {
         stats::setNames(sort(unique(
           subset(metadat0, DISTRICT == d)$SUBDISTRICT
