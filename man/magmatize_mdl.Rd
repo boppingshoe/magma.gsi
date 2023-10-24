@@ -12,7 +12,7 @@ magmatize_mdl(
   nchains,
   nadapt = 50,
   keep_burn = FALSE,
-  flat_age_priors = TRUE,
+  age_prior = "flat",
   cond_gsi = TRUE,
   file = NULL,
   seed = NULL
@@ -33,10 +33,11 @@ magmatize_mdl(
 
 \item{keep_burn}{Logical (default = \code{FALSE}). To keep the burn-ins in the output or not.}
 
-\item{flat_age_priors}{Logical (default = \code{TRUE}). Option to adjust prior weight on the age class proportions.
+\item{age_prior}{Option to adjust prior weight on the age class proportions.
 \itemize{
-\item \code{TRUE}: conventional setup that puts a flat prior on the age proportions.
-\item \code{FALSE}: prior weight will concentrate on the major age groups that are observed in metadata (i.e., "zero out" the unobserved age classes).
+\item \code{flat} (default): conventional setup that puts a flat prior on the age proportions.
+\item \code{zero_out}: prior weight will concentrate on the major age groups that are observed in metadata (i.e., "zero out" the unobserved age classes).
+\item \code{weak_flat}: a less influential flat prior than the conventional one
 }}
 
 \item{cond_gsi}{Logical (default = \code{TRUE}). Option to use conditional GSI model. See vignette for details.
