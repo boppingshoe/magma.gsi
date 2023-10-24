@@ -30,17 +30,17 @@
 #'   type = "pop")
 #'
 #' # trace plot
-#' tr_plot(obj = magma_summ$pop_prop[[1]])
+#' magmatize_tr_plot(obj = magma_summ$pop_prop[[1]])
 #' }
 #'
 #' @export
-tr_plot <- function (obj, nburn = 0, thin = 1, name_order = NULL) {
+magmatize_tr_plot <- function (obj, nburn = 0, thin = 1, name_order = NULL) {
 
   if (is.null(name_order)) {
     name_order <- dplyr::select(obj, -c(itr, chain)) %>% colnames()
   }
 
-  if ("grpvec" %in% names(obj)) obj <- dplyr::select(obj, -grpvec)
+  if ("group" %in% names(obj)) obj <- dplyr::select(obj, -group)
 
   tidyr::pivot_longer({{ obj }}, cols = -c(chain, itr)) %>%
     dplyr::mutate(name = factor(name, levels = name_order)) %>%

@@ -171,10 +171,10 @@ magma_summ$age_prop
 
 ### Trace Plot
 
-The posterior samples trace can be used to make trace plots with your own code or with function `tr_plot()`. If using `tr_plot()`, you need to specify the amount of burn-ins and thinning you had when you ran the model. If you forget, you can find them in your raw magma output (e.g., `magma_out$specs`). `tr_plot()` outputs one data frame (e.g. sampling period) at a time. The burn-in portion of the output is shaded in red.
+The posterior samples trace can be used to make trace plots with your own code or with function `magmatize_tr_plot()`. If using `magmatize_tr_plot()`, you need to specify the amount of burn-ins and thinning you had when you ran the model. If you forget, you can find them in your raw magma output (e.g., `magma_out$specs`). `magmatize_tr_plot()` outputs one data frame (e.g. sampling period) at a time. The burn-in portion of the output is shaded in red.
 
 ```{r trace-plot, fig.height=12, fig.width=8, out.width="100%", fig.cap="Trace plots for age composition."}
-tr_plot(magma_summ$age_prop[[1]], nburn = 25)
+magmatize_tr_plot(magma_summ$age_prop[[1]], nburn = 25)
 
 ```
 
