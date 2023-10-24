@@ -302,7 +302,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
           ar_temp <- aoc %>%
             dplyr::filter(grpvec == grp) %>%
             stats::setNames(., c("grpvec", age_classes))
-          return(ar_temp)# %>% select(-grpvec))
+          return(ar_temp)
         }) # separate rep groups into its own output
 
       mc_age[[a_idx]] <-
@@ -358,7 +358,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
                     times = nchains)
-        )
+        ) %>% dplyr::rename(group = grpvec)
     }) # add id for chain and iteration
 
   out$age_summ <- summ_age
@@ -739,7 +739,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
                     times = nchains)
-        )
+        ) %>% dplyr::rename(group = grpvec)
     }) # add id for chain and iteration
 
   out$age_summ <- summ_age
@@ -805,9 +805,9 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 
   ng <- apply(dat_in$groups, 2, max) # number of groups
 
-  if (!is.null(dat_in$districts)) dist_names <- dat_in$districts
-  if (!is.null(dat_in$subdistricts)) subdist_names <- dat_in$subdistricts
-  if (!is.null(dat_in$stat_weeks)) week_names <- dat_in$stat_weeks
+  dist_names <- dat_in$districts
+  subdist_names <- dat_in$subdistricts
+  week_names <- dat_in$stat_weeks
 
   ### prepare output ### ----
 
@@ -828,17 +828,10 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
       for (g_i in 1:ng[d_i]) {
         i <- i + 1
         aout_names[i] <-
-          if (exists("dist_names")) {
-            paste(paste0("(", i, ")"),
-                  paste0("D", dist_names[d_i]),
-                  paste0(dat_in$group_names[g_i, d_i]),
-                  sep = "_")
-          } else {
-            paste(paste0("(", i, ")"),
-                  paste0("D", d_i),
-                  paste0(dat_in$group_names[g_i, d_i]),
-                  sep = "_")
-          }
+          paste(#paste0("(", i, ")"),
+            paste0("D", dist_names[d_i]),
+            paste0(dat_in$group_names[g_i, d_i]),
+            sep = "_")
       } # g_i
     } # d_i
   } else if (summ_level == "subdistrict") {
@@ -849,19 +842,11 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
         for (g_i in 1:ng[d_i]) {
           i <- i + 1
           aout_names[i] <-
-            if (all(exists("dist_names"), exists("subdist_names"))) {
-              paste(paste0("(", i, ")"),
-                    paste0("D", dist_names[d_i]),
-                    paste0("SubD", subdist_names[[d_i]][s_i]),
-                    paste0(dat_in$group_names[g_i, d_i]),
-                    sep = "_")
-            } else {
-              paste(paste0("(", i, ")"),
-                    paste0("D", d_i),
-                    paste0("SubD", s_i),
-                    paste0(dat_in$group_names[g_i, d_i]),
-                    sep = "_")
-            }
+            paste(#paste0("(", i, ")"),
+              paste0("D", dist_names[d_i]),
+              paste0("S", subdist_names[[d_i]][s_i]),
+              paste0(dat_in$group_names[g_i, d_i]),
+              sep = "_")
         } # g_i
       } # s_i
     } # d_i
@@ -878,17 +863,10 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
     for (d_i in 1:D) {
       for (w_i in 1:W) {
         pout_names[j] <-
-          if (all(exists("dist_names"), exists("week_names"))) {
-            paste(paste0("(", j, ")"),
-                  paste0("D", dist_names[d_i]),
-                  paste0("Wk", week_names[w_i]),
-                  sep = "_")
-          } else {
-            paste(paste0("(", j, ")"),
-                  paste0("D", d_i),
-                  paste0("Wk", w_i),
-                  sep = "_")
-          }
+          paste(#paste0("(", j, ")"),
+            paste0("D", dist_names[d_i]),
+            paste0("W", week_names[w_i]),
+            sep = "_")
         j <- j + 1
       } # w_i
     } # d_i
@@ -901,19 +879,11 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
       for (s_i in 1:S[d_i]) {
         for (w_i in 1:W) {
           pout_names[j] <-
-            if (all(exists("dist_names"), exists("subdist_names"), exists("week_names"))) {
-              paste(paste0("(", j, ")"),
-                    paste0("D", dist_names[d_i]),
-                    paste0("SubD", subdist_names[[d_i]][s_i]),
-                    paste0("Wk", week_names[w_i]),
-                    sep = "_")
-            } else {
-              paste(paste0("(", j, ")"),
-                    paste0("D", d_i),
-                    paste0("SubD", s_i),
-                    paste0("Wk", w_i),
-                    sep = "_")
-            }
+            paste(#paste0("(", j, ")"),
+              paste0("D", dist_names[d_i]),
+              paste0("S", subdist_names[[d_i]][s_i]),
+              paste0("W", week_names[w_i]),
+              sep = "_")
           j <- j + 1
         } # w_i
       } # s_i
@@ -927,11 +897,17 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 
   if (summ_level == "district") {
     for(li in 5:6) {
-      names(out[[li]]) <- dist_names
+      names(out[[li]]) <- paste0("D", dist_names)
     }
   } else if (summ_level == "subdistrict") {
     for(li in 5:6) {
-      names(out[[li]]) <- subdist_names %>% unlist() %>% names()
+      names(out[[li]]) <- subdist_names %>%
+        dplyr::bind_cols() %>%
+        tidyr::pivot_longer(dplyr::everything()) %>%
+        dplyr::arrange(name) %>%
+        dplyr::mutate(name = paste0("D", name)) %>%
+        tidyr::unite("subdist", dplyr::everything(), sep = "_S") %>%
+        dplyr::pull(subdist)
     }
   }
 
@@ -941,7 +917,6 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
   return(out)
 
 }
-
 
 
 ## summarize pop and age separately ----
@@ -1396,7 +1371,7 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
           ar_temp <- aoc %>%
             dplyr::filter(grpvec == grp) %>%
             stats::setNames(., c("grpvec", age_classes))
-          return(ar_temp)# %>% select(-grpvec))
+          return(ar_temp)
         }) # separate rep groups into its own output
 
       mc_age[[a_idx]] <-
@@ -1453,7 +1428,7 @@ format_district_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, kee
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
                     times = nchains)
-        )
+        ) %>% dplyr::rename(group = grpvec)
     }) # add id for chain and iteration
 
   out$age_summ <- summ_age
@@ -1900,7 +1875,7 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
             ar_temp <- aoc %>%
               dplyr::filter(grpvec == grp) %>%
               stats::setNames(., c("grpvec", age_classes))
-            return(ar_temp)# %>% select(-grpvec))
+            return(ar_temp)
           }) # separate rep groups into its own output
 
         mc_age[[a_idx]] <-
@@ -1958,7 +1933,7 @@ format_subdistrict_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, 
                       each = (nreps - nburn*isFALSE(keep_burn)) / thin),
           itr = rep(1:((nreps - nburn*isFALSE(keep_burn)) / thin),
                     times = nchains)
-        )
+        ) %>% dplyr::rename(group = grpvec)
     }) # add id for chain and iteration
 
   out$age_summ <- summ_age
@@ -1996,9 +1971,9 @@ magmatize_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
     dplyr::pull(S) # number of subdistricts
   W <- max(dplyr::n_distinct(dat_in$metadat$week), length(dat_in$stat_weeks)) # number of stats weeks
 
-  if (!is.null(dat_in$districts)) dist_names <- dat_in$districts
-  if (!is.null(dat_in$subdistricts)) subdist_names <- dat_in$subdistricts
-  if (!is.null(dat_in$stat_weeks)) week_names <- dat_in$stat_weeks
+  dist_names <- dat_in$districts
+  subdist_names <- dat_in$subdistricts
+  week_names <- dat_in$stat_weeks
 
   ### prepare output ### ----
 
@@ -2018,17 +1993,10 @@ magmatize_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
     for (d_i in 1:D) {
       for (w_i in 1:W) {
         pout_names[j] <-
-          if (all(exists("dist_names"), exists("week_names"))) {
-            paste(paste0("(", j, ")"),
-                  paste0("D", dist_names[d_i]),
-                  paste0("Wk", week_names[w_i]),
-                  sep = "_")
-          } else {
-            paste(paste0("(", j, ")"),
-                  paste0("D", d_i),
-                  paste0("Wk", w_i),
-                  sep = "_")
-          }
+          paste(#paste0("(", j, ")"),
+            paste0("D", dist_names[d_i]),
+            paste0("W", week_names[w_i]),
+            sep = "_")
         j <- j + 1
       } # w_i
     } # d_i
@@ -2041,19 +2009,11 @@ magmatize_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
       for (s_i in 1:S[d_i]) {
         for (w_i in 1:W) {
           pout_names[j] <-
-            if (all(exists("dist_names"), exists("subdist_names"), exists("week_names"))) {
-              paste(paste0("(", j, ")"),
-                    paste0("D", dist_names[d_i]),
-                    paste0("SubD", subdist_names[[d_i]][s_i]),
-                    paste0("Wk", week_names[w_i]),
-                    sep = "_")
-            } else {
-              paste(paste0("(", j, ")"),
-                    paste0("D", d_i),
-                    paste0("SubD", s_i),
-                    paste0("Wk", w_i),
-                    sep = "_")
-            }
+            paste(#paste0("(", j, ")"),
+              paste0("D", dist_names[d_i]),
+              paste0("S", subdist_names[[d_i]][s_i]),
+              paste0("W", week_names[w_i]),
+              sep = "_")
           j <- j + 1
         } # w_i
       } # s_i
@@ -2067,11 +2027,17 @@ magmatize_pop <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 
   if (summ_level == "district") {
     for(li in 3:4) {
-      names(out[[li]]) <- dist_names
+      names(out[[li]]) <- paste0("D", dist_names)
     }
   } else if (summ_level == "subdistrict") {
     for(li in 3:4) {
-      names(out[[li]]) <- subdist_names %>% unlist() %>% names()
+      names(out[[li]]) <- subdist_names %>%
+        dplyr::bind_cols() %>%
+        tidyr::pivot_longer(dplyr::everything()) %>%
+        dplyr::arrange(name) %>%
+        dplyr::mutate(name = paste0("D", name)) %>%
+        tidyr::unite("subdist", dplyr::everything(), sep = "_S") %>%
+        dplyr::pull(subdist)
     }
   }
 
@@ -2111,9 +2077,9 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 
   ng <- apply(dat_in$groups, 2, max) # number of groups
 
-  if (!is.null(dat_in$districts)) dist_names <- dat_in$districts
-  if (!is.null(dat_in$subdistricts)) subdist_names <- dat_in$subdistricts
-  if (!is.null(dat_in$stat_weeks)) week_names <- dat_in$stat_weeks
+  dist_names <- dat_in$districts
+  subdist_names <- dat_in$subdistricts
+  week_names <- dat_in$stat_weeks
 
   ### prepare output ### ----
 
@@ -2135,17 +2101,10 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
       for (g_i in 1:ng[d_i]) {
         i <- i + 1
         aout_names[i] <-
-          if (exists("dist_names")) {
-            paste(paste0("(", i, ")"),
-                  paste0("D", dist_names[d_i]),
-                  paste0(dat_in$group_names[g_i, d_i]),
-                  sep = "_")
-          } else {
-            paste(paste0("(", i, ")"),
-                  paste0("D", d_i),
-                  paste0(dat_in$group_names[g_i, d_i]),
-                  sep = "_")
-          }
+          paste(#paste0("(", i, ")"),
+            paste0("D", dist_names[d_i]),
+            paste0(dat_in$group_names[g_i, d_i]),
+            sep = "_")
       } # g_i
     } # d_i
 
@@ -2158,19 +2117,11 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
         for (g_i in 1:ng[d_i]) {
           i <- i + 1
           aout_names[i] <-
-            if (all(exists("dist_names"), exists("subdist_names"))) {
-              paste(paste0("(", i, ")"),
-                    paste0("D", dist_names[d_i]),
-                    paste0("SubD", subdist_names[[d_i]][s_i]),
-                    paste0(dat_in$group_names[g_i, d_i]),
-                    sep = "_")
-            } else {
-              paste(paste0("(", i, ")"),
-                    paste0("D", d_i),
-                    paste0("SubD", s_i),
-                    paste0(dat_in$group_names[g_i, d_i]),
-                    sep = "_")
-            }
+            paste(#paste0("(", i, ")"),
+              paste0("D", dist_names[d_i]),
+              paste0("S", subdist_names[[d_i]][s_i]),
+              paste0(dat_in$group_names[g_i, d_i]),
+              sep = "_")
         } # g_i
       } # s_i
     } # d_i
