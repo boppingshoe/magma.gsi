@@ -31,7 +31,7 @@ This document contains the background information for Mark and Age-enhanced Gene
 
 ## Data Format
 
-Before running `magmatize_data()` function, we need to set up a *data* folder and a (optional) *analysis* folder in the working directory. The *data* folder is where you put the files to compile input data for running the MAGMA model. Those files are: *baseline.RData*, *group_namesXXX.txt*, *groupsXXX.txt*, *harvestXXX.txt*, *metadata.txt*, and *mixture.RData*.
+Before running `magmatize_data()` function, we need to set up a *data* folder in the working directory. The *data* folder is where you put the files to compile input data for running the MAGMA model. Those files are: *baseline.RData*, *group_namesXXX.txt*, *groupsXXX.txt*, *harvestXXX.txt*, *metadata.txt*, and *mixture.RData*. 
 
 *group_namesXXX.txt* and *groupsXXX.txt* are saved with fishery extension. For example, *group_namesFAKE.txt* and *groupsFAKE.txt* are files for the "FAKE" fishery. *group_namesXXX.txt* contains the names of the reporting groups in order of their group identifying numbers (groupvec). *groupsXXX.txt* contains the groupvec for each population in the data. The following shows the format of *group_namesXXX.txt* and *groupsXXX.txt*.
 
@@ -56,9 +56,9 @@ head(readr::read_table("data/metadata.txt"))
 
 ```
 
-*baseline.RData* contains the genetic information for the baseline populations in `.gcl` files.
+*baseline.RData* contains the genetic information for the baseline populations in `.gcl` files. *baseline.RData* is created by loading GCL baseline files onto the *R* environment and run `save.image(file = "baseline.RData")`.
 
-*mixture.RData* contains the `.gcl` file(s) for the mixture (samples with genetic information) and the fishery name (as a character string). Including the fishery name here is optional and can be specified in the `magmatized_data()` function instead. If you specified at both places with different fishery names, the one in the `mixture.RData` will take precedence. This option allows users to summarize MAGMA output under different setups without rerunning the model again.
+*mixture.RData* contains the `.gcl` file(s) for the mixture (samples with genetic information) and the fishery name (as a character string). *mixture.RData* is also created by `save.image()` in *R*. You have the option to include the fishery name in *mixture.data* or specify in the `magmatized_data()` function instead. If you specified at both places with different fishery names, the one in the *mixture.RData* will take precedence. This option allows users to summarize MAGMA output under different reporting group setups without rerunning the model again.
 
 
 ## Compile Input Files
@@ -104,21 +104,20 @@ magma_out <-
 
 Burn-ins are excluded in the summary calculations even if a user choose to keep the burn-in output. `nadapt`, `keep_burn`, `flat_age_prior`, `cond_gsi`, `file` and `seed` use the default values if not specified by the user.
 
-`cond_gsi` sets the option to run MAGMA model in the conditional GSI or fully Bayesian algorithm. `nadapt` allows for a "warm up" run in the conditional GSI mode before running the model in the fully Bayesian mode.
+`cond_gsi` sets the option to run MAGMA model in the conditional GSI or fully Bayesian algorithm. `nadapt` allows for a "warm-up" run in conditional GSI mode before running the model in fully Bayesian mode.
 
-`flat_age_prior = TRUE` set an equal weight across the age groups. Setting `flat_age_prior = FALSE` will concentrate the prior weight on the major age groups and force the undetected age groups to (near) zero.
+User can tinker with the `age_prior` for the MAGMA model. `age_prior = "flat"` sets equal weights across the age groups. `age_prior = "weak_flat"` also sets equal weights across the age groups but with a smaller value. Specifying `age_prior = "zero_out"` concentrates the prior weights on the major age groups and force the undetected age groups to (near) zero.
 
 `seed` allows for setting a random seed for the pseudo-random number generator, so the output can be reproduced exactly. Just pick a number and make a note for future reference.
 
 The raw output of MAGMA is a multi-layered list of MCMC chains. Each chain contains a tibble with age class ($\times$ iterations) as rows and populations as columns. I call the output in "raw" format because it has not been summarized. The output also contains the specifications for running the model (iterations, burn-ins... all that good stuff).
-<!-- The raw output of MAGMA is a multi-way array with seven dimensions. Dimensions 1 and 2 identify the table with age class $\times$ iterations as rows and population, age class vector i.d. and iteration i.d. as columns. Dimensions 3 to 6 identify the week, sub-district, district, and year. Dimension 7 identifies the MCMC chain. I call the output in "raw" format because it has not been summarized in reporting groups. -->
 
 `file` specify the file path to save the output in `Rds` format at the end of the model run.
 
 
 ## Summarizing Output
 
-The MAGMA output is summarized using `magmatize_summ()` function. The function needs the raw output and the input data that was used for running the model.
+The MAGMA output is summarized using `magmatize_summ()` function. The function needs the raw output and the input data objects.
 
 ```{r format-magama}
 magma_summ <-
@@ -134,21 +133,21 @@ For big fisheries like TBR in SEAK, output can be too large for our work laptops
 
 MAGMA estimates age/stock composition at the lowest stratum level (i.e., statistical weeks), but sums up the lower strata (weighted by harvest numbers) to provide summaries at the district or subdistrict level by setting `summ_level = "district"` or `"subdistrict"`, respectively. Summaries are provided in forms of stock proportions and age-by-stock compositions.
 
-For the stock proportions at the district level, estimates of each statistical week are summed up across subdistricts within each district. There is also a summary that summed up with all estimated proportions of subdistrict and statistical weeks within each district.
+For the stock proportions at the district level, estimates of each statistical week are summed up across subdistricts within each district. There is also a summary that summed up all estimates of subdistrict within each district.
 
-<!-- figure explain summary schemes -->
+![`pop_summ` and `pop_summ_all` at the district level: Summary scheme of population proportions at the district level. Oragne arrows show how different starta are summed.](pop_dist.PNG){width="100%"}
 
 For the age-by-stock composition at the district level, estimates of age class proportions are summarized for each reporting group within each district.
 
-<!-- figure explain summary schemes -->
+![`age_summ` at the district level: Summary scheme of age-by-stock composition at the district level.](age_dist.PNG){width="100%"}
 
 For the stock proportions at the subdistrict level, estimates of each statistical week are summarized for each subdistrict and each district. There is also a summary that summed up all estimated proportions of statistical weeks within each subdistrict for each district.
 
-<!-- figure explain summary schemes -->
+![`pop_summ` and `pop_summ_all` at the subdistrict level: Summary scheme of population proportions at the subdistrict level. Oragne arrows show how different starta are summed.](pop_subdist.PNG){width="100%"}
 
 For the age-by-stock composition at the subdistrict level, estimates of age class proportions are summarized for each reporting group within each subdistrict.
 
-<!-- figure explain summary schemes -->
+![`age_summ` at the subdistrict level: Summary scheme of age-by-stock composition at the subdistrict level.](age_subdist.PNG){width="100%"}
 
 The summarized MAGMA output is organized as list items. The items with `_summ` are the summary table with posterior means, median, CrI's and convergence diagnostics (Gelman-Rubin and effective size). At the district level, `age_summ` item provides summaries of age-by-stock composition within a district. `pop_summ_all` and `pop_summ` provide summaries of reporting group proportions for a district and summing across statistical weeks within a district, respectively. At the subdistrict level, `age_summ` item provides summaries of age-by-stock composition within each subdistrict. `pop_summ_all` and `pop_summ` provide summaries of reporting group proportions for each subdistrict and for each statistical week within a subdistrict, respectively. 
 
@@ -197,7 +196,7 @@ The likelihoods of group membership of each individual are calculated using alle
 
 MAGMA is a Bayesian genetic mixture analysis first developed by Gene Conservation Lab (GCL) biometrician Jim Jasper. MAGMA is based on Pella-Masuda model (Pella & Masuda, 2001), but it also incorporates information such as ages from matched scales and hatchery marks on matched otoliths to allow more detailed stock composition estimates.
 
-Mainly, MAGMA estimates two sets of parameters: stock and age. For each mixture (or a stratum), MAGMA estimates a vector of stock proportions of wild and hatchery groups. For all mixtures (or all strata) within a year, MAGMA estimates a matrix of age proportions with each row represents a wild or hatchery stock. A composition of age and stock, information that is often required for run reconstruction models, is simply the product of these two sets of parameters. In a simple example below showing one stratum, we can see how the age/stock composition is presented. The made-up age proportions is shown in the following table:
+Mainly, MAGMA estimates two sets of parameters: stock and age. For each mixture (or a stratum), MAGMA estimates a vector of stock proportions of wild and hatchery groups. For all mixtures (or all strata) within a year, MAGMA estimates a matrix of age proportions with each row represents a wild or hatchery stock. An age-by-stock composition, information that is often required for run reconstruction models, is simply the product of these two sets of parameters. In a simple example below showing one stratum, we can see how the age-by-stock composition is presented. The made-up age proportions is shown in the following table:
 
 |         | Age 1 | Age 2 | Age 3 |
 |:--------|:------|:------|:------|
@@ -211,9 +210,9 @@ The made-up stock proportions are 0.7 and 0.3 for stock A and B in this stratum.
 | Stock A | $0.2$ | $0.3$ | $0.5$ | $\times 0.7$ |
 | Stock B | $0.4$ | $0.5$ | $0.1$ | $\times 0.3$ |
 
-The age/stock composition[^1] for this stratum is:
+The age-by-stock composition[^1] for this stratum is:
 
-[^1]: Currently, MAGMA output for age/stock comp is normalized by each stock, so the age proportions within each stock add up to 1.
+[^1]: Currently, MAGMA output for age/stock comp is standardized by each stock, so the age proportions within each stock add up to 1.
 
 |         | Age 1  | Age 2  | Age 3  |
 |:--------|:-------|:-------|:-------|
@@ -222,42 +221,42 @@ The age/stock composition[^1] for this stratum is:
 
 After all age/stock compositions in other strata are calculated in the same fashion, they are multiplied by the harvest proportions of their corresponding strata and summed up to get a weighted average age/stock composition.
 
-Age proportions are estimated by combining all mixtures/strata within a year, which can be counter-intuitive at first glance. After all, it may not be reasonable to assume that all mixtures share the same age distribution. However, in the MAGMA model, age compositions are adjusted according to stock proportions for each mixture population (i.e. stratum). Because stock proportions are different from mixtures to mixtures, the differences in stock compositions drive the differences in age compositions between mixtures. In the example above, stock A consists mainly (50%) age 3 fish and is 70% of the total mixture population. Therefore, age 3 fish from stock A is the dominant class in the mixture population. In another stratum, stock B might be the majority of the mixture populations. In which case, we would expect to see that age 2 to be the dominant class because compositions are driven mostly by stock B.
+Age proportions are estimated by combining all mixtures/strata within a year, which can be counter-intuitive at first glance. After all, it may not be reasonable to assume that all mixtures share the same age distribution. However, in the MAGMA model, age compositions are adjusted according to stock proportions for each mixture (i.e., stratum). Because stock proportions are different from mixtures to mixtures, the differences in stock compositions drive the differences in age compositions between mixtures. In the example above, stock A consists mainly (50%) age 3 fish and is 70% of the total mixture population. Therefore, age 3 fish from stock A is the dominant class in the mixture population. In another stratum, stock B might be the majority of the mixture populations. In which case, we would expect to see that age 2 to be the dominant class because compositions are driven mostly by stock B.
 
-It is not required that all individuals in the data set have an observed genotype or age. Base on data available, MAGMA model assign a most likely population identity and/or age to each individual that has an unobserved genotype and/or age. However, there should be an adequate sample of genotyped individuals to represent each stratum in the data set. When there is an inadequate number (small or zero sample size) of genotyped individuals in a stratum, MAGMA model estimates population proportions of that stratum based on the overall proportions of all strata combined.
+It is not required that all individuals in the data set have an observed genotype or age. Base on data available, MAGMA model assigns a most likely membership for population and/or age to each individual that has unobserved genotype and/or age. However, there should be an adequate sample of genotyped individuals to represent each stratum in the data set. When there is an inadequate number (small or zero sample size) of genotyped individuals in a stratum, MAGMA model estimates population proportions of that stratum based on the overall proportions of all strata combined.
 
-Estimation of age and population compositions in the MAGMA model is done through iterations of a algorithm called the Gibbs sampler. To initialize this process, all fish with unknown origin or age are stochastically assigned a population or age class, then proportions for populations and age groups are estimated in the following steps:
+Estimation of age and population compositions in the MAGMA model is done through an algorithm called the Gibbs sampler. The process is initialized by stochastically assigning all individuals with unobserved identities a group membership for population or age class based on specified priors, then the proportions for populations and age classes are "estimated" by drawing values from the full conditional distributions[^3] of the population and age classes. The full conditional distributions are mainly based on numbers of individuals counted in each population and age group. The Gibbs sampler proceeds in the following steps:
 
-1. Tally the numbers of fish in each age group for each population (assigned and observed) for both wild and hatchery individuals;
+1. Stochastically assign each individual without observed identity but with genotypes to a (wild) population of origin based on its genotypic frequency and population proportions. If its age is unobserved, assign an age based on the age composition of its assigned population membership;
 
-2. Estimate the population and age compositions from previous summaries (accounting for sampling error);
+2. Stochastically assign each individual without observed identity and without genotypes to a population of origin based on population proportions. If its age is unobserved, assign an age based on the age composition of its assigned population; and
 
-<!-- 3. Stochastically assign each wild fish with genotypes to a wild population of origin based on the product of its genotypic frequency, age frequency, and population proportion;  -->
-3. Stochastically assign each wild fish with genotypes to a wild population of origin based likelihood derived from its genotypic frequency and population proportion. If its age is unobserved, assign an age based on the age composition of its assigned population;
+3. Tally the numbers of fish in each age group for each population (assigned and observed) for both wild and hatchery individuals;
 
-<!-- 4. Stochastically assign each wild fish without genotypes to a population of origin based on the product of its age frequency and population proportion; and -->
-4. Stochastically assign each wild fish without genotypes to a population of origin based on population proportion. If its age is unobserved, assign an age based on the age composition of its assigned population; and
+4. draw updated values for population and age from their full conditional distributions derived from previous summaries (accounting for sampling error);
 
-5. Repeat steps 1-4 while updating the estimates of the stock proportions and age compositions with each iteration.
+5. Repeat steps 1-4 while updating the values of the stock proportions and age compositions with each iteration.
 
-This algorithm is repeated thousands of times, with the first half of iterations discarded. The point estimates and credible intervals for the age/population compositions and model convergence diagnostics are summarized in the output statistics.
+This algorithm is repeated until simulations converged to the posterior distribution, usually it takes thousands of iterations. The point estimates and credible intervals for the age/population compositions and model convergence diagnostics are summarized in the output statistics.
 
 
 ## Pella-Masuda Model
 
 $$\newcommand{\mx}[1]{\mathbf{#1}}$$
 
-Before we describe MAGMA in details, we will first introduce Pella-Masuda model in this section because it is the backbone of MAGMA. In the next section, we will discuss how MAGMA is developed by extending the Pella-Masuda model. In a group of mixed populations, Pella-Masuda model assigns population identities to each individual based on its genetic make-up (e.g. genotype). Then the model estimates the overall population proportions based on the portion of individuals assigned to each population. In the fishery context, genetic data of the individuals is called the mixture sample because it consists multi-locus genotype of individual fish collected from a mixed stock fishery. $\mx x$ denotes the mixture sample. In this document, a bold-font letter represents a *number set*, or a collection of distinct elements. For example, $\mx x$ is a set that contains individual $x$ elements. And $x_{m,l,j}$ is the count of allele $j$ in locus $l$ for individual fish $m$, where $m \in \{1,2,...,M\}$, $l \in \{1,2,...,L\}$, and $j \in \{1,2,...,J_l\}$ depends on locus $l$.
+Before we describe MAGMA in details, we will first introduce Pella-Masuda model in this section because it is the backbone of MAGMA. In the next section, we will discuss how MAGMA is developed by extending the Pella-Masuda model. In a group of mixed populations, Pella-Masuda model assigns population identities to each individual based on its genetic make-up (i.e., genotype). Then the model estimates the overall population proportions based on the portion of individuals assigned to each population. In the fishery context, genetic data of the individuals is called the mixture because it consists of multi-locus genotypes of individual fish collected from a mixed-stock fishery. $\mx x$ denotes the mixture sample. In this document, a bold-font letter represents a *number set*, or a collection of distinct elements. For example, $\mx x$ is a set that contains individual $x$ elements. And $x_{m,l,j}$ is the count of allele $j$ in locus $l$ for individual fish $m$, where $m \in \{1,2,...,M\}$, $l \in \{1,2,...,L\}$, and $j \in \{1,2,...,J_l\}$ depends on locus $l$.
 
-Genetic data of the populations is called the baseline sample because it consists genotype compositions of various baseline populations collected at their spawning locations. $\mx y$ denotes the baseline sample. $y_{k,l,j}$ is the count of allele $j$ in locus $l$ for a sample of size $n_{k,l}$ collected from baseline population $k$, where $k \in \{1,2,...,K\}$.
+Genetic data of the populations is called the baseline because it consists genotype compositions of various baseline populations collected at their spawning locations. $\mx y$ denotes the baseline sample. $y_{k,l,j}$ is the count of allele $j$ in locus $l$ for a sample of size $n_{k,l}$ collected from baseline population $k$, where $k \in \{1,2,...,K\}$.
 
-For both mixture and baseline samples, it is assumed that allele counts in each locus follow a multinomial distribution[^3]. Using another made-up example, in a baseline sample, there are two alleles in locus 1 for population 2. Counts for the two alleles are $y_{1,2,1},  y_{1,2,2}$, and they follow a multinomial distribution with parameters $q_{1,2,1}, q_{1,2,2}$ and size $n_{2,1}$. Note that $q_{1,2,1}, q_{1,2,2}$ are the relative frequencies of the two alleles in locus 1 for population 2. In a Bayesian framework, we need to specify prior distributions for parameters; therefore, we place a Dirichlet[^4] prior distribution on $q_{1,2,1}, q_{1,2,2}$ with hyperparameters[^5] $\beta_{1,1}, \beta_{1,2}$, where $\beta_{1,1} = \beta_{1,2} = 1/2$ based on the number of alleles for locus 1.
+For both mixture and baseline, it is assumed that allele counts in each locus follow a multinomial distribution[^4]. Using a made-up example, in a baseline, there are two alleles in locus 1 for population 2. Counts for the two alleles are $y_{1,2,1},  y_{1,2,2}$, and they follow a multinomial distribution with parameters $q_{1,2,1}, q_{1,2,2}$ and size $n_{2,1}$. Note that $q_{1,2,1}, q_{1,2,2}$ are the relative frequencies of the two alleles in locus 1 for population 2. In a Bayesian framework, we need to specify prior distributions for parameters; therefore, we place a Dirichlet[^5] prior distribution on $q_{1,2,1}, q_{1,2,2}$ with hyperparameters[^6] $\beta_{1,1}, \beta_{1,2}$, where $\beta_{1,1} = \beta_{1,2} = 1/2$ based on the number of alleles for locus 1.
 
-[^3]: What is a multinomial distribution? They are the counts of multiple categories based on their corresponding probabilities. For example, we randomly toss 10 Swedish Fish to three kids. Each time we toss a fish, the probability of kid #1 catching it is 0.3, kid #2, 0.3, and kid #3, 0.4. The numbers of fish caught by the three kids are multinomially distributed with probabilities = {0.3, 0.3, 0.4} and a total size 10.
+[^3]: The distribution of a parameter conditioned on the data and other parameters in the model.
 
-[^4]: What is a Dirichlet distribution? Using the same example for multinomial distribution, the fish catching probabilities of all three kids are Dirichlet-distributed with fish counts of all three kids as parameters. It is worth noting that the parameters do not have to be integers as long as they are > 0.
+[^4]: What is a multinomial distribution? They are the counts of multiple categories based on their corresponding probabilities. For example, we randomly toss 10 Swedish Fish to three kids. Each time we toss a fish, the probability of kid #1 catching it is 0.3, kid #2, 0.3, and kid #3, 0.4. The numbers of fish caught by the three kids are multinomially distributed with probabilities = {0.3, 0.3, 0.4} and a total size 10.
 
-[^5]: A hyperparameter is a parameter of a prior distribution.
+[^5]: What is a Dirichlet distribution? Using the same example for multinomial distribution, the fish catching probabilities of all three kids are Dirichlet-distributed with fish counts of all three kids as parameters. It is worth noting that the parameters do not have to be integers as long as they are > 0.
+
+[^6]: A hyperparameter is a parameter of a prior distribution.
 
 $\mx q$ represents $q_{1,2,1}$ and $q_{1,2,2}$, together with allele frequencies of other loci and other populations. As you can see, $\mx q$ and $\mx y$ have the same dimension because each relative frequency corresponds to an allele count. In the model, allele frequencies of baseline populations, $\mx q$, determine population proportions. And population proportions is used to determine the identities of individual fish. Individual identities are then tallied and summarized to update baseline allele frequencies. $\mx y$ can be expressed as follows:
 
@@ -269,7 +268,7 @@ $\mx q_k \sim Dirich(\mx \beta)$,
 
 where $\mx \beta = 1/J_l$
 
-For mixture sample, allele counts in each locus of individual fish also follows a multinomial distributions. However, distribution of allele counts is related to the allele frequencies of the baseline population which the individual fish came from. Yet, the identity of the individual fish is unknown so it needs to be estimated. Here we let $\mx z_m$ represent the population identify for the $m$^th^ mixture individual. $\mx z_m$ is composed of 0's and an 1 with a length $K$ (e.g. number of baseline populations). $z_{m,k} = 1$ if individual $m$ belongs to population $k$, and $z_{m,k} = 0$ otherwise. In a made-up example, $\mx z_{100} = \{0, 0, 1, 0, 0\}$ means that there are only five populations, and individual fish #100 comes from population 3.
+As mentioned, for mixture, allele counts in each locus of individual fish follows a multinomial distributions. Distribution of allele counts is related to the allele frequencies of the baseline population which the individual came from. However, the identity of the individual fish is unknown so it needs to be estimated. Here we let $\mx z_m$ represent the population identify for the $m$^th^ mixture individual. $\mx z_m$ is composed of 0's and an 1 with a length $K$ (e.g. number of baseline populations). $z_{m,k} = 1$ if individual $m$ belongs to population $k$, and $z_{m,k} = 0$ otherwise. In a made-up example, $\mx z_{100} = \{0, 0, 1, 0, 0\}$ means that there are only five populations, and individual fish #100 comes from population 3.
 
 We place a multinomial prior on $z_{m,1}, z_{m,2}, ..., z_{m,K}$ with size 1 and probabilities equal to population proportions $p_1, p_2, ..., p_K$. We specify a Dirichlet prior distribution on $p_1, p_2, ..., p_K$ with hyperparameters $\alpha_1, \alpha_2, ..., \alpha_K$, where $\alpha_1 = \alpha_2 = ... = \alpha_K = 1/K$. We express $\mx z$ as follows:
 
@@ -289,7 +288,7 @@ Moran and Anderson (2018) implement a genetic mixture analysis as a *R* package,
 
 $\mx x_m \sim CDM(\mx{ploidy}, \mx z_m \cdot \mx v)$,
 
-where $\mx v$ is $\mx \beta + \mx y$. We are not going to attempt proving the theory behind the conditional model in this document (details can be found in Moran and Anderson, 2018). But since $\mx q$ has been integrated out of $\mx x_m$, the process for estimating parameters is simpler and more streamlined. We implemented a modified version of the conditional GSI in the updated edition of MAGMA.
+where $\mx v$ is $\mx \beta + \mx y$. We are not going to attempt proving the theory behind the conditional GSI model in this document (details can be found in Moran and Anderson, 2018). But since $\mx q$ has been integrated out of $\mx x_m$, the process for estimating parameters is simpler and more streamlined. We implemented a modified version of the conditional GSI in the updated edition of MAGMA.
 
 
 ## Mark and Age Inclusion
@@ -328,15 +327,15 @@ $\mx \pi \sim Dirich(\mx \gamma)$,
 
 where $\mx \gamma = 1/C$
 
-Deriving the values of parameters requires finding the joint posterior distribution for $\mx p, \mx q,\mx z^{(1)}, \mx z^{(2)}, \mx\pi|\mx x, \mx y, \mx z^{(3)}, \mx a, \mx\alpha, \mx\beta, \mx\gamma$. In the next section, we will introduce the concepts and algorithm to sample from this posterior distribution.
+Deriving the values of parameters requires finding the conditional distributions for $\mx p, \mx q,\mx z^{(1)}, \mx z^{(2)}, \mx\pi|\mx x, \mx y, \mx z^{(3)}, \mx a, \mx\alpha, \mx\beta, \mx\gamma$. In the next section, we will introduce the concepts and an algorithm to sample the posterior distribution.
 
 ![MAGMA DAG: A simplified directed acyclic graph of MAGMA model. Ovals represent variables in the model. Shaded boxes represent observed variables. Diamond shapes represent the prior distributions. The large rectangles represent replication over individuals and/or loci. See main text for full explanation of the model.](magma_dag.png){width="100%"}
 
 ## Gibbs Sampler
 
-Gibbs sampler is a type of Markov chain Monte Carlo (MCMC) methods that sequentially sample parameter values from a Markov chain. With enough sampling, the Markov chain will eventually converge to the desire distribution of interest. The most appealing quality of Gibbs sampler is its reduction of a multivariate problem (such as Pella-Masuda and MAGMA models) to a series of more manageable lower-dimensional problems. A full description of Gibbs sampler and MCMC methods is beyond the scope of this document; however, further information can be found in numerous resources devoting to Bayesian data analysis (see Carlin & Louis, 2009; Robert & Casella, 2010; Gelman et al., 2014)
+Gibbs sampler is a type of Markov chain Monte Carlo (MCMC) methods that sequentially sample parameter values from a Markov chain. With enough sampling, the Markov chain will eventually converge to the joint posterior distribution of the parameters. The most appealing quality of Gibbs sampler is its reduction of a multivariate problem (such as Pella-Masuda and MAGMA models) to a series of more manageable lower-dimensional problems. A full description of Gibbs sampler and MCMC methods is beyond the scope of this document; however, further information can be found in numerous resources devoting to Bayesian data analysis (see Carlin & Louis, 2009; Robert & Casella, 2010; Gelman et al., 2014)
 
-To illustrate, suppose we would like to determine the joint posterior distribution of interest, $p(\mx \theta|\mx y)$, where $\mx \theta = \{\theta_1, \theta_2,..., \theta_K\}$. Most likely the multivariate $p(\mx \theta|\mx y)$ would be too complicated to sample from. However, if we can figure out how to break up the joint posterior distribution into individual full conditional distributions[^6], each parameter in $\mx \theta$ can be sampled one by one sequentially using a Gibbs sampler algorithm. The process begins with an arbitrary set of starting values $\theta^{(0)}_2, \theta^{(0)}_3,..., \theta^{(0)}_K$ and proceeds as follows:
+To illustrate, suppose we would like to determine the joint posterior distribution of interest, $p(\mx \theta|\mx y)$, where $\mx \theta = \{\theta_1, \theta_2,..., \theta_K\}$. Most likely the multivariate $p(\mx \theta|\mx y)$ would be too complicated to sample from. However, if we can figure out how to break up the joint posterior distribution into individual full conditional distributions[^3], each parameter in $\mx \theta$ can be sampled one by one sequentially using a Gibbs sampler algorithm. The process begins with an arbitrary set of starting values $\theta^{(0)}_2, \theta^{(0)}_3,..., \theta^{(0)}_K$ and proceeds as follows:
 
 For $t = 1,2,...,T$, repeat
 
@@ -346,8 +345,6 @@ For $t = 1,2,...,T$, repeat
     ⋮
   
 k. Draw $\theta^{(t)}_k$ from $p(\theta_k|\theta^{(t)}_1, \theta^{(t)}_2,..., \theta^{(t)}_{k-1}, \mx y)$
-
-[^6]: The conditional distribution of one parameter conditional on all others.
 
 This would work best if the full conditionals are some known distributions that we can easily sample from (although it's not required). In our case with MAGMA model, we rely on two main concepts, the Bayes theorem and conjugacy, to do the trick. Briefly, for estimating parameters $\mx\theta$ from data $\mx D$, according to Bayes Rule, $p(\mx\theta|\mx D) = \displaystyle \frac{p(\mx D|\mx\theta)p(\mx\theta)}{p(\mx D)}$. $p(\mx\theta|\mx D)$ is the joint posterior distribution for parameters $\mx\theta$, $p(\mx D|\mx\theta)$ is the likelihood of observing the data given the parameters, $p(\mx\theta)$ is the prior distribution of the parameters, and $p(\mx D)$ is the constant marginal distribution of the data. $p(\mx D)$ is often mathematically difficult to obtain; however, because $p(\mx D)$ is a constant number, we can ignore it by reducing the posterior distribution to $p(\mx\theta|\mx D) \propto p(\mx D|\mx\theta)p(\mx\theta)$.
 
@@ -359,7 +356,7 @@ $\propto p(\mx x|\mx z^{(1)}, \mx q) p(\mx y|\mx q) p(\mx a|\mx z,\mx\pi) p(\mx 
 
 $= p(\mx x|\mx z^{(1)}, \mx q) p(\mx y|\mx q) p(\mx a|\mx z,\mx\pi) \cdot p(\mx p|\mx\alpha) p(\mx q|\mx\beta) p(\mx z|\mx p) p(\mx \pi|\mx\gamma)$
 
-With some re-arrangements and hand-waving, we arrive at the marginal posterior distributions for $\mx q$, $\mx p$, and $\mx\pi$:
+With some re-arrangements and hand-waving, we arrive at the conditional distributions for $\mx q$, $\mx p$, and $\mx\pi$:
 
 $p(\mx x|\mx z^{(1)}, \mx q) p(\mx y|\mx q) p(\mx a|\mx z,\mx\pi) \cdot p(\mx p|\mx\alpha) p(\mx q|\mx\beta) p(\mx z|\mx p) p(\mx \pi|\mx\gamma)$
 
@@ -369,14 +366,14 @@ $\propto p(\mx x,\mx y,\mx z^{(1)}|\mx q) p(\mx q|\mx\beta) \cdot p(\mx z|\mx p)
 
 $\propto p(\mx q|\mx x,\mx y,\mx z^{(1)},\mx\beta) \cdot p(\mx p|\mx z,\mx\alpha) \cdot p(\mx \pi|\mx a,\mx z,\mx\gamma)$
 
-Next, we take advantage of a mathematical property called *conjugacy* to help us determine the marginal posterior distributions. Based on this property, the posterior distribution follows the same parametric form as the prior distribution when prior is a *conjugate family* for the likelihood. For example, if the likelihood of data is binomial distribution and the prior of parameter is beta distribution, then the posterior is also beta distribution because beta is a conjugate family for binomial. There are many conjugate families, and Dirichlet and multinomial are another example.
+Next, we take advantage of a mathematical property called *conjugacy* to help us determine the full conditional distributions. Based on this property, the posterior distribution follows the same parametric form as the prior distribution when prior is a *conjugate family* for the likelihood. For example, if the likelihood of data is binomial distribution and the prior of parameter is beta distribution, then the posterior is also beta distribution because beta is a conjugate family for binomial. There are many conjugate families, and Dirichlet and multinomial are another example.
 
-Utilizing conjugacy property, we will determine each of the marginal posterior distributions for $\mx q$, $\mx p$, and $\mx\pi$.
+Utilizing conjugacy property, we will determine each of the conditional distributions for $\mx q$, $\mx p$, and $\mx\pi$.
 
 
-### Marginal Posterior p(q|x, y, z^(1)^, $\beta$)
+### Conditional distribution p(q|x, y, z^(1)^, $\beta$)
 
-We determine that posterior $p(\mx q|\mx x,\mx y,\mx z^{(1)},\mx\beta)$ is Dirichlet-distributed because Dirichlet prior $p(\mx q|\mx\beta)$ is a conjugate family for the multinomial likelihoods $p(\mx x|\mx z^{(1)}, \mx q)$ and $p(\mx y|\mx q)$. To determine the exact parameterization for the posterior distribution, we need to derive the prior and likelihoods first.
+We determine that $p(\mx q|\mx x,\mx y,\mx z^{(1)},\mx\beta)$ is Dirichlet-distributed because Dirichlet prior $p(\mx q|\mx\beta)$ is a conjugate family for the multinomial likelihoods $p(\mx x|\mx z^{(1)}, \mx q)$ and $p(\mx y|\mx q)$. To determine the exact parameterization for the posterior distribution, we need to derive the prior and likelihoods first.
 
 Likelihood $p(\mx x|\mx z^{(1)}, \mx q)$ can be derived in two steps. The first step we conditioned the likelihood on $\mx z^{(1)}$ so that
 
@@ -417,7 +414,7 @@ It is *elementary* for anybody to recognize that $\displaystyle \prod^{K}_{k=1} 
 $\mx q_{k,l}|\mx x,\mx y,\mx z^{(1)},\mx\beta \sim Dirich(\displaystyle \sum^{M^{(1)}}_{m=1} x_{m,l,j} z^{(1)}_{m,k} + y_{k,l,j} + \beta_{l,j})$
 
 
-### Marginal Posterior p(p|z, $\alpha$)
+### Conditional distribution p(p|z, $\alpha$)
 
 Using the same logic as previously, $p(\mx p|\mx z,\mx\alpha)$ is also Dirichlet-distributed due to a Dirichlet prior $p(\mx p|\mx\alpha)$ and a multinomial likelihood $p(\mx z|\mx p)$.
 
@@ -432,7 +429,7 @@ Once again, we recognize it as the kernel for Dirichlet distribution:
 $\mx p|\mx z,\mx\alpha \sim Dirich(\displaystyle \sum^M_{m=1}z_{m,k} + \alpha_k)$
 
 
-### Marginal Posterior p($\pi$|a, z, $\gamma$)
+### Conditional distribution p($\pi$|a, z, $\gamma$)
 
 Lastly, $p(\mx \pi|\mx a,\mx z,\mx\gamma)$ is also Dirichlet-distributed due to a Dirichlet prior $p(\mx \pi|\mx\gamma)$ and a multinomial likelihood $p(\mx a|\mx z,\mx\pi)$.
 
@@ -469,17 +466,17 @@ Once we figured out all the pieces in the Gibbs sampler, we may begin the proces
 
 For $t = 1,2,...,T$, repeat
 
-1. Determine the population identity of mixture individuals, $\mx z^{(1,2)(t)}_m|\mx p^{(t-1)}, \mx q^{(t-1)}, \mx x^{(1,2)}_m, \mx\pi^{(t-1)}, \mx a^{(1,2)(t-1)}_m \sim Mult(1, \mx{p'}_m)$.
+1. Determine the population membership of mixture individuals, $\mx z^{(1,2)(t)}_m|\mx p^{(t-1)}, \mx q^{(t-1)}, \mx x^{(1,2)}_m, \mx\pi^{(t-1)}, \mx a^{(1,2)(t-1)}_m \sim Mult(1, \mx{p'}_m)$.
 
-2. If not all individuals were aged, determine age classes for those with unknown age, $\mx a^{(t)}_m|\mx z^{(t)}_m, \mx \pi^{(t-1)} \sim Mult(1, \mx z^{(t)}_m \mx\pi^{(t-1)})$.
+2. If not all individuals were aged, determine memberships of age classes for those with unknown age, $\mx a^{(t)}_m|\mx z^{(t)}_m, \mx \pi^{(t-1)} \sim Mult(1, \mx z^{(t)}_m \mx\pi^{(t-1)})$.
 
-3. Draw marginal posterior distributions for $\mx q^{(t)}$, $\mx p^{(t)}$, and $\mx\pi^{(t)}$ from $p(\mx q|\mx x,\mx y,\mx z^{(1)(t)},\mx\beta)$, $p(\mx p|\mx z^{(t)},\mx\alpha)$, and $p(\mx \pi|\mx a^{(t)},\mx z^{(t)},\mx\gamma)$ respectively.
+3. Draw updated values for $\mx q^{(t)}$, $\mx p^{(t)}$, and $\mx\pi^{(t)}$ from $p(\mx q|\mx x,\mx y,\mx z^{(1)(t)},\mx\beta)$, $p(\mx p|\mx z^{(t)},\mx\alpha)$, and $p(\mx \pi|\mx a^{(t)},\mx z^{(t)},\mx\gamma)$ respectively.
 
-$T$ should be large enough to ensure the sampler chain converges to desire distribution of interest. Usually it may take thousands of iterations. That completes the Gibbs sampler process. Whew.
+$T$ should be large enough to ensure the sampler chain converges to the posterior distribution of the parameters. Usually it takes thousands of iterations. That completes the Gibbs sampler process. Whew.
 
-Implementing the conditional GSI model actually only requires a slight modification from the above algorithm. Basically, $f(\mx x^{(1,2)}_m|\mx q_k)$ would only need to be derived once in the beginning of the process, and $\mx q$ would no longer need to be updated in step 3. Every thing else would stay the same.
+Implementing the conditional GSI model only requires a slight modification from the above algorithm. Basically, $f(\mx x^{(1,2)}_m|\mx q_k)$ would only need to be derived once in the beginning of the process, and $\mx q$ would no longer need to be updated in step 3. Everything else would stay the same.
 
-we eventually realized that a conditional GSI would not work for MAGMA because the baseline allele frequencies needed to be updated in order to also update the age frequencies. Instead, we adapted an algorithm that is the hybrid of conditional and fully Bayesian GSI. Mainly, we would start the model run with conditional GSI, and switch to fully Bayesian method at every 10th iteration.
+we eventually realized that a purely conditional GSI algorithm would not work for MAGMA because the baseline allele frequencies needed to be updated so that the age frequencies would be updated as well. Instead, we adapted an algorithm that is the hybrid of conditional and fully Bayesian GSI. Mainly, we would run the model in the conditional GSI algorithm with the fully Bayesian algorithm at every 10^th^ iteration.
 
 
 # References
