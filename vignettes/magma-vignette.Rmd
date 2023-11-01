@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(magma.gsi)
+# devtools::load_all()
 
 ```
 
@@ -27,9 +28,9 @@ This document contains the background information for Mark and Age-enhanced Gene
 
 # Overview
 
-MAGMA is a Bayesian genetic mixture analysis first developed by Gene Conservation Lab (GCL) biometrician Jim Jasper. MAGMA is based on Pella-Masuda model (Pella & Masuda, 2001), but it also incorporates information such as ages from matched scales and hatchery marks on matched otoliths to allow more detailed stock composition estimates.
+MAGMA is a Bayesian genetic stock identification model first developed by the Gene Conservation Lab (GCL) biometrician Jim Jasper. MAGMA is based on the Pella-Masuda model (Pella & Masuda, 2001) and incorporates information such as ages from matched scales and hatchery marks on matched otoliths to allow more detailed stock composition estimates.
 
-Mainly, MAGMA estimates two sets of parameters: stock and age. For each mixture (or a stratum), MAGMA estimates a vector of stock proportions of wild and hatchery groups. For all mixtures (or all strata) within a year, MAGMA estimates a matrix of age proportions with each row represents a wild or hatchery stock. An age-by-stock composition, information that is often required for run reconstruction models, is simply the product of these two sets of parameters. In a simple example below showing one stratum, we can see how the age-by-stock composition is presented. The made-up age proportions is shown in the following table:
+Mainly, MAGMA estimates two sets of parameters: stock and age. For each mixture (or a stratum), MAGMA estimates a vector of stock proportions of wild and hatchery groups. For all mixtures (or all strata) within a year, MAGMA estimates a matrix of age proportions with each row represents a wild or hatchery stock. An age-by-stock composition, information that is often required for run reconstruction models, is simply the product of these two sets of parameters. In a single-stratum example shown below, we can see how the age-by-stock composition is presented. A matrix of made-up age proportions is as follows:
 
 |         | Age 1 | Age 2 | Age 3 |
 |:--------|:------|:------|:------|
@@ -54,7 +55,7 @@ The age-by-stock composition[^1] for this stratum is:
 
 After all age/stock compositions in other strata are calculated in the same fashion, they are multiplied by the harvest proportions of their corresponding strata and summed up to get a weighted average age/stock composition.
 
-Age proportions are estimated by combining all mixtures/strata within a year, which can be counter-intuitive at first glance. After all, it may not be reasonable to assume that all mixtures share the same age distribution. However, in the MAGMA model, age compositions are adjusted according to stock proportions for each mixture (i.e., stratum). Because stock proportions are different from mixtures to mixtures, the differences in stock compositions drive the differences in age compositions between mixtures. In the example above, stock A consists mainly (50%) age 3 fish and is 70% of the total mixture population. Therefore, age 3 fish from stock A is the dominant class in the mixture population. In another stratum, stock B might be the majority of the mixture populations. In which case, we would expect to see that age 2 to be the dominant class because compositions are driven mostly by stock B.
+Age proportions are estimated by combining all mixtures/strata within a year, which can be counter-intuitive at first glance. After all, it may not be reasonable to assume that all mixtures share the same age distribution. However, in the MAGMA model, age compositions are adjusted according to stock proportions for each mixture (i.e., stratum). Because stock proportions are different from mixtures to mixtures, the differences in stock compositions drive the differences in age compositions between mixtures. In the previous example, stock A consists mainly (50%) age 3 fish and is 70% of the total mixture population. Therefore, age 3 fish from stock A is the dominant class in the mixture population. In another stratum, stock B might be the majority of the mixture populations. In which case, we would expect to see that age 2 to be the dominant class because compositions are driven mostly by stock B.
 
 It is not required that all individuals in the data set have an observed genotype or age. Base on data available, MAGMA model assigns a most likely membership for population and/or age to each individual that has unobserved genotype and/or age. However, there should be an adequate sample of genotyped individuals to represent each stratum in the data set. When there is an inadequate number (small or zero sample size) of genotyped individuals in a stratum, MAGMA model estimates population proportions of that stratum based on the overall proportions of all strata combined.
 
