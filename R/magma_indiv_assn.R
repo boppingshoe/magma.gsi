@@ -3,10 +3,11 @@
 #'
 #' @param ma_out MAGMA model output object name.
 #' @param ma_dat MAGMA input data object name.
-#' @param out_repunit Logical (default = `FALSE`). Option to output the likelihood in populations (`FALSE`) or combined in reporting groups (`TRUE`).
-#'  * NOTE: combining populations into reporting group only works for single district or multi-district with the same reporting groups.
+#' @param out_repunit Logical (default = `FALSE`). Option to output the summaries in populations (`FALSE`) or combined in reporting groups (`TRUE`).
+#'  * NOTE: combining populations into reporting group recommend only for single district or multi-district with the same reporting groups.
 #'
-#' @return A tibble contains posterior means of reporting group memberships for each individual of MAGMA metadata.
+#' @return A tibble contains probabilities for reporting group memberships of each individual of MAGMA metadata.
+#'
 #' @importFrom magrittr %>%
 #' @export
 #'

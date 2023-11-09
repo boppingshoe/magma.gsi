@@ -11,13 +11,13 @@ magmatize_indiv(ma_out, ma_dat, out_repunit = FALSE)
 
 \item{ma_dat}{MAGMA input data object name.}
 
-\item{out_repunit}{Logical (default = \code{FALSE}). Option to output the likelihood in populations (\code{FALSE}) or combined in reporting groups (\code{TRUE}).
+\item{out_repunit}{Logical (default = \code{FALSE}). Option to output the summaries in populations (\code{FALSE}) or combined in reporting groups (\code{TRUE}).
 \itemize{
-\item NOTE: combining populations into reporting group only works for single district or multi-district with the same reporting groups.
+\item NOTE: combining populations into reporting group recommend only for single district or multi-district with the same reporting groups.
 }}
 }
 \value{
-A tibble contains posterior means of reporting group memberships for each individual of MAGMA metadata.
+A tibble contains probabilities for reporting group memberships of each individual of MAGMA metadata.
 }
 \description{
 Individual group membership assignment summary

@@ -58,7 +58,12 @@ The default is \code{NULL}.}
 \item{iden_output}{Option to have trace history for individual group membership assignments included in the final output. Default is FALSE.}
 }
 \value{
-A list object contains 1) the raw output of MAGMA as a list/multi-way array that need to be further summarized using summary functions, and 2) specifications for the model run (information needed for summary).
+A list object contains:
+\itemize{
+\item the raw output of MAGMA as a list/multi-way array that need to be further summarized using summary functions,
+\item specifications for the model run (information needed for summary),
+\item and individual group membership assignment history (optional).
+}
 }
 \description{
 Run MAGMA model

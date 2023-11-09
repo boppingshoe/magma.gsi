@@ -23,7 +23,10 @@
 #'   The default is `NULL`.
 #' @param iden_output Option to have trace history for individual group membership assignments included in the final output. Default is FALSE.
 #'
-#' @return A list object contains 1) the raw output of MAGMA as a list/multi-way array that need to be further summarized using summary functions, and 2) specifications for the model run (information needed for summary).
+#' @return A list object contains:
+#'   - the raw output of MAGMA as a list/multi-way array that need to be further summarized using summary functions,
+#'   - specifications for the model run (information needed for summary),
+#'   - and individual group membership assignment history (optional).
 #'
 #' @importFrom magrittr %>%
 #' @importFrom doRNG %dorng%

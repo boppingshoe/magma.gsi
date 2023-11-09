@@ -159,7 +159,9 @@ User can tinker with the `age_prior` for the MAGMA model. `age_prior = "flat"` s
 
 `seed` allows for setting a random seed for the pseudo-random number generator, so the output can be reproduced exactly. Just pick a number and make a note for future reference.
 
-The raw output of MAGMA is a multi-layered list of MCMC chains. Each chain contains a tibble with age class ($\times$ iterations) as rows and populations as columns. I call the output in "raw" format because it has not been summarized. The output also contains the specifications for running the model (iterations, burn-ins... all that good stuff).
+`iden_output` specifies whether or not to have the trace history for individual group membership assignments included in the raw model output. Default is FALSE (don't include).
+
+The raw output of MAGMA is a multi-layered list of MCMC chains. Each chain contains a tibble with age class ($\times$ iterations) as rows and populations as columns. I call the output in "raw" format because it has not been summarized. The output also contains the specifications for running the model (iterations, burn-ins... all that good stuff) and the optional trace history of individual group membership assignments.
 
 `file` specify the file path to save the output in `Rds` format at the end of the model run.
 
@@ -229,7 +231,7 @@ magmatize_tr_plot(magma_summ$age_prop[[1]], nburn = 25)
 
 ### Individual (group membership) assignment
 
-`magmatize_indiv()` summarizes the posterior means of group membership for each individual in the metadata. The probability output can be organized in populations or combined into reporting groups (for single district only).
+`magmatize_indiv()` summarizes the posterior means of group membership for each individual in the metadata. The probability output can be organized in populations or combined into reporting groups (for single districts only).
 
 ```{r ia}
 magma_indiv <- magmatize_indiv(ma_out = magma_out, ma_dat = yomamafat, out_repunit = TRUE)
@@ -238,7 +240,7 @@ magma_indiv
 
 ```
 
-The probabilities of group memberships of each individual are based on genotype if available. Otherwise, the posteriors are based on priors or known identities, which provide no additional useful information on the group membership. The first column of the group membership likelihood summary provides the unique id of each individual in the data set, which allows users to filter individuals by names.
+The probabilities of group memberships of each individual are based on genotype if available. Otherwise, the posteriors are based on priors or known identities, which provide no additional useful information on the group memberships. The first column of the group membership probability summary provides the unique id of each individual in the data set, which allows users to filter individuals by name.
 
 
 # Background and Methods
