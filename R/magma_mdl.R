@@ -21,6 +21,7 @@
 #'   so the output can be reproduced exactly.
 #'   Just pick a seed number and make note of it for future reference.
 #'   The default is `NULL`.
+#' @param iden_output Option to have trace history for individual group membership assignments included in the final output. Default is FALSE.
 #'
 #' @return A list object contains 1) the raw output of MAGMA as a list/multi-way array that need to be further summarized using summary functions, and 2) specifications for the model run (information needed for summary).
 #'
@@ -39,7 +40,7 @@
 #' }
 #'
 #' @export
-magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_prior = "flat", cond_gsi = TRUE, file = NULL, seed = NULL) {
+magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_prior = "flat", cond_gsi = TRUE, file = NULL, seed = NULL, iden_output = FALSE) {
 
   ### save test file ----
   if(!is.null(file)) saveRDS(NULL, file = file, compress = FALSE)
@@ -240,6 +241,8 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
       } # s
     } # d
 
+    if (iden_output == TRUE) iden_out <- list()
+
     ## gibbs loop ##
     for (rep in seq(nreps + nadapt)) {
 
@@ -315,12 +318,21 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
             } # s
           } # d
 
+          if (iden_output == TRUE) {
+            iden_out[[it]] <- metadat$iden
+          }
+
         } # if rep > nburn & (rep-nburn) %% thin == 0
       } # if rep > nadapt
 
     } # end gibbs loop
 
-    ppi_out
+    if (iden_output == TRUE) {
+      list(ppi_out,
+           {sapply(iden_out, rbind) %>% t() %>% dplyr::as_tibble()})
+    } else {
+      ppi_out
+    }
 
     } # end parallel chains
 
@@ -329,7 +341,19 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   specs <- c(nreps, nburn, thin, nchains, keep_burn) %>%
     stats::setNames(c("nreps", "nburn", "thin", "nchains", "keep_burn"))
 
-  magma_out <- list(outraw = outraw, specs = specs)
+  # magma_out <- list(outraw = outraw, specs = specs)
+
+  if (iden_output == TRUE) {
+    outraw1 <- lapply(outraw, function(ol) ol[[1]])
+
+    outraw_ids <-
+      lapply(outraw, function(ol) ol[[2]]) %>%
+      dplyr::bind_rows()
+
+    magma_out <- list(outraw = outraw1, idens = outraw_ids, specs = specs)
+  } else {
+    magma_out <- list(outraw = outraw, specs = specs)
+  }
 
   if (!is.null(file)) saveRDS(magma_out, file = file, compress = FALSE)
 

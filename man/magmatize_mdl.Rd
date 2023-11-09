@@ -15,7 +15,8 @@ magmatize_mdl(
   age_prior = "flat",
   cond_gsi = TRUE,
   file = NULL,
-  seed = NULL
+  seed = NULL,
+  iden_output = FALSE
 )
 }
 \arguments{
@@ -53,6 +54,8 @@ The default is \code{NULL} for not saving the output.}
 so the output can be reproduced exactly.
 Just pick a seed number and make note of it for future reference.
 The default is \code{NULL}.}
+
+\item{iden_output}{Option to have trace history for individual group membership assignments included in the final output. Default is FALSE.}
 }
 \value{
 A list object contains 1) the raw output of MAGMA as a list/multi-way array that need to be further summarized using summary functions, and 2) specifications for the model run (information needed for summary).

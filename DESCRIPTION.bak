@@ -19,6 +19,7 @@ Imports:
     ggplot2,
     magrittr,
     parallel,
+    purrr,
     readr,
     stats,
     stringr,

@@ -147,7 +147,7 @@ magma_out <-
   magmatize_mdl(dat_in = yomamafat,
                 nreps = 50, nburn = 25, thin = 1, nchains = 2, nadapt = 0,
                 keep_burn = TRUE, age_prior = "zero_out",
-                cond_gsi = TRUE, file = NULL, seed = NULL)
+                cond_gsi = TRUE, file = NULL, seed = NULL, iden_output = TRUE)
 
 ```
 
@@ -229,16 +229,16 @@ magmatize_tr_plot(magma_summ$age_prop[[1]], nburn = 25)
 
 ### Individual (group membership) assignment
 
-`magmatize_indiv()` calculates the likelihood of group membership for each individual in the metadata. The likelihoods are standardized in the scale of 0 to 1, and the scaled likelihood summaries can be organized in populations or combined into reporting groups (for single district only).
+`magmatize_indiv()` summarizes the posterior means of group membership for each individual in the metadata. The probability output can be organized in populations or combined into reporting groups (for single district only).
 
 ```{r ia}
-magma_indiv <- magmatize_indiv(magma_dat = yomamafat, out_repunit = TRUE)
+magma_indiv <- magmatize_indiv(ma_out = magma_out, ma_dat = yomamafat, out_repunit = TRUE)
 
 magma_indiv
 
 ```
 
-The likelihoods of group membership of each individual are calculated using allele frequencies if available. Otherwise, the likelihoods are based on priors or known identities, which provide no additional useful information on the group membership. The first column of the group membership likelihood summary provides the unique id of each individual in the data set, which allows users to filter individuals by names.
+The probabilities of group memberships of each individual are based on genotype if available. Otherwise, the posteriors are based on priors or known identities, which provide no additional useful information on the group membership. The first column of the group membership likelihood summary provides the unique id of each individual in the data set, which allows users to filter individuals by names.
 
 
 # Background and Methods
