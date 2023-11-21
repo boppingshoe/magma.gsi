@@ -75,10 +75,18 @@ magmatize_data <-
 
     start_time <- Sys.time()
 
+    message("Compiling input data, may take a minute or two...")
+
+    fishery0 <- fishery
+
     load(paste0(wd, "/data/mixture.RData"))
     load(paste0(wd, "/data/baseline.RData"))
 
-    message("Compiling input data, may take a minute or two...")
+    if (is.null(fishery0)) {
+      message(paste(fishery, "is the fishery identified in the mixture.RData"))
+    } else {
+      fishery <- fishery0
+    }
 
     #### Allele frequency function #### ----
 
