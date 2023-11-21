@@ -88,6 +88,11 @@ magmatize_data <-
       fishery <- fishery0
     }
 
+    if(isTRUE(save_data)) {
+      out_file <- paste0(wd, "/data/magma_data", fishery, ".Rds")
+      if (file.exists(out_file)) stop("Output file already exists in your specified folder. Delete the old magma_data file or create a new data folder.")
+    }
+
     #### Allele frequency function #### ----
 
     allefreq <- function(gble_in, loci, alleles, collect_by = SillySource) {
