@@ -21,6 +21,16 @@
 #'
 magmatize_indiv <- function(ma_out, ma_dat, out_repunit = FALSE) {
 
+  nreps <- ma_out$specs["nreps"]
+  nburn <- ma_out$specs["nburn"]
+  thin <- ma_out$specs["thin"]
+  # nchains <- ma_out$specs["nchains"]
+  keep_burn <- ma_out$specs["keep_burn"] == 1
+
+  keep_list <- ((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn)))[!((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn))) %% thin] / thin
+
+  idens <- ma_out$idens[keep_list, ]
+
   if (isTRUE(out_repunit)) {
     message("Combining populations using reporting groups of district 1.")
 
