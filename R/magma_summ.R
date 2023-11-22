@@ -2146,11 +2146,11 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #'
 #' Use this function to summarize "smaller" output (i.e., not TBR).
 #'
-#' @param which_dist Function format raw magma output one district at a time.
-#'   Identify district as 1, 2, ... Default = NULL will summarize all districts.
 #' @param ma_out MAGMA output
 #' @param ma_dat MAGMA input data
 #' @param summ_level Summarize at district or subdistrict level
+#' @param which_dist Function format raw magma output one district at a time.
+#'   Identify district as 1, 2, ... Default = NULL will summarize all districts.
 #' @param type Identify "pop" or "age" to summarize only populations or age class.
 #'   if you don't specify a "type", it will summarize both pop and age at the same time.
 #'
@@ -2165,19 +2165,14 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #' magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 #'
 #' # model run
-#' magma_out <- magmatize_mdl(magma_data,
-#'   nreps = 50, nburn = 25, thin = 1, nchains = 2)
+#' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 2)
 #'
 #' # summary
-#' magma_summ <- magmatize_summ(which_dist = 1,
-#'   ma_out = magma_out,
-#'   ma_dat = magma_data,
-#'   summ_level = "district",
-#'   type = "pop")
+#' magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district", which_dist = 1, type = "pop")
 #' }
 #'
 #' @export
-magmatize_summ <- function(which_dist = NULL, ma_out, ma_dat, summ_level, type = NULL) {
+magmatize_summ <- function(ma_out, ma_dat, summ_level, which_dist = NULL, type = NULL) {
 
   if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
 
