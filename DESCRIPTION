@@ -23,6 +23,7 @@ Imports:
     stats,
     stringr,
     tibble,
+    tidyfst,
     tidyr
 URL: https://github.com/boppingshoe/magma.gsi
 BugReports: https://github.com/boppingshoe/magma.gsi/issues

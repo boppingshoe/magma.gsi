@@ -92,8 +92,8 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
         ap_prop[[d_idx]][[w_idx]][[s_idx]] <-
           apply(outraw, MARGIN = 6,
                 function(ol) ol[ , , w_idx, s_idx, d_idx] %>%
-                  # tibble::as_tibble() %>%
-                  as.data.frame() %>%
+                  # as.data.frame() %>%
+                  data.table::as.data.table() %>%
                   tidyr::pivot_longer(cols = 1:(ncol(.)-2)) %>%
                   dplyr::mutate(
                     grpvec = rep(group_names[groups[, d_idx], d_idx],
@@ -107,6 +107,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
             apfile %>%
               dplyr::group_by(itr, agevec, grpvec) %>%
               dplyr::summarise(ppi = sum(value), .groups = "drop") %>%
+              # tidyfst::summarise_dt(by = list(itr, agevec, grpvec), ppi = sum(value)) %>%
               dplyr::mutate(ppi = ppi* {harvest %>%
                   dplyr::group_by(DISTRICT) %>%
                   # proportional within a district
@@ -114,7 +115,8 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
                   dplyr::filter(DISTRICT == d_idx,
                                 SUBDISTRICT == s_idx,
                                 STAT_WEEK == w_idx) %>%
-                  dplyr::pull(prop_harv) %>% max(., 0)}) %>%
+                  # dplyr::pull(prop_harv) %>% max(., 0)}) %>%
+                  dplyr::pull(prop_harv)}) %>%
               tidyr::pivot_wider(names_from = agevec, values_from = ppi)
           })
 
@@ -486,8 +488,8 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
         ap_prop[[d_idx]][[s_idx]][[w_idx]] <-
           apply(outraw, MARGIN = 6,
                 function(ol) ol[ , , w_idx, s_idx, d_idx] %>%
-                  # tibble::as_tibble() %>%
-                  as.data.frame() %>%
+                  # as.data.frame() %>%
+                  data.table::as.data.table() %>%
                   tidyr::pivot_longer(cols = 1:(ncol(.)-2)) %>%
                   dplyr::mutate(
                     grpvec = rep(group_names[groups[, d_idx], d_idx],
