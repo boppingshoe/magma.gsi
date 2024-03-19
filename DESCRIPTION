@@ -12,10 +12,12 @@ RoxygenNote: 7.2.3
 Imports:
     abind,
     coda,
+    data.table,
     doParallel,
     doRNG,
     dplyr,
     foreach,
+    fst,
     ggplot2,
     magrittr,
     parallel,
@@ -24,6 +26,7 @@ Imports:
     stringr,
     tibble,
     tidyfst,
+    tidyft,
     tidyr
 URL: https://github.com/boppingshoe/magma.gsi
 BugReports: https://github.com/boppingshoe/magma.gsi/issues

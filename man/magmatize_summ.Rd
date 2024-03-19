@@ -4,7 +4,14 @@
 \alias{magmatize_summ}
 \title{Summarize model output}
 \usage{
-magmatize_summ(ma_out, ma_dat, summ_level, which_dist = NULL, type = NULL)
+magmatize_summ(
+  ma_out = NULL,
+  ma_dat,
+  summ_level,
+  which_dist = NULL,
+  type = NULL,
+  fst_files = NULL
+)
 }
 \arguments{
 \item{ma_out}{MAGMA output}
@@ -18,12 +25,14 @@ Identify district as 1, 2, ... Default = NULL will summarize all districts.}
 
 \item{type}{Identify "pop" or "age" to summarize only populations or age class.
 if you don't specify a "type", it will summarize both pop and age at the same time.}
+
+\item{fst_files}{Fst files location if MAGMA model output was saved.}
 }
 \value{
 Summary tables for reporting groups and/or age classes.
 }
 \description{
-Use this function to summarize "smaller" output (i.e., not TBR).
+Use this function to summarize "smaller" output (i.e., probably not TBR).
 }
 \examples{
 \dontrun{

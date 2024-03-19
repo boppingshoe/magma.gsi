@@ -15,7 +15,7 @@
 #' @param cond_gsi Logical (default = `TRUE`). Option to use conditional GSI model. See vignette for details.
 #'  * `TRUE`: run MAGMA with a hybrid algorithm of conditional GSI and fully Bayesian.
 #'  * `FALSE`: run MAGMA with fully Bayesian algorithm.
-#' @param file File path for saving the output in Rds file. Need to type out the full path, including file name and extension `.Rds`.
+#' @param file File path for saving the output.
 #'   The default is `NULL` for not saving the output.
 #' @param seed Option to initialize a pseudo-random number generator (set random seed)
 #'   so the output can be reproduced exactly.
@@ -45,13 +45,14 @@
 #' @export
 magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep_burn = FALSE, age_prior = "flat", cond_gsi = TRUE, file = NULL, seed = NULL, iden_output = FALSE) {
 
-  ### save test file ----
-  if(!is.null(file)) saveRDS(NULL, file = file, compress = FALSE)
+  ### save test file (specs) ----
+  specs <- c(nreps, nburn, thin, nchains, keep_burn) %>%
+    stats::setNames(c("nreps", "nburn", "thin", "nchains", "keep_burn"))
 
-  ### ballroom categories ----
-  categories <- c("Live, Werk, Pose", "Bring It Like Royalty", "Face", "Best Mother", "Best Dressed", "High Class In A Fur Coat", "Snow Ball", "Butch Queen Body", "Weather Girl", "Labels", "Mother-Daughter Realness", "Working Girl", "Linen Vs. Silk", "Perfect Tens", "Modele Effet", "Stone Cold Face", "Realness", "Intergalatic Best Dressed", "House Vs. House", "Femme Queen Vogue", "High Fashion In Feathers", "Femme Queen Runway", "Lofting", "Higher Than Heaven", "Once Upon A Time")
-
-  encouragements <- c("I'm proud of ", "keep your ", "be a ", "find strength in ", "worry will never change ", "work for a cause, not for ", "gradtitude turns what we have into ", "good things come to ", "your attitude determines your ", "the only limits in life are ", "find joy in ", "surround yourself with only ", "if oppotunity doesn't knock, build ")
+  if(!is.null(file)) {
+    message(paste0("MAGMA specifications saved in ", file, "/magma_specs.rds"))
+    saveRDS(specs, file = paste0(file, "/magma_specs.rds"))
+  }
 
   ### data input ----
   x <- as.matrix(dat_in$x) # mixture
@@ -115,7 +116,11 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   if (cond_gsi) nadapt = 0
   if (keep_burn) nburn = 0
 
-  # message(paste0("Running model (and the category is... ", sample(categories, 1), "!)"))
+  ### ballroom categories ----
+  categories <- c("Live, Werk, Pose", "Bring It Like Royalty", "Face", "Best Mother", "Best Dressed", "High Class In A Fur Coat", "Snow Ball", "Butch Queen Body", "Weather Girl", "Labels", "Mother-Daughter Realness", "Working Girl", "Linen Vs. Silk", "Perfect Tens", "Modele Effet", "Stone Cold Face", "Realness", "Intergalatic Best Dressed", "House Vs. House", "Femme Queen Vogue", "High Fashion In Feathers", "Femme Queen Runway", "Lofting", "Higher Than Heaven", "Once Upon A Time")
+
+  encouragements <- c("I'm proud of ", "keep your ", "be a ", "find strength in ", "worry will never change ", "work for a cause, not for ", "gradtitude turns what we have into ", "good things come to ", "your attitude determines your ", "the only limits in life are ", "find joy in ", "surround yourself with only ", "if oppotunity doesn't knock, build ")
+
   message(paste0("Running model... and ", sample(encouragements, 1), sample(categories, 1), "!"))
 
   run_time <- Sys.time()
@@ -170,7 +175,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
     0,
     nrow = nrow(x),
     ncol = K + H,
-    dimnames = list(rownames(x), allpops)
+    dimnames = list(row.names(x), allpops)
   )
 
   if (H > 0 & length(na_i) < nrow(x)) {
@@ -245,6 +250,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
     } # d
 
     if (iden_output == TRUE) iden_out <- list()
+    i <- 1
 
     ## gibbs loop ##
     for (rep in seq(nreps + nadapt)) {
@@ -322,11 +328,16 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
           for (d_idx in 1:D) {
             for (s_idx in 1:S[d_idx]) {
               for (w_idx in 1:W) {
-                ppi_out[[d_idx]][[s_idx]][[w_idx]][[it]] <-
+                ppi_out[[i]] <-
                   t_pi %*% diag(p[d_idx, s_idx, w_idx, ]) %>%
-                  as.data.frame() %>% # x= ages, y= pops
+                  data.table::as.data.table() %>% # x = ages, y = pops
                   dplyr::mutate(itr = it,
-                                agevec = age_class)
+                                agevec = age_class,
+                                d = d_idx,
+                                s = s_idx,
+                                w = w_idx,
+                                chain = ch)
+                i <- i + 1
               } # w
             } # s
           } # d
@@ -341,20 +352,21 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
     } # end gibbs loop
 
     if (iden_output == TRUE) {
-      list(ppi_out,
-           {sapply(iden_out, rbind) %>% t() %>% dplyr::as_tibble()})
+      out <- list(data.table::rbindlist(ppi_out) %>% dplyr::arrange(d, s, w),
+                  {sapply(iden_out, rbind) %>% t() %>% dplyr::as_tibble()})
+      colnames(out[[1]])[seq.int(nrow(groups))] <- row.names(groups)
+      return(out)
     } else {
-      ppi_out
+      out <- data.table::rbindlist(ppi_out) %>% dplyr::arrange(d, s, w)
+      colnames(out)[seq.int(nrow(groups))] <- row.names(groups)
+      return(out)
     }
 
     } # end parallel chains
 
   parallel::stopCluster(cl)
 
-  specs <- c(nreps, nburn, thin, nchains, keep_burn) %>%
-    stats::setNames(c("nreps", "nburn", "thin", "nchains", "keep_burn"))
-
-  # magma_out <- list(outraw = outraw, specs = specs)
+  ### prepare output ----
 
   if (iden_output == TRUE) {
     outraw1 <- lapply(outraw, function(ol) ol[[1]])
@@ -368,7 +380,14 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
     magma_out <- list(outraw = outraw, specs = specs)
   }
 
-  if (!is.null(file)) saveRDS(magma_out, file = file, compress = FALSE)
+  if (!is.null(file)) {
+    message(paste("Raw MAGMA output saved in", file))
+    sapply(seq.int(length(magma_out$outraw)), function(i) tidyfst::export_fst(magma_out$outraw[[i]], path = paste0(file, "/magma_raw_ch", i, ".fst")))
+    if (iden_output == TRUE) {
+      message(paste("IA posteriors saved in", file, "as magma_idens.fst"))
+      tidyfst::export_fst(magma_out$idens, path = paste0(file, "/magmma_iden.fst"))
+    }
+  }
 
   print(Sys.time() - run_time)
   message(Sys.time())

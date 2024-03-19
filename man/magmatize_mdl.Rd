@@ -47,7 +47,7 @@ magmatize_mdl(
 \item \code{FALSE}: run MAGMA with fully Bayesian algorithm.
 }}
 
-\item{file}{File path for saving the output in Rds file. Need to type out the full path, including file name and extension \code{.Rds}.
+\item{file}{File path for saving the output.
 The default is \code{NULL} for not saving the output.}
 
 \item{seed}{Option to initialize a pseudo-random number generator (set random seed)
