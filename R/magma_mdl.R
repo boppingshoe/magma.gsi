@@ -229,7 +229,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
     )
 
   ### parallel chains ----
-  chains <- paste0("chain", seq(nchains))
+  chains <- paste0("ch", seq(nchains))
   cl <- parallel::makePSOCKcluster(nchains)
   doParallel::registerDoParallel(cl, cores = nchains)
   if (!is.null(seed)) doRNG::registerDoRNG(seed, once = TRUE)

@@ -51,7 +51,7 @@ magmatize_tr_plot <- function (obj, nburn = 0, thin = 1, name_order = NULL) {
                         xmin = 0, xmax = nburn/thin, ymin = -Inf, ymax = Inf)
     }} +
     ggplot2::facet_grid(name ~ ., scales = "free") +
-    ggplot2::labs(color = "MC chain")
+    ggplot2::labs(color = "MC chain", x = "Iteration", y = "Proportion")
 
 } # nburn = 0 if keep_burn = FALSE
 
