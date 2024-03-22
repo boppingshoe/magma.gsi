@@ -10,7 +10,8 @@ magmatize_summ(
   summ_level,
   which_dist = NULL,
   type = NULL,
-  fst_files = NULL
+  fst_files = NULL,
+  save_trace = "in_memory"
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ Identify district as 1, 2, ... Default = NULL will summarize all districts.}
 if you don't specify a "type", it will summarize both pop and age at the same time.}
 
 \item{fst_files}{Fst files location if MAGMA model output was saved.}
+
+\item{save_trace}{default = "in_memory" to have trace history as a part of summary. Or specify the path of a directory to save trace history as fst files.}
 }
 \value{
 Summary tables for reporting groups and/or age classes.

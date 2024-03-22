@@ -15,12 +15,13 @@
 #' @param W Weeks
 #' @param which_dist district to summarize
 #' @param fst_files fst files location
+#' @param save_trace "in_memory" or file path to save trace history
 #'
 #' @importFrom magrittr %>%
 #'
 #' @noRd
 #'
-format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W, which_dist, fst_files) {
+format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W, which_dist, fst_files, save_trace) {
 
   ### data input ### ----
   metadat <- dat_in$metadat # age and iden info
@@ -64,18 +65,23 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
   # organization of outraw:
   # [[chain]][age * ((nreps - nburn) / thin) * week * sub * dist, pop + 6]
 
-  ap_combo_dis <- p_combo_all <- p_combo <- list()
+  # ap_combo_dis <- p_combo_all <- p_combo <- list()
   nrows_ap_prop <- C * (nreps - nburn*isFALSE(keep_burn)) / thin
 
   # exclude burn-in while calculate r hat
   keep_list <- ((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn)))[!((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn))) %% thin] / thin
 
   # place holders/empty objects for age/pop summaries
-  mc_pop <- summ_pop <- list()
-  mc_pop_all <- summ_pop_all <- list()
-  p_idx <- 0
-  ap_prop_grp <- mc_age <- summ_age <- list()
-  a_idx <- 0
+  # ap_prop_grp <- list()
+  if (save_trace == "in_memory") {
+    out <- list(age_prop = list(), age_summ = list(), pop_prop = list(), pop_summ = list(), pop_prop_all = list(), pop_summ_all = list())
+  } else {
+    out <- list(age_summ = list(), pop_summ = list(), pop_summ_all = list())
+    tr_folder <- paste0(save_trace, "/trace_district")
+    dir.create(tr_folder)
+  }
+
+  p_idx <- a_idx <- 0
 
   for (d_idx in 1:D) {
     if (is.null(outraw)) { # for age-pop comp
@@ -172,7 +178,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
         })
     } # else
 
-    ap_combo_dis[[d_idx]] <-
+    ap_combo_dis <-
       lapply(ap_prop, function(ap) {
         ap %>%
           dplyr::group_by(itr, agevec, grpname, chain) %>%
@@ -180,7 +186,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
           tidyr::pivot_wider(names_from = agevec, values_from = ppi)
       })
 
-    p_combo_all[[d_idx]] <-
+    p_combo_all <-
       lapply(ap_prop, function(ap) {
         ap %>%
           dplyr::group_by(itr, grpname, chain) %>%
@@ -188,13 +194,15 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
           tidyr::pivot_wider(names_from = grpname, values_from = p)
       })
 
-    ## pops all dist ##
-    mc_pop_all[[d_idx]] <- coda::as.mcmc.list(
-      lapply(p_combo_all[[d_idx]],
-             function(rlist) coda::mcmc(dplyr::select(rlist, -c(itr, chain))[keep_list,])) )
+    if (save_trace == "in_memory") {
+      out$pop_prop_all[[d_idx]] <- dplyr::bind_rows(p_combo_all)
+    } else {
+      tidyfst::export_fst(dplyr::bind_rows(p_combo_all),
+                          path = paste0(tr_folder, "/p_all_d", d_idx, ".fst"))
+    }
 
-    summ_pop_all[[d_idx]] <-
-      lapply(p_combo_all[[d_idx]], function(rlist) rlist[keep_list,]) %>%
+    out$pop_summ_all[[d_idx]] <-
+      lapply(p_combo_all, function(rlist) rlist[keep_list,]) %>%
       dplyr::bind_rows() %>%
       dplyr::select(-c(itr, chain)) %>%
       tidyr::pivot_longer(cols = 1:ncol(.), names_to = "group") %>%
@@ -214,23 +222,21 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
         } )))),
         .groups = "drop"
       ) %>% # group is alphabetically ordered
+      dplyr::left_join({
+        gr_diag(coda::as.mcmc.list(
+          lapply(p_combo_all,
+                 function(rlist) coda::mcmc(dplyr::select(rlist, -c(itr, chain))[keep_list,])) ), nchains)
+      }, by = "group") %>%
       dplyr::mutate(
         group = factor(group,
-                       levels = c(group_names[!is.na(group_names[, d_idx]), d_idx])),
-        GR = {if (nchains > 1) {
-          coda::gelman.diag(mc_pop_all[[d_idx]],
-                            transform = TRUE,
-                            autoburnin = FALSE,
-                            multivariate = FALSE)$psrf[,"Point est."]
-        } else {NA}}, # alphabetically ordered too
-        n_eff = coda::effectiveSize(mc_pop_all[[d_idx]])
+                       levels = c(group_names[!is.na(group_names[, d_idx]), d_idx]))
       ) %>%
       dplyr::arrange(group)
 
     for (w_idx in 1:W) {
       p_idx <- p_idx + 1 # index individual sampling period/week
 
-      p_combo[[p_idx]] <-
+      p_combo <-
         lapply(ap_prop_wk, function(ap) {
           ap %>%
             dplyr::filter(w == w_idx) %>%
@@ -239,13 +245,15 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
             tidyr::pivot_wider(names_from = grpname, values_from = p)
         })
 
-      ## pop (combine across subdists for each week) ##
-      mc_pop[[p_idx]] <- coda::as.mcmc.list(
-        lapply(p_combo[[p_idx]],
-               function(rlist) coda::mcmc(dplyr::select(rlist, -c(itr, chain))[keep_list,])) )
+      if (save_trace == "in_memory") {
+        out$pop_prop[[p_idx]] <- dplyr::bind_rows(p_combo)
+      } else {
+        tidyfst::export_fst(dplyr::bind_rows(p_combo),
+                            path = paste0(tr_folder, "/p_d", d_idx, "w", w_idx, ".fst"))
+      }
 
-      summ_pop[[p_idx]] <-
-        lapply(p_combo[[p_idx]], function(rlist) rlist[keep_list,]) %>%
+      out$pop_summ[[p_idx]] <-
+        lapply(p_combo, function(rlist) rlist[keep_list,]) %>%
         dplyr::bind_rows() %>%
         dplyr::select(-c(itr, chain)) %>%
         tidyr::pivot_longer(cols = 1:ncol(.), names_to = "group") %>%
@@ -265,16 +273,14 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
           } )))),
           .groups = "drop"
         ) %>%
+        dplyr::left_join({
+          gr_diag(coda::as.mcmc.list(
+            lapply(p_combo,
+                   function(rlist) coda::mcmc(dplyr::select(rlist, -c(itr, chain))[keep_list,])) ), nchains)
+        }, by = "group") %>%
         dplyr::mutate(
           group = factor(group,
-                         levels = c(group_names[!is.na(group_names[, d_idx]), d_idx])),
-          GR = {if (nchains > 1) {
-            coda::gelman.diag(mc_pop[[p_idx]],
-                              transform = TRUE,
-                              autoburnin = FALSE,
-                              multivariate = FALSE)$psrf[,"Point est."]
-          } else {NA}},
-          n_eff = coda::effectiveSize(mc_pop[[p_idx]])
+                         levels = c(group_names[!is.na(group_names[, d_idx]), d_idx]))
         ) %>%
         dplyr::arrange(group)
 
@@ -283,27 +289,30 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
     for (grp in stats::na.omit(group_names[, d_idx])) {
       a_idx <- a_idx + 1
 
-      ap_prop_grp[[a_idx]] <-
-        lapply(ap_combo_dis[[d_idx]], function(aoc) {
+      ap_prop_grp <-
+        lapply(ap_combo_dis, function(aoc) {
           ar_temp <- aoc %>%
             dplyr::filter(grpname == grp) %>%
             stats::setNames(., c("itr", "grpname", "chain", age_classes))
           return(ar_temp)
         }) # separate rep groups into its own output
 
-      mc_age[[a_idx]] <-
-        coda::as.mcmc.list(
-          lapply(ap_prop_grp[[a_idx]], function(rlist) {
-            coda::mcmc(rlist[keep_list,] %>% dplyr::select(-c(itr, grpname, chain)))
-          }) )
+      if (save_trace == "in_memory") {
+        out$age_prop[[a_idx]] <-
+          dplyr::bind_rows(ap_prop_grp) %>%
+          dplyr::select(-grpname) # trace plot function doesn't take group names
+      } else {
+        tidyfst::export_fst(dplyr::bind_rows(ap_prop_grp) %>% dplyr::select(-grpname),
+                            path = paste0(tr_folder, "/ap_d", d_idx, grp, ".fst"))
+      }
 
       harv_dis <- harvest %>%
         dplyr::filter(DISTRICT == which_dist[d_idx]) %>%
         dplyr::pull(HARVEST) %>%
         mean()
 
-      summ_age[[a_idx]] <-
-        lapply(ap_prop_grp[[a_idx]], function(rlist) rlist[keep_list,]) %>%
+      out$age_summ[[a_idx]] <-
+        lapply(ap_prop_grp, function(rlist) rlist[keep_list,]) %>%
         dplyr::bind_rows() %>%
         dplyr::select(-c(itr, chain)) %>%
         dplyr::mutate(stock_prop = rowSums(.[, -1])) %>%
@@ -318,46 +327,23 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
           p0 = mean( value < (0.5/ max(1, harv_dis* stock_prop)) ),
           .groups = "drop"
         ) %>%
+        dplyr::left_join({
+          gr_diag(
+            coda::as.mcmc.list(
+              lapply(ap_prop_grp, function(rlist) {
+              coda::mcmc(rlist[keep_list,] %>% dplyr::select(-c(itr, grpname, chain)))
+              }) )
+            , nchains)
+        }, dplyr::join_by(age == group)) %>%
         dplyr::mutate(
-          age = factor(age, levels = age_classes),
-          GR = {if (nchains > 1) {
-            coda::gelman.diag(mc_age[[a_idx]],
-                              transform = TRUE,
-                              autoburnin = FALSE,
-                              multivariate = FALSE)$psrf[,"Point est."]
-          } else {NA}},
-          n_eff = coda::effectiveSize(mc_age[[a_idx]])
+          age = factor(age, levels = age_classes)
         ) %>%
         dplyr::rename(group = grpname) %>%
         dplyr::relocate(group, .before = age) %>%
         dplyr::arrange(age)
+
     } # grp
-
   } # d_idx
-
-  out <- list()
-
-  out$age_prop <-
-    lapply(ap_prop_grp, function(rot) {
-      dplyr::bind_rows(rot) %>%
-        dplyr::select(-grpname) # trace plot function doesn't take group names
-    })
-
-  out$age_summ <- summ_age
-
-  out$pop_prop <-
-    lapply(p_combo, function(rot) {
-      dplyr::bind_rows(rot)
-    })
-
-  out$pop_summ <- summ_pop
-
-  out$pop_prop_all <-
-    lapply(p_combo_all, function(rot) {
-      dplyr::bind_rows(rot)
-    })
-
-  out$pop_summ_all <- summ_pop_all
 
   return(out)
 
@@ -757,6 +743,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
 #' @param summ_level Summarize at district or subdistrict level
 #' @param which_dist district to summarize
 #' @param fst_files fst files location
+#' @param save_trace "in_memory" or file path to save trace history
 #'
 #' @return Summary tables for reporting groups and age classes
 #'
@@ -764,7 +751,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
 #'
 #' @noRd
 #'
-magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, which_dist, fst_files) {
+magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn = FALSE, summ_level, which_dist, fst_files, save_trace) {
 
   ### info needed ### ----
   C <- dat_in$C # number of age classes
@@ -787,7 +774,7 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
   prep_time <- Sys.time()
 
   if (summ_level == "district") {
-    out <- format_district(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W, which_dist, fst_files)
+    out <- format_district(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W, which_dist, fst_files, save_trace)
   } else if (summ_level == "subdistrict") {
     out <- format_subdistrict(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W)
   } else stop("Invalid summ_level.")
@@ -824,9 +811,11 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
     } # d_i
   } # end if
 
-  for(li in 1:2) {
-    names(out[[li]]) <- aout_names
-  } # id for pop output
+  if (save_trace == "in_memory") {
+    for(li in 1:2) {
+      names(out[[li]]) <- aout_names
+    } # id for pop output
+  } else names(out[[1]]) <- aout_names
 
   if (summ_level == "district") {
 
@@ -863,14 +852,18 @@ magmatize_all <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 
   } # end if dist/subdist
 
-  for(li in 3:4) {
-    names(out[[li]]) <- pout_names
-  } # id for pop output
+  if (save_trace == "in_memory") {
+    for(li in 3:4) {
+      names(out[[li]]) <- pout_names
+    } # id for pop output
+  } else names(out[[2]]) <- pout_names
 
   if (summ_level == "district") {
-    for(li in 5:6) {
-      names(out[[li]]) <- paste0("D", dist_names)
-    }
+    if (save_trace == "in_memory") {
+      for(li in 5:6) {
+        names(out[[li]]) <- paste0("D", dist_names)
+      }
+    } else names(out[[3]]) <- paste0("D", dist_names)
   } else if (summ_level == "subdistrict") {
     for(li in 5:6) {
       names(out[[li]]) <- subdist_names %>%
@@ -2126,6 +2119,7 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #' @param type Identify "pop" or "age" to summarize only populations or age class.
 #'   if you don't specify a "type", it will summarize both pop and age at the same time.
 #' @param fst_files Fst files location if MAGMA model output was saved.
+#' @param save_trace default = "in_memory" to have trace history as a part of summary. Or specify the path of a directory to save trace history as fst files.
 #'
 #' @return Summary tables for reporting groups and/or age classes.
 #'
@@ -2145,10 +2139,11 @@ magmatize_age <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_burn
 #' }
 #'
 #' @export
-magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL, type = NULL, fst_files = NULL) {
+magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL, type = NULL, fst_files = NULL, save_trace = "in_memory") {
 
   if (is.null(ma_out) & is.null(fst_files)) stop("There's no MAGMA output file. You need to provide the MAGMA output as an object or provide the file path for the saved Fst files.")
   if (!is.null(ma_out) & !is.null(fst_files)) message("You provided MAGMA output both as an object and Fst file path. Summary is done using the saved Fst files, just so you know.")
+  if (save_trace != "in_memory" & !dir.exists(save_trace)) stop("wrong specification for `save_trace`. It has to be `in_memory` or a directory path to a folder to save trace output as Fst files.")
 
   if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
 
@@ -2231,6 +2226,11 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
   #   })
   # }
 
+  # need to do for malia:
+  # holder <- lapply(seq.int(nchians), function(ch) {
+  #   array(outraw[ , , , , which_dist, ch], dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin* length(which_dist)* W* max(S), KH + 2)) # something like this
+  # })
+
   # if (is.array(outraw)) {
   #   holder <- array(outraw[ , , , , which_dist, ], dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, max(S), length(which_dist), nchains))
   # } else {
@@ -2259,7 +2259,7 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
   # }
 
   if (is.null(type)) {
-    sub_out <- magmatize_all(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level, which_dist, fst_files)
+    sub_out <- magmatize_all(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level, which_dist, fst_files, save_trace)
   } else if (type == "pop") {
     sub_out <- magmatize_pop(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level)
   } else if (type == "age") {
@@ -2276,7 +2276,28 @@ utils::globalVariables(c(".", "district", "subdist", "week", "HARVEST", "n", "ag
                          "prop_harv", "p", "sum_harv", "stock_prop", "group", "age"))
 
 
+## utility functions ----
 
+#' Summarize Gelman-Rubin diagnostics
+#'
+#' @param mc_list Coda MCMC object
+#' @param nchians Number of MC chains
+#'
+#' @importFrom magrittr %>%
+#'
+#' @noRd
+#'
+gr_diag <- function(mc_list, nchains) {
+  GR <- {if (nchains > 1) {
+    coda::gelman.diag(mc_list,
+                      transform = TRUE,
+                      autoburnin = FALSE,
+                      multivariate = FALSE)$psrf[,"Point est."]
+  } else {NA}}
+  n_eff <- coda::effectiveSize(mc_list)
+
+  dplyr::as_tibble(cbind(GR, n_eff), rownames = "group")
+}
 
 
 
