@@ -65,14 +65,12 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
   # organization of outraw:
   # [[chain]][age * ((nreps - nburn) / thin) * week * sub * dist, pop + 6]
 
-  # ap_combo_dis <- p_combo_all <- p_combo <- list()
-  nrows_ap_prop <- C * (nreps - nburn*isFALSE(keep_burn)) / thin
-
   # exclude burn-in while calculate r hat
   keep_list <- ((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn)))[!((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn))) %% thin] / thin
 
+  nrows_ap_prop <- C * (nreps - nburn*isFALSE(keep_burn)) / thin
+
   # place holders/empty objects for age/pop summaries
-  # ap_prop_grp <- list()
   if (save_trace == "in_memory") {
     out <- list(age_prop = list(), age_summ = list(), pop_prop = list(), pop_summ = list(), pop_prop_all = list(), pop_summ_all = list())
   } else {
@@ -84,8 +82,8 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
   p_idx <- a_idx <- 0
 
   for (d_idx in 1:D) {
-    if (is.null(outraw)) { # for age-pop comp
-      ap_prop <-
+    if (is.null(outraw)) {
+      ap_prop <- # set up for age-pop comp and district pop prop
         lapply(seq.int(nchains), function(ch) {
           fst::read.fst(path = paste0(fst_files, "/magma_raw_ch", ch, ".fst"),
                         from = 1 + nrows_ap_prop * (which_dist[d_idx] - 1) * max(S) * W,
@@ -94,11 +92,14 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
               harvest %>%
                 dplyr::filter(DISTRICT %in% which_dist[d_idx]) %>%
                 dplyr::group_by(DISTRICT) %>% # proportional within a district
-                dplyr::mutate(prop_harv = prop.table(HARVEST)) %>%
+                dplyr::mutate(prop_harv_d = prop.table(HARVEST)) %>%
+                dplyr::group_by(DISTRICT, STAT_WEEK) %>% # proportional within each week in a district (across subdistricts)
+                dplyr::mutate(prop_harv_wk = prop.table(HARVEST)) %>%
+                dplyr::ungroup() %>%
                 dplyr::select(-c(YEAR, HARVEST))
             }, dplyr::join_by(d == DISTRICT, s == SUBDISTRICT, w == STAT_WEEK)) %>%
-            tidyr::replace_na(list(prop_harv = 0)) %>%
-            tidyr::pivot_longer(cols = 1:(ncol(.) - 7),
+            tidyr::replace_na(list(prop_harv_d = 0, prop_harv_wk = 0)) %>%
+            tidyr::pivot_longer(cols = 1:(ncol(.) - 8),
                                 names_to = "collection",
                                 values_to = "ppi") %>%
             dplyr::mutate( # faster, but rely on the order of collections == groups
@@ -110,29 +111,8 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
             #     dplyr::mutate(grpname = group_names[groups[, d_idx], d_idx]) %>%
             #     dplyr::select(collection, grpname)
             # }, by = "collection") %>%
-            dplyr::mutate(ppi = ppi * prop_harv)
-        })
-
-      ap_prop_wk <-
-        lapply(seq.int(nchains), function(ch) {
-          fst::read.fst(path = paste0(fst_files, "/magma_raw_ch", ch, ".fst"),
-                        from = 1 + nrows_ap_prop * (which_dist[d_idx] - 1) * max(S) * W,
-                        to = nrows_ap_prop * which_dist[d_idx] * max(S) * W) %>%
-            dplyr::left_join({
-              harvest %>%
-                dplyr::filter(DISTRICT %in% which_dist[d_idx]) %>%
-                dplyr::group_by(DISTRICT, STAT_WEEK) %>% # proportional within each week in a district (across subdistricts)
-                dplyr::mutate(prop_harv = prop.table(HARVEST)) %>%
-                dplyr::select(-c(YEAR, HARVEST))
-            }, dplyr::join_by(d == DISTRICT, s == SUBDISTRICT, w == STAT_WEEK)) %>%
-            tidyr::replace_na(list(prop_harv = 0)) %>%
-            tidyr::pivot_longer(cols = 1:(ncol(.) - 7),
-                                names_to = "collection",
-                                values_to = "ppi") %>%
-            dplyr::mutate( # rely on the order of collections == groups
-              grpname = rep(group_names[groups[, d_idx], d_idx], nrows_ap_prop * max(S) * W),
-              ppi = ppi * prop_harv
-            )
+            dplyr::mutate(ppi_d = ppi * prop_harv_d,
+                          ppi_wk = ppi * prop_harv_wk)
         })
     } else {
       ap_prop <-
@@ -143,37 +123,20 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
               harvest %>%
                 dplyr::filter(DISTRICT %in% which_dist[d_idx]) %>%
                 dplyr::group_by(DISTRICT) %>% # proportional within a district
-                dplyr::mutate(prop_harv = prop.table(HARVEST)) %>%
-                dplyr::select(-c(YEAR, HARVEST))
-            }, dplyr::join_by(d == DISTRICT, s == SUBDISTRICT, w == STAT_WEEK)) %>%
-            tidyr::replace_na(list(prop_harv = 0)) %>%
-            tidyr::pivot_longer(cols = 1:(ncol(.) - 7),
-                                names_to = "collection",
-                                values_to = "ppi") %>%
-            dplyr::mutate( # rely on the order of collections == groups
-              grpname = rep(group_names[groups[, d_idx], d_idx], nrows_ap_prop * max(S) * W),
-              ppi = ppi * prop_harv
-            )
-        })
-
-      ap_prop_wk <-
-        lapply(outraw, function(o) {
-          o %>%
-            dplyr::filter(d == which_dist[d_idx]) %>%
-            dplyr::left_join({
-              harvest %>%
-                dplyr::filter(DISTRICT %in% which_dist[d_idx]) %>%
+                dplyr::mutate(prop_harv_d = prop.table(HARVEST)) %>%
                 dplyr::group_by(DISTRICT, STAT_WEEK) %>% # proportional within each week in a district (across subdistricts)
-                dplyr::mutate(prop_harv = prop.table(HARVEST)) %>%
+                dplyr::mutate(prop_harv_wk = prop.table(HARVEST)) %>%
+                dplyr::ungroup() %>%
                 dplyr::select(-c(YEAR, HARVEST))
             }, dplyr::join_by(d == DISTRICT, s == SUBDISTRICT, w == STAT_WEEK)) %>%
-            tidyr::replace_na(list(prop_harv = 0)) %>%
-            tidyr::pivot_longer(cols = 1:(ncol(.) - 7),
+            tidyr::replace_na(list(prop_harv_d = 0, prop_harv_wk = 0)) %>%
+            tidyr::pivot_longer(cols = 1:(ncol(.) - 8),
                                 names_to = "collection",
                                 values_to = "ppi") %>%
             dplyr::mutate( # rely on the order of collections == groups
               grpname = rep(group_names[groups[, d_idx], d_idx], nrows_ap_prop * max(S) * W),
-              ppi = ppi * prop_harv
+              ppi_d = ppi * prop_harv_d,
+              ppi_wk = ppi * prop_harv_wk
             )
         })
     } # else
@@ -182,7 +145,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
       lapply(ap_prop, function(ap) {
         ap %>%
           dplyr::group_by(itr, agevec, grpname, chain) %>%
-          dplyr::summarise(ppi = sum(ppi, na.rm = TRUE), .groups = "drop") %>%
+          dplyr::summarise(ppi = sum(ppi_d, na.rm = TRUE), .groups = "drop") %>%
           tidyr::pivot_wider(names_from = agevec, values_from = ppi)
       })
 
@@ -190,7 +153,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
       lapply(ap_prop, function(ap) {
         ap %>%
           dplyr::group_by(itr, grpname, chain) %>%
-          dplyr::summarise(p = sum(ppi, na.rm = TRUE), .groups = "drop") %>%
+          dplyr::summarise(p = sum(ppi_d, na.rm = TRUE), .groups = "drop") %>%
           tidyr::pivot_wider(names_from = grpname, values_from = p)
       })
 
@@ -237,11 +200,11 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
       p_idx <- p_idx + 1 # index individual sampling period/week
 
       p_combo <-
-        lapply(ap_prop_wk, function(ap) {
+        lapply(ap_prop, function(ap) {
           ap %>%
             dplyr::filter(w == w_idx) %>%
             dplyr::group_by(itr, grpname, chain) %>%
-            dplyr::summarise(p = sum(ppi, na.rm = TRUE), .groups = "drop") %>%
+            dplyr::summarise(p = sum(ppi_wk, na.rm = TRUE), .groups = "drop") %>%
             tidyr::pivot_wider(names_from = grpname, values_from = p)
         })
 
