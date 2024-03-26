@@ -9,7 +9,6 @@ magmatize_summ(
   ma_dat,
   summ_level,
   which_dist = NULL,
-  type = NULL,
   fst_files = NULL,
   save_trace = "in_memory"
 )
@@ -24,18 +23,18 @@ magmatize_summ(
 \item{which_dist}{Function format raw magma output one district at a time.
 Identify district as 1, 2, ... Default = NULL will summarize all districts.}
 
-\item{type}{Identify "pop" or "age" to summarize only populations or age class.
-if you don't specify a "type", it will summarize both pop and age at the same time.}
-
 \item{fst_files}{Fst files location if MAGMA model output was saved.}
 
 \item{save_trace}{default = "in_memory" to have trace history as a part of summary. Or specify the path of a directory to save trace history as fst files.}
+
+\item{type}{Identify "pop" or "age" to summarize only populations or age class.
+if you don't specify a "type", it will summarize both pop and age at the same time.}
 }
 \value{
 Summary tables for reporting groups and/or age classes.
 }
 \description{
-Use this function to summarize "smaller" output (i.e., probably not TBR).
+Summarize model output
 }
 \examples{
 \dontrun{
@@ -47,7 +46,7 @@ magma_data <- magmatize_data(wd = wd, save_data = FALSE)
 magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 2)
 
 # summary
-magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district", which_dist = 1, type = "pop")
+magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district", which_dist = 1)
 }
 
 }
