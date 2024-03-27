@@ -76,6 +76,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
   } else {
     out <- list(age_summ = list(), pop_summ = list(), pop_summ_all = list())
     tr_folder <- paste0(save_trace, "/trace_district")
+    if (file.exists(paste0(tr_folder, "/p_all_d", which_dist[1], ".fst"))) stop("Old trace files already exist. Please move or delete old files before saving new ones.")
     dir.create(tr_folder)
   }
 
@@ -163,7 +164,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
       out$pop_prop_all[[d_idx]] <- dplyr::bind_rows(p_combo_all)
     } else {
       tidyfst::export_fst(dplyr::bind_rows(p_combo_all),
-                          path = paste0(tr_folder, "/p_all_d", d_idx, ".fst"))
+                          path = paste0(tr_folder, "/p_all_d", which_dist[d_idx], ".fst"))
     }
 
     out$pop_summ_all[[d_idx]] <-
@@ -213,7 +214,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
         out$pop_prop[[p_idx]] <- dplyr::bind_rows(p_combo)
       } else {
         tidyfst::export_fst(dplyr::bind_rows(p_combo),
-                            path = paste0(tr_folder, "/p_d", d_idx, "w", w_idx, ".fst"))
+                            path = paste0(tr_folder, "/p_d", which_dist[d_idx], "w", w_idx, ".fst"))
       }
 
       out$pop_summ[[p_idx]] <-
@@ -266,7 +267,7 @@ format_district <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep_bu
           dplyr::select(-grpname) # trace plot function doesn't take group names
       } else {
         tidyfst::export_fst(dplyr::bind_rows(ap_prop_grp) %>% dplyr::select(-grpname),
-                            path = paste0(tr_folder, "/ap_d", d_idx, grp, ".fst"))
+                            path = paste0(tr_folder, "/ap_d", which_dist[d_idx], grp, ".fst"))
       }
 
       harv_dis <- harvest %>%
@@ -389,6 +390,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
   } else {
     out <- list(age_summ = list(), pop_summ = list(), pop_summ_all = list())
     tr_folder <- paste0(save_trace, "/trace_subdistrict")
+    if (file.exists(paste0(tr_folder, "/p_all_d", which_dist[1], "s1.fst"))) stop("Old trace files already exist. Please move or delete old files before saving new ones.")
     dir.create(tr_folder)
   }
 
@@ -402,7 +404,8 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
             fst::read.fst(path = paste0(fst_files, "/magma_raw_ch", ch, ".fst"),
                           from = 1 + nrows_ap_prop * (which_dist[d_idx] - 1) * max(S) * W +
                             nrows_ap_prop * (s_idx - 1) * W,
-                          to = nrows_ap_prop * which_dist[d_idx] * s_idx * W) %>%
+                          to = nrows_ap_prop * (which_dist[d_idx] - 1) * max(S) * W +
+                            nrows_ap_prop * s_idx * W) %>%
               dplyr::left_join({
                 harvest %>%
                   dplyr::filter(DISTRICT == which_dist[d_idx],
@@ -416,7 +419,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
                                   names_to = "collection",
                                   values_to = "ppi") %>%
               dplyr::mutate( # rely on the order of collections == groups
-                grpname = rep(group_names[groups[, d_idx], d_idx], nrows_ap_prop * max(S) * W),
+                grpname = rep(group_names[groups[, d_idx], d_idx], nrows_ap_prop * W),
                 ppi_s = ppi * prop_harv_s
               )
           })
@@ -439,7 +442,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
                                   names_to = "collection",
                                   values_to = "ppi") %>%
               dplyr::mutate( # rely on the order of collections == groups
-                grpname = rep(group_names[groups[, d_idx], d_idx], nrows_ap_prop * max(S) * W),
+                grpname = rep(group_names[groups[, d_idx], d_idx], nrows_ap_prop * W),
                 ppi_s = ppi * prop_harv_s
               )
           })
@@ -465,7 +468,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
         out$pop_prop_all[[max(S)*(d_idx-1)+s_idx]] <- dplyr::bind_rows(p_combo_all)
       } else {
         tidyfst::export_fst(dplyr::bind_rows(p_combo_all),
-                            path = paste0(tr_folder, "/p_all_d", d_idx, "s", s_idx, ".fst"))
+                            path = paste0(tr_folder, "/p_all_d", which_dist[d_idx], "s", s_idx, ".fst"))
       }
 
       out$pop_summ_all[[max(S)*(d_idx-1)+s_idx]] <-
@@ -516,7 +519,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
           out$pop_prop[[p_idx]] <- dplyr::bind_rows(p_combo)
         } else {
           tidyfst::export_fst(dplyr::bind_rows(p_combo),
-                              path = paste0(tr_folder, "/p_d", d_idx, "s", s_idx, "w", w_idx, ".fst"))
+                              path = paste0(tr_folder, "/p_d", which_dist[d_idx], "s", s_idx, "w", w_idx, ".fst"))
         }
 
         out$pop_summ[[p_idx]] <-
@@ -572,7 +575,7 @@ format_subdistrict <- function(outraw, dat_in, nreps, nburn, thin, nchains, keep
             dplyr::select(-grpname) # trace plot function doesn't take group names
         } else {
           tidyfst::export_fst(dplyr::bind_rows(ap_prop_grp) %>% dplyr::select(-grpname),
-                              path = paste0(tr_folder, "/ap_d", d_idx, "s", s_idx, grp, ".fst"))
+                              path = paste0(tr_folder, "/ap_d", which_dist[d_idx], "s", s_idx, grp, ".fst"))
         }
 
         harv_subdis <- harvest %>%
@@ -854,7 +857,7 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
   if (summ_level == "district") {
     out <- format_district(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, C, D, S, W, which_dist, fst_files, save_trace)
   } else if (summ_level == "subdistrict") {
-    out <- format_subdistrict(holder, dat_in, nreps, nburn, thin, nchains, keep_burn, C, D, S, W, which_dist, fst_files, save_trace)
+    out <- format_subdistrict(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, C, D, S, W, which_dist, fst_files, save_trace)
   } else stop("Invalid summ_level.")
 
   # id for age-by-group output
@@ -867,7 +870,7 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
         aout_names[i] <-
           paste(
             paste0("D", dist_names[d_i]),
-            paste0(dat_in$group_names[g_i, d_i]),
+            paste0(sub_dat$group_names[g_i, d_i]),
             sep = "_")
       } # g_i
     } # d_i
@@ -882,7 +885,7 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
             paste(
               paste0("D", dist_names[d_i]),
               paste0("S", subdist_names[[d_i]][s_i]),
-              paste0(dat_in$group_names[g_i, d_i]),
+              paste0(sub_dat$group_names[g_i, d_i]),
               sep = "_")
         } # g_i
       } # s_i
