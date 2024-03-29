@@ -238,129 +238,120 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
     ch = chains, .packages = c("magrittr", "tidyr", "dplyr")
     ) %dorng% {
 
-    ppi_out <- vector("list", D)
-    for (d_idx in 1:D) {
-      ppi_out[[d_idx]] <- vector("list", max(S))
-      for (s_idx in 1:S[d_idx]) {
-        ppi_out[[d_idx]][[s_idx]] <- vector("list", W)
-        for (w_idx in 1:W) {
-          ppi_out[[d_idx]][[s_idx]][[w_idx]] <- vector("list", (nreps- nburn) / thin)
-        } # w
-      } # s
-    } # d
+      ppi_out <- list()
 
-    if (iden_output == TRUE) iden_out <- list()
-    i <- 1
+      if (iden_output == TRUE) iden_out <- list()
+      i <- 1
 
-    ## gibbs loop ##
-    for (rep in seq(nreps + nadapt)) {
+      ## gibbs loop ##
+      for (rep in seq(nreps + nadapt)) {
 
-      metadat$age[na_a] <- unlist(lapply(na_a, function(m) {
-        sample(C, 1, TRUE, t_pi[, metadat$iden[m]])
-      })) # assign ages
+        metadat$age[na_a] <- unlist(lapply(na_a, function(m) {
+          sample(C, 1, TRUE, t_pi[, metadat$iden[m]])
+        })) # assign ages
 
-      metadat$iden[na_i] <- unlist(lapply(na_i, function(m) {
-        sample(K, 1, TRUE,
-              p[metadat$district[m], metadat$subdist[m], metadat$week[m], seq.int(K)] * freq[m, seq.int(K)])
-      })) # assign pop iden (only for wild pops)
+        metadat$iden[na_i] <- unlist(lapply(na_i, function(m) {
+          sample(K, 1, TRUE,
+                 p[metadat$district[m], metadat$subdist[m], metadat$week[m], seq.int(K)] * freq[m, seq.int(K)])
+        })) # assign pop iden (only for wild pops)
 
-      p <- aperm(
-        apply(
-          table(metadat[, c("district", "subdist", "week", "iden")]) + p_zero* pPrior,
-          seq(3), rdirich),
-        c(2:4, 1))
+        p <- aperm(
+          apply(
+            table(metadat[, c("district", "subdist", "week", "iden")]) + p_zero* pPrior,
+            seq(3), rdirich),
+          c(2:4, 1))
 
-      if ((cond_gsi & rep %% 10 != 0) | rep <= nadapt) { # cond gsi or adapt stage
+        if ((cond_gsi & rep %% 10 != 0) | rep <= nadapt) { # cond gsi or adapt stage
 
-        t_pi <- apply(
-          beta[, ages] + table(metadat$iden, metadat$age),
-          1, rdirich) # pi|a,z,gamma ~ dirich(gamma+ sum(z*a))
+          t_pi <- apply(
+            beta[, ages] + table(metadat$iden, metadat$age),
+            1, rdirich) # pi|a,z,gamma ~ dirich(gamma+ sum(z*a))
 
+        } else {
+
+          x_sum <-
+            matrix(
+              0L,
+              nrow = nrow(y),
+              ncol = ncol(y),
+              dimnames = dimnames(y)
+            )
+
+          x[na_a, seq.int(sum(nalleles) + 1, sum(nstates))] <-
+            t(sapply(seq.int(length(na_a)),
+                     function(mm) {
+                       ag <- metadat$age[na_a][mm]
+                       ags <- rep(0L, C)
+                       ags[+ag] <- 1L
+                       ags
+                     })) # updating age info in x. Note: x is updated in Feb 2024
+
+          x_sum[as.integer(sort(unique(metadat$iden))),] <-
+            rowsum(x, group = metadat$iden) # colsums for new assignment
+          # (this is the original code for tallying. It does not account for new age assignments
+          # because x is not updated during sampling. Note: x is updated in Feb 2024)
+
+          # edited version because earlier version did not update x
+          # x_sum[as.integer(levels(metadat$iden)), seq.int(sum(nalleles))] <-
+          #   apply(x[, seq.int(sum(nalleles))], 2, function(x_t) tapply(x_t, metadat$iden, sum)) %>%
+          #   tidyr::replace_na(0) # colsums for new assignment
+          #
+          # x_sum[, -seq.int(sum(nalleles))] <-
+          #   table(metadat$iden, metadat$age) # update age identity
+
+          beta_prm <- y + beta + x_sum # posterior q ~ dirich(b')
+
+          t_q <- apply(beta_prm, 1, function(rw) {
+            unlist(tapply(rw, INDEX = trait_fac, FUN = rdirich))
+          })
+
+          t_pi <- t_q[-seq.int(sum(nalleles)), ] # pi|a,z,gamma ~ dirich(gamma+ sum(z*a))
+
+          freq[na_i, wildpops] <- exp(x[na_i,] %*% log(t_q[, wildpops]))
+
+        }
+
+        # record output based on keep or not keep burn-ins
+        if (rep > nadapt) { # after adaptation stage
+          if ((rep-nadapt) > nburn & (rep-nadapt - nburn) %% thin == 0) {
+
+            it <- (rep - nadapt - nburn) / thin
+            for (d_idx in 1:D) {
+              for (s_idx in 1:S[d_idx]) {
+                for (w_idx in 1:W) {
+                  ppi_out[[i]] <-
+                    t_pi %*% diag(p[d_idx, s_idx, w_idx, ]) %>%
+                    data.table::as.data.table() %>% # x = ages, y = pops
+                    dplyr::mutate(itr = it,
+                                  agevec = age_class,
+                                  d = d_idx,
+                                  s = s_idx,
+                                  w = w_idx,
+                                  chain = ch)
+                  i <- i + 1
+                } # w
+              } # s
+            } # d
+
+            if (iden_output == TRUE) {
+              iden_out[[it]] <- metadat$iden
+            }
+
+          } # if rep > nburn & (rep-nburn) %% thin == 0
+        } # if rep > nadapt
+
+      } # end gibbs loop
+
+      if (iden_output == TRUE) {
+        out <- list(data.table::rbindlist(ppi_out) %>% dplyr::arrange(d, s, w),
+                    {sapply(iden_out, rbind) %>% t() %>% dplyr::as_tibble()})
+        colnames(out[[1]])[seq.int(nrow(groups))] <- row.names(groups)
+        return(out)
       } else {
-
-        x_sum <-
-          matrix(
-            0L,
-            nrow = nrow(y),
-            ncol = ncol(y),
-            dimnames = dimnames(y)
-          )
-
-        x[na_a, seq.int(sum(nalleles) + 1, sum(nstates))] <-
-          t(sapply(seq.int(length(na_a)),
-                   function(mm) {
-                     ag <- metadat$age[na_a][mm]
-                     ags <- rep(0L, C)
-                     ags[+ag] <- 1L
-                     ags
-                   })) # updating age info in x
-
-        x_sum[as.integer(sort(unique(metadat$iden))),] <-
-          rowsum(x, group = metadat$iden) # colsums for new assignment
-        # (this is the original code for tallying. It does not account for new age assignments
-        # because x is not updated during sampling. Note: x is updated in Feb 2024)
-
-        # edited version because earlier version did not update x
-        # x_sum[as.integer(levels(metadat$iden)), seq.int(sum(nalleles))] <-
-        #   apply(x[, seq.int(sum(nalleles))], 2, function(x_t) tapply(x_t, metadat$iden, sum)) %>%
-        #   tidyr::replace_na(0) # colsums for new assignment
-        #
-        # x_sum[, -seq.int(sum(nalleles))] <-
-        #   table(metadat$iden, metadat$age) # update age identity
-
-        beta_prm <- y + beta + x_sum # posterior q ~ dirich(b')
-
-        t_q <- apply(beta_prm, 1, function(rw) {
-          unlist(tapply(rw, INDEX = trait_fac, FUN = rdirich))
-        })
-
-        t_pi <- t_q[-seq.int(sum(nalleles)), ] # pi|a,z,gamma ~ dirich(gamma+ sum(z*a))
-
-        freq[na_i, wildpops] <- exp(x[na_i,] %*% log(t_q[, wildpops]))
-
+        out <- data.table::rbindlist(ppi_out) %>% dplyr::arrange(d, s, w)
+        colnames(out)[seq.int(nrow(groups))] <- row.names(groups)
+        return(out)
       }
-
-      # record output based on keep or not keep burn-ins
-      if (rep > nadapt) { # after adaptation stage
-        if ((rep-nadapt) > nburn & (rep-nadapt - nburn) %% thin == 0) {
-
-          it <- (rep - nadapt - nburn) / thin
-          for (d_idx in 1:D) {
-            for (s_idx in 1:S[d_idx]) {
-              for (w_idx in 1:W) {
-                ppi_out[[i]] <-
-                  t_pi %*% diag(p[d_idx, s_idx, w_idx, ]) %>%
-                  data.table::as.data.table() %>% # x = ages, y = pops
-                  dplyr::mutate(itr = it,
-                                agevec = age_class,
-                                d = d_idx,
-                                s = s_idx,
-                                w = w_idx,
-                                chain = ch)
-                i <- i + 1
-              } # w
-            } # s
-          } # d
-
-          if (iden_output == TRUE) {
-            iden_out[[it]] <- metadat$iden
-          }
-
-        } # if rep > nburn & (rep-nburn) %% thin == 0
-      } # if rep > nadapt
-
-    } # end gibbs loop
-
-    if (iden_output == TRUE) {
-      out <- list(data.table::rbindlist(ppi_out) %>% dplyr::arrange(d, s, w),
-                  {sapply(iden_out, rbind) %>% t() %>% dplyr::as_tibble()})
-      colnames(out[[1]])[seq.int(nrow(groups))] <- row.names(groups)
-      return(out)
-    } else {
-      out <- data.table::rbindlist(ppi_out) %>% dplyr::arrange(d, s, w)
-      colnames(out)[seq.int(nrow(groups))] <- row.names(groups)
-      return(out)
-    }
 
     } # end parallel chains
 
