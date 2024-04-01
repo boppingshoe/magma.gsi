@@ -798,7 +798,7 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
     stat_weeks = ma_dat$stat_weeks
   )
 
-  ### info needed ### ----
+  ### info needed ----
   C <- sub_dat$C # number of age classes
   D <- dplyr::n_distinct(sub_dat$metadat$district) # number of districts
   S <- sub_dat$metadat %>%
@@ -806,7 +806,7 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
     dplyr::summarise(S = dplyr::n_distinct(subdist), .groups = "drop") %>%
     dplyr::pull(S) # number of subdistricts
   W <- max(dplyr::n_distinct(sub_dat$metadat$week), length(sub_dat$stat_weeks)) # number of stats weeks
-
+  KH <- nrow(sub_dat$y)
   ng <- apply(sub_dat$groups, 2, max) # number of groups
 
   dist_names <- sub_dat$districts
@@ -826,27 +826,33 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
   nchains <- ma_out$specs["nchains"]
   keep_burn <- ma_out$specs["keep_burn"] == 1
 
-  if (isFALSE(keep_burn)|keep_burn == "false") keep_burn <- FALSE
+  # if (isFALSE(keep_burn)|keep_burn == "false") keep_burn <- FALSE
 
   # exclude burn-in while calculate r hat in formatting functions
   keep_list <- ((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn)))[!((nburn*keep_burn + 1):(nreps - nburn*isFALSE(keep_burn))) %% thin] / thin
 
   nrows_ap_prop <- C * (nreps - nburn*isFALSE(keep_burn)) / thin
 
-  #### still need malia converter
-  if (!is.null(fst_files)) {
-    holder <- NULL # output is saved as Fst files
-  } else if (!all(lapply(ma_out[[1]], is.data.frame) %>% unlist())) {
-    # output is in 2022 format
-    holder <- old_to_new(ma_out$outraw, nrows_ap_prop, nchains, C, W, S, D, which_dist)
-  } else if (all(lapply(ma_out[[1]], is.data.frame) %>% unlist())){
-    holder <- lapply(ma_out$outraw, function(o) {
-      dplyr::filter(o, d %in% which_dist) # output in 2023 new format
+  ### detect output type and convert ----
+  if (!is.null(fst_files)) { # output is saved as Fst files
+    holder <- NULL
+  } else if (is.list(ma_out$outraw)) { # output as object
+    if (!all(lapply(ma_out$outraw, is.data.frame) %>% unlist())) {
+      # output is in 2022 format
+      holder <- old_to_new(ma_out$outraw, nrows_ap_prop, nchains, C, W, S, D, which_dist)
+    } else {
+      # output in 2023 new format
+      holder <- lapply(ma_out$outraw, function(o) dplyr::filter(o, d %in% which_dist))
+    }
+  } else if (is.array(ma_out$outraw)) { # malia (2023)
+    holder <- lapply(seq.int(nchains), function(ch) {
+      ma_out$outraw[ , , ch] %>%
+        data.table::as.data.table() %>%
+        dplyr::rename_with(~c(row.names(sub_dat$y), "itr", "agevec", "d", "s", "w", "chain"))
     })
   } else stop("Format of MAGMA output is not recognized and cannot be summarized using current version of magmatize_summ().")
 
-  ### prepare output ### ----
-
+  ### prepare output ----
   message("Preparing output (patience grasshopper...)")
   prep_time <- Sys.time()
 
