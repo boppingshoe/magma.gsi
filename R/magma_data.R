@@ -152,6 +152,11 @@ magmatize_data <-
         paste(c(rep(0, 2 - nchar(chr)), chr), collapse = "")
       }) # add 0's to 0x class
 
+    age_classes[nchar(age_classes) < 2] <-
+      sapply(age_classes[nchar(age_classes) < 2], function(chr) {
+        paste(c(rep(0, 2 - nchar(chr)), chr), collapse = "")
+      }) # add 0's to 0x class
+
     fw_age_range <-
       range(as.integer(substr(
         euro_age[!is.na(euro_age)], start = 1, stop = 1
@@ -169,10 +174,7 @@ magmatize_data <-
     extra_ages <-
       age_classes[which(!age_classes %in% c(euro_ages, "0X", "other", "all"))]
 
-    euro_ages <-
-      sort(c(extra_ages, euro_ages))
-
-    C <- length(euro_ages)
+    euro_ages <- sort(c(extra_ages, euro_ages))
 
     if ("all" %in% age_classes) {
       age_classes <- euro_ages
@@ -180,12 +182,16 @@ magmatize_data <-
       stop("Unspecified age class(es) found in metadata. Include an 'other' age class to catch unspecified age classes.")
     } else if (!all(c("0X", "other") %in% age_classes) & length(age_classes) > length(euro_ages)) {
       euro_ages <- age_classes
-      C <- length(euro_ages)
     }
 
     if ("other" %in% age_classes) {
       A <- match("other", age_classes)
-    } else A <- length(age_classes)
+    } else {
+      A <- length(age_classes)
+      euro_ages <- euro_ages[which(euro_ages %in% c(euro_age, age_classes))]
+    }
+
+    C <- length(euro_ages)
 
     age_class <- stats::setNames(rep(A, C), euro_ages)
 
