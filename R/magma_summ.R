@@ -635,136 +635,14 @@ format_subdistrict <- function(outraw, dat_in, keep_list, nrows_ap_prop, nchains
 #' # model run
 #' magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 2)
 #'
-#' # summary
-#' magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district", which_dist = 1)
+#' # summary using output as an object
+#' magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district", which_dist = 1, save_trace = wd)
+#'
+#' # summary using output saved as Fst files
+#' magma_summ <- magmatize_summ(ma_dat = magma_data, summ_level = "district", which_dist = 1, fst_files = wd)
 #' }
 #'
 #' @export
-# magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL, fst_files = NULL, save_trace = "in_memory") {
-#
-#   if (is.null(ma_out) & is.null(fst_files)) stop("There's no MAGMA output file. You need to provide the MAGMA output as an object or provide the file path for the saved Fst files.")
-#   if (!is.null(ma_out) & !is.null(fst_files)) message("You provided MAGMA output both as an object and Fst file path. Summary is done using the saved Fst files, just so you know.")
-#   if (save_trace != "in_memory" & !dir.exists(save_trace)) stop("wrong specification for `save_trace`. It has to be `in_memory` or a directory path to a folder to save trace output as Fst files.")
-#
-#   if (is.null(which_dist)) which_dist <- unique(ma_dat$metadat$district)
-#
-#   sub_dat <- list(
-#     x = ma_dat$x[which(ma_dat$metadat$district %in% which_dist), ],
-#     y = ma_dat$y,
-#
-#     # metadat = ma_dat$metadat %>%
-#     #   dplyr::filter(district %in% which_dist) %>%
-#     #   { if (length(which_dist) == 1) dplyr::mutate(., district = 1) else . },
-#     # harvest = ma_dat$harvest %>%
-#     #   dplyr::filter(DISTRICT %in% which_dist) %>%
-#     #   { if (length(which_dist) == 1) dplyr::mutate(., DISTRICT = 1) else . },
-#     metadat = ma_dat$metadat %>%
-#       dplyr::filter(district %in% which_dist),
-#     harvest = ma_dat$harvest %>%
-#       dplyr::filter(DISTRICT %in% which_dist),
-#
-#     nstates = ma_dat$nstates,
-#     nalleles = ma_dat$nalleles,
-#     C = ma_dat$C,
-#     groups = cbind(ma_dat$groups[, which_dist, drop = FALSE]),
-#     group_names = cbind(ma_dat$group_names[, which_dist, drop = FALSE]),
-#
-#     age_class = ma_dat$age_class,
-#     age_classes = ma_dat$age_classes,
-#     wildpops = ma_dat$wildpops,
-#     hatcheries = ma_dat$hatcheries,
-#
-#     districts = ma_dat$districts[which_dist, drop = FALSE],
-#     subdistricts = ma_dat$subdistricts[which_dist, drop = FALSE],
-#     stat_weeks = ma_dat$stat_weeks
-#   )
-#
-#   # S <- ma_dat$metadat %>%
-#   #   dplyr::group_by(district) %>%
-#   #   dplyr::summarise(S = dplyr::n_distinct(subdist), .groups = "drop") %>%
-#   #   dplyr::pull(S) # number of subdistricts
-#   # W <- dplyr::n_distinct(ma_dat$metadat$week) # number of weeks
-#   # KH <- nrow(ma_dat$y)
-#
-#   # organization of outraw:
-#   # [[chain]][dist*sub*week*age_class*itr, pop] and ordered by district
-#   if (!is.null(fst_files)) {
-#     ma_out <- list()
-#     ma_out$specs <- readRDS(paste0(fst_files, "/magma_specs.rds"))
-#   }
-#
-#   # outraw <- ma_out$outraw
-#   nreps <- ma_out$specs["nreps"]
-#   nburn <- ma_out$specs["nburn"]
-#   thin <- ma_out$specs["thin"]
-#   nchains <- ma_out$specs["nchains"]
-#   keep_burn <- ma_out$specs["keep_burn"] == 1
-#
-#   if (!is.null(fst_files)) {
-#     # holder <- lapply(seq.int(nchains), function(ch) {
-#     #   fst::read.fst(path = paste0(fst_files, "/magma_raw_ch", ch, ".fst"),
-#     #                 from = 1 + (nreps - nburn*isFALSE(keep_burn) / thin)  * sub_dat$C * (min(which_dist) - 1) * max(S) * W,
-#     #                 to = (nreps - nburn*isFALSE(keep_burn) / thin) * sub_dat$C * max(which_dist) * max(S) * W) %>%
-#     #     { if (length(which_dist) == 1) dplyr::mutate(., d = 1) else . } %>% data.table::as.data.table()
-#     # })
-#     holder <- NULL
-#   } else {
-#     holder <- lapply(ma_out$outraw, function(o) {
-#       dplyr::filter(o, d %in% which_dist) #%>%
-#         # { if (length(which_dist) == 1) dplyr::mutate(., d = 1) else . }
-#     })
-#   }
-#
-#   # holder <- ma_out$outraw
-#
-#   # if(is.array(outraw)) { # for malia, not done
-#   #   holder <- lapply(seq.int(dim(outraw)[6]), function(ch) {
-#   #     array(outraw[ , , , , which_dist, ch], dim = c(ma_dat$C * (nreps - nbur * isFALSE(keep_burn)) / thin * KH, W, max(S), length(which_dist), nchains))
-#   #   })
-#   # } else {
-#   #   holder <- lapply(outraw, function(o) {
-#   #     dplyr::filter(o, d %in% which_dist)
-#   #   })
-#   # }
-#
-#   # need to do for malia:
-#   # holder <- lapply(seq.int(nchians), function(ch) {
-#   #   array(outraw[ , , , , which_dist, ch], dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin* length(which_dist)* W* max(S), KH + 2)) # something like this
-#   # })
-#
-#   # if (is.array(outraw)) {
-#   #   holder <- array(outraw[ , , , , which_dist, ], dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, max(S), length(which_dist), nchains))
-#   # } else {
-#   #   if (length(which_dist) > 1) {
-#   #     holder <- lapply(outraw, function(ch) {
-#   #       lapply(ch, function(dis) {
-#   #         sapply(dis[which_dist], function(subdist) {
-#   #           sapply(subdist, function(wk) {
-#   #             wk %>% dplyr::bind_rows()
-#   #           }) %>% unlist(.)
-#   #         }) %>% unlist(.)
-#   #       }) %>% unlist(.)
-#   #     }) %>% sapply(., function(ol) ol) %>%
-#   #       array(., dim = c(ma_dat$C * (nreps - nburn*isFALSE(keep_burn)) / thin, KH + 2, W, max(S[which_dist]), length(which_dist), nchains))
-#   #   } else {
-#   #     holder <-
-#   #       lapply(outraw, function(ch) {
-#   #         lapply(ch[[which_dist]], function(subdis) {
-#   #           lapply(subdis, function(wk) {
-#   #             wk %>% dplyr::bind_rows() %>% unlist()
-#   #           }) %>% unlist()
-#   #         }) %>% unlist()
-#   #       })  %>% unlist() %>%
-#   #       array(., dim = c(ma_dat$C* (nreps- nburn*isFALSE(keep_burn))/ thin, KH + 2, W, S[which_dist], 1, nchains))
-#   #   }
-#   # }
-#
-#   sub_out <- magmatize_all(holder, sub_dat, nreps, nburn, thin, nchains, keep_burn, summ_level, which_dist, fst_files, save_trace)
-#
-#   return(sub_out)
-#
-# }
-
 magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL, fst_files = NULL, save_trace = "in_memory") {
 
   if (is.null(ma_out) & is.null(fst_files)) stop("There's no MAGMA output file. You need to provide the MAGMA output as an object or provide the file path for the saved Fst files.")
@@ -837,19 +715,34 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
   if (!is.null(fst_files)) { # output is saved as Fst files
     holder <- NULL
   } else if (is.list(ma_out$outraw)) { # output as object
-    if (!all(lapply(ma_out$outraw, is.data.frame) %>% unlist())) {
-      # output is in 2022 format
-      holder <- old_to_new(ma_out$outraw, nrows_ap_prop, nchains, C, W, S, D, which_dist)
-    } else {
-      # output in 2023 new format
+    if (all(lapply(ma_out$outraw, is.data.frame) %>% unlist())) {
+      # output in 2024 new format
       holder <- lapply(ma_out$outraw, function(o) dplyr::filter(o, d %in% which_dist))
+    } else {
+      # output is in old (2023) format
+      holder <- old_to_new(ma_out$outraw, nrows_ap_prop, nchains, C, W, S, D, which_dist)
     }
-  } else if (is.array(ma_out$outraw)) { # malia (2023)
-    holder <- lapply(seq.int(nchains), function(ch) {
-      ma_out$outraw[ , , ch] %>%
-        data.table::as.data.table() %>%
-        dplyr::rename_with(~c(row.names(sub_dat$y), "itr", "agevec", "d", "s", "w", "chain"))
-    })
+  } else if (is.array(ma_out$outraw)) { # malia
+    if (length(dim(ma_out$outraw)) == 3) { # 2024
+      holder <- lapply(seq.int(nchains), function(ch) {
+        ma_out$outraw[ , , ch] %>%
+          data.table::as.data.table() %>%
+          dplyr::rename_with(~c(row.names(sub_dat$y), "itr", "agevec", "d", "s", "w", "chain"))
+      })
+    } else if (length(dim(ma_out$outraw == 6))) { # 2023
+      holder <-
+        lapply(1:nchains, function(ch) {
+          lapply(1:D, function(d_i) {
+            lapply(1:S[d_i], function(s_i) {
+              lapply(1:W, function (w_i) {
+                data.table::as.data.table(out_jl[ , , w_i, s_i, d_i, ch]) %>%
+                  dplyr::rename_with(~c(row.names(dat_in$y), "itr", "agevec")) %>%
+                  dplyr::mutate(d = d_i, s = s_i, w = w_i, chain = ch)
+              }) %>% dplyr::bind_rows()
+            }) %>% dplyr::bind_rows()
+          }) %>% dplyr::bind_rows()
+        })
+    }
   } else stop("Format of MAGMA output is not recognized and cannot be summarized using current version of magmatize_summ().")
 
   ### prepare output ----
