@@ -155,7 +155,7 @@ magmatize_data <-
     age_classes[nchar(age_classes) < 2] <-
       sapply(age_classes[nchar(age_classes) < 2], function(chr) {
         paste(c(rep(0, 2 - nchar(chr)), chr), collapse = "")
-      }) # add 0's to 0x class
+      }) %>% unlist() # add 0's to 0x class
 
     fw_age_range <-
       range(as.integer(substr(
