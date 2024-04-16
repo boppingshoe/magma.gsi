@@ -70,6 +70,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
   groups <- dat_in$groups # vector id for reporting groups (aka groupvec)
 
   age_class <- dat_in$age_class # vector id for age classes
+  age_classes <- dat_in$age_classes # vector id for age classes
 
   wildpops <- dat_in$wildpops
   K <- length(wildpops)
@@ -323,7 +324,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
                     t_pi %*% diag(p[d_idx, s_idx, w_idx, ]) %>%
                     data.table::as.data.table() %>% # x = ages, y = pops
                     dplyr::mutate(itr = it,
-                                  agevec = age_class,
+                                  agevec = age_classes[age_class],
                                   d = d_idx,
                                   s = s_idx,
                                   w = w_idx,

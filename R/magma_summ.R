@@ -66,7 +66,7 @@ format_district <- function(outraw, dat_in, keep_list, nrows_ap_prop, nchains, C
   } else {
     out <- list(age_summ = list(), pop_summ = list(), pop_summ_all = list())
     tr_folder <- paste0(save_trace, "/trace_district")
-    if (file.exists(paste0(tr_folder, "/p_all_d", which_dist[1], ".fst"))) stop("Old trace files already exist. Please move or delete old files before saving new ones.")
+    if (file.exists(paste0(tr_folder, "/p_d", which_dist[1], "all.fst"))) stop("Old trace files already exist. Please move or delete old files before saving new ones.")
     dir.create(tr_folder)
   }
 
@@ -155,7 +155,7 @@ format_district <- function(outraw, dat_in, keep_list, nrows_ap_prop, nchains, C
       out$pop_prop_all[[d_idx]] <- dplyr::bind_rows(p_combo_all)
     } else {
       tidyfst::export_fst(dplyr::bind_rows(p_combo_all),
-                          path = paste0(tr_folder, "/p_all_d", which_dist[d_idx], ".fst"))
+                          path = paste0(tr_folder, "/p_d", which_dist[d_idx], "all.fst"))
     }
 
     out$pop_summ_all[[d_idx]] <-
@@ -245,11 +245,8 @@ format_district <- function(outraw, dat_in, keep_list, nrows_ap_prop, nchains, C
       a_idx <- a_idx + 1
 
       ap_prop_grp <-
-        lapply(ap_combo_dis, function(aoc) {
-          ar_temp <- aoc %>%
-            dplyr::filter(grpname == grp) %>%
-            stats::setNames(., c("itr", "grpname", "chain", age_classes))
-          return(ar_temp)
+        lapply(ap_combo_dis, function(ap) {
+          dplyr::filter(ap, grpname == grp)
         }) # separate rep groups into its own output
 
       if (save_trace == "in_memory") {
@@ -371,7 +368,7 @@ format_subdistrict <- function(outraw, dat_in, keep_list, nrows_ap_prop, nchains
   } else {
     out <- list(age_summ = list(), pop_summ = list(), pop_summ_all = list())
     tr_folder <- paste0(save_trace, "/trace_subdistrict")
-    if (file.exists(paste0(tr_folder, "/p_all_d", which_dist[1], "s1.fst"))) stop("Old trace files already exist. Please move or delete old files before saving new ones.")
+    if (file.exists(paste0(tr_folder, "/p_d", which_dist[1], "s1all.fst"))) stop("Old trace files already exist. Please move or delete old files before saving new ones.")
     dir.create(tr_folder)
   }
 
@@ -453,7 +450,7 @@ format_subdistrict <- function(outraw, dat_in, keep_list, nrows_ap_prop, nchains
         out$pop_prop_all[[max(S)*(d_idx-1)+s_idx]] <- dplyr::bind_rows(p_combo_all)
       } else {
         tidyfst::export_fst(dplyr::bind_rows(p_combo_all),
-                            path = paste0(tr_folder, "/p_all_d", which_dist[d_idx], "s", s_idx, ".fst"))
+                            path = paste0(tr_folder, "/p_d", which_dist[d_idx], "s", s_idx, "all.fst"))
       }
 
       out$pop_summ_all[[max(S)*(d_idx-1)+s_idx]] <-
@@ -547,11 +544,8 @@ format_subdistrict <- function(outraw, dat_in, keep_list, nrows_ap_prop, nchains
         a_idx <- a_idx + 1
 
         ap_prop_grp <-
-          lapply(ap_combo_subdis, function(aoc) {
-            ar_temp <- aoc %>%
-              dplyr::filter(grpname == grp) %>%
-              stats::setNames(., c("itr", "grpname", "chain", age_classes))
-            return(ar_temp)
+          lapply(ap_combo_subdis, function(ap) {
+              dplyr::filter(ap, grpname == grp)
           }) # separate rep groups into its own output
 
         if (save_trace == "in_memory") {
@@ -691,6 +685,8 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
   subdist_names <- sub_dat$subdistricts
   week_names <- sub_dat$stat_weeks
 
+  age_classes <- sub_dat$age_classes
+
   # organization of outraw:
   # [[chain]][dist*sub*week*age_class*itr, pop] and ordered by district
   if (!is.null(fst_files)) {
@@ -720,14 +716,15 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
       holder <- lapply(ma_out$outraw, function(o) dplyr::filter(o, d %in% which_dist))
     } else {
       # output is in old (2023) format
-      holder <- old_to_new(ma_out$outraw, nrows_ap_prop, nchains, C, W, S, D, which_dist)
+      holder <- old_to_new(ma_out$outraw, nrows_ap_prop, nchains, C, W, S, D, age_classes, which_dist)
     }
   } else if (is.array(ma_out$outraw)) { # malia
     if (length(dim(ma_out$outraw)) == 3) { # 2024
       holder <- lapply(seq.int(nchains), function(ch) {
         ma_out$outraw[ , , ch] %>%
           data.table::as.data.table() %>%
-          dplyr::rename_with(~c(row.names(sub_dat$y), "itr", "agevec", "d", "s", "w", "chain"))
+          dplyr::rename_with(~c(row.names(sub_dat$y), "itr", "agevec", "d", "s", "w", "chain")) %>%
+          dplyr::mutate(agevec = age_classes[agevec])
       })
     } else if (length(dim(ma_out$outraw == 6))) { # 2023
       holder <-
@@ -736,8 +733,9 @@ magmatize_summ <- function(ma_out = NULL, ma_dat, summ_level, which_dist = NULL,
             lapply(1:S[d_i], function(s_i) {
               lapply(1:W, function (w_i) {
                 data.table::as.data.table(out_jl[ , , w_i, s_i, d_i, ch]) %>%
-                  dplyr::rename_with(~c(row.names(dat_in$y), "itr", "agevec")) %>%
-                  dplyr::mutate(d = d_i, s = s_i, w = w_i, chain = ch)
+                  dplyr::rename_with(~c(row.names(sub_dat$y), "itr", "agevec")) %>%
+                  dplyr::mutate(d = d_i, s = s_i, w = w_i, chain = ch,
+                                agevec = age_classes[agevec])
               }) %>% dplyr::bind_rows()
             }) %>% dplyr::bind_rows()
           }) %>% dplyr::bind_rows()
@@ -896,7 +894,7 @@ gr_diag <- function(mc_list, nchains) {
 #'
 #' @noRd
 #'
-old_to_new <- function(oldraw, nrows_ap_prop, nchains, C, W, S, D, which_dist) {
+old_to_new <- function(oldraw, nrows_ap_prop, nchains, C, W, S, D, age_classes, which_dist) {
   lapply(1:nchains, function(ch) {
     lapply(oldraw[[ch]], function(dis) {
       lapply(dis, function(subdis) {
@@ -905,7 +903,8 @@ old_to_new <- function(oldraw, nrows_ap_prop, nchains, C, W, S, D, which_dist) {
         }) |> dplyr::bind_rows()
       }) |> dplyr::bind_rows()
     }) |> dplyr::bind_rows() |>
-      dplyr::mutate(w = rep(rep(rep(1:W, each = nrows_ap_prop), S), D),
+      dplyr::mutate(agevec = age_classes[agevec],
+                    w = rep(rep(rep(1:W, each = nrows_ap_prop), S), D),
                     s = rep(rep(1:S, each = W*nrows_ap_prop), D),
                     d = rep(1:D, each = S*W*nrows_ap_prop),
                     chain = ch) |>
