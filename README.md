@@ -36,48 +36,49 @@ library(magma.gsi)
 wd <- getwd() # path to data folder
 magma_data <- magmatize_data(wd = paste0(wd, "/vignettes"), save_data = FALSE)
 #> Compiling input data, may take a minute or two...
+#> FAKE is the fishery identified in the mixture.RData
 #> No missing hatcheries
-#> Time difference of 8.675583 secs
+#> Time difference of 5.321199 secs
 ```
 
 Run the model:
 
 ``` r
 magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains = 3)
-#> Running model (and the category is... Live, Werk, Pose!)
-#> Time difference of 2.01657 secs
-#> 2023-08-28 17:15:41.888492
+#> Running model... and work for a cause, not for Butch Queen Body!
+#> Time difference of 1.025131 secs
+#> 2024-04-17 11:50:17.629791
 ```
 
 Summarize the results:
 
 ``` r
-magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district", type = "age")
+magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district")
 #> Preparing output (patience grasshopper...)
-#> Time difference of 0.5365539 secs
-#> 2023-08-28 17:15:42.465052
+#> Time difference of 0.3293231 secs
+#> 2024-04-17 11:50:17.975011
 
 magma_summ$age_summ[1]
-#> $`(1)_D1_Koyukuk`
+#> $D1_Koyukuk
 #> # A tibble: 9 × 10
 #>   group   age     mean  median     sd     ci.05  ci.95     p0    GR n_eff
-#>   <chr>   <chr>  <dbl>   <dbl>  <dbl>     <dbl>  <dbl>  <dbl> <dbl> <dbl>
-#> 1 Koyukuk 11    0.0190 0.00882 0.0257 0.000163  0.0780 0.0533 1.07   75  
-#> 2 Koyukuk 12    0.0216 0.00609 0.0376 0.0000110 0.0873 0.12   0.999  75  
-#> 3 Koyukuk 13    0.0158 0.00369 0.0329 0.0000149 0.0797 0.147  1.02   75  
-#> 4 Koyukuk 21    0.0223 0.00773 0.0364 0.0000600 0.0995 0.0667 1.03   70.8
-#> 5 Koyukuk 22    0.0541 0.0350  0.0469 0.00467   0.139  0      0.989  75  
-#> 6 Koyukuk 23    0.516  0.518   0.115  0.343     0.718  0      1.02   62.8
-#> 7 Koyukuk 31    0.318  0.327   0.100  0.179     0.496  0      1.06   75  
-#> 8 Koyukuk 32    0.0178 0.00577 0.0309 0.0000184 0.0764 0.173  1.06   75  
-#> 9 Koyukuk 33    0.0156 0.00372 0.0265 0.0000321 0.0647 0.12   1.24   76.5
+#>   <chr>   <fct>  <dbl>   <dbl>  <dbl>     <dbl>  <dbl>  <dbl> <dbl> <dbl>
+#> 1 Koyukuk 11    0.0177 0.00671 0.0222 0.0000357 0.0618 0.12   1.05  166. 
+#> 2 Koyukuk 12    0.0238 0.0106  0.0306 0.0000403 0.0893 0.107  1.07   62.8
+#> 3 Koyukuk 13    0.0213 0.00402 0.0353 0.0000438 0.0893 0.0933 1.05   75  
+#> 4 Koyukuk 21    0.0168 0.00597 0.0267 0.0000979 0.0686 0.0667 1.03   75  
+#> 5 Koyukuk 22    0.0656 0.0534  0.0554 0.00614   0.166  0      1.06   61.1
+#> 6 Koyukuk 23    0.536  0.546   0.115  0.301     0.698  0      1.00   75  
+#> 7 Koyukuk 31    0.282  0.275   0.0994 0.128     0.422  0      1.00   75  
+#> 8 Koyukuk 32    0.0125 0.00485 0.0215 0.0000138 0.0412 0.0933 1.13   75  
+#> 9 Koyukuk 33    0.0243 0.00701 0.0366 0.0000318 0.0922 0.0933 0.996 145.
 ```
 
 There’s a function in the package to make trace plots and inspect mixing
 of chains.
 
 ``` r
-tr_plot(magma_summ$age_prop[[1]])
+magmatize_tr_plot(magma_summ$age_prop[[1]])
 ```
 
 <img src="man/figures/README-example_trace_plot-1.png" width="100%" />
