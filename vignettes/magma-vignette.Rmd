@@ -143,7 +143,7 @@ str(yomamafat)
 Use `magmatize_mdl()` function to run the model. You'll need to assign the output as an object as shown in the code below.
 
 ```{r run-magama}
-magma_out <-
+freak_out <-
   magmatize_mdl(dat_in = yomamafat,
                 nreps = 50, nburn = 25, thin = 1, nchains = 2, nadapt = 0,
                 keep_burn = TRUE, age_prior = "zero_out",
@@ -161,26 +161,25 @@ User can tinker with the `age_prior` for the MAGMA model. `age_prior = "flat"` s
 
 `iden_output` specifies whether or not to have the trace history for individual group membership assignments included in the raw model output. Default is FALSE (don't include).
 
-The raw output of MAGMA is a multi-layered list of MCMC chains. Each chain contains a tibble with age class ($\times$ iterations) as rows and populations as columns. I call the output in "raw" format because it has not been summarized. The output also contains the specifications for running the model (iterations, burn-ins... all that good stuff) and the optional trace history of individual group membership assignments.
+The raw output of MAGMA is a multi-layered list of MCMC chains. Each chain contains a tibble with age classes ($\times$ iterations $\times$ # of districts $\times$ # of subdistricts $\times$ # of weeks) as rows and populations as columns. I call the output in "raw" format because it has not been summarized. The output also contains the specifications for running the model (iterations, burn-ins... all that good stuff) and the optional trace history of individual group membership assignments.
 
-`file` specify the file path to save the output in `Rds` format at the end of the model run.
+`file` specify the file path to save the output of individual MCMC chain in `Fst` format at the end of the model run. For example, if you ran MAGMA in five MCMC chains, there will be five `Fst` files saved in the designated location.
 
 
 ## Summarizing Output
 
-The MAGMA output is summarized using `magmatize_summ()` function. The function needs the raw output and the input data objects.
+The MAGMA output is summarized using `magmatize_summ()` function. The function needs the raw MAGMA output and the input data objects. The raw output can be read in as an *R* object or as `Fst` files (if saved during model run). To read in the model output as `Fst` files, use the argument `fst_file` to specify the location of the saved files.
 
 ```{r format-magama}
 magma_summ <-
   magmatize_summ(which_dist = 1,
-                 ma_out = magma_out,
+                 ma_out = freak_out,
                  ma_dat = yomamafat,
-                 summ_level = "district",
-                 type = "age")
+                 summ_level = "district")
 
 ```
 
-For big fisheries like TBR in SEAK, output can be too large for our work laptops to process. The summary process is broken down into three smaller steps to manage memory use. The three steps are done using `magmatize_summ_bd1()`, `magmatize_summ_bd2()`, and `magmatize_summ_bd3()` (examples not shown).
+For big fisheries like TBR in SEAK, output can be too large for our work laptops to process. The summary process can be ran one district at a time (using argument `which_dist`) to manage memory use.
 
 MAGMA estimates age/stock composition at the lowest stratum level (i.e., statistical weeks), but sums up the lower strata (weighted by harvest numbers) to provide summaries at the district or subdistrict level by setting `summ_level = "district"` or `"subdistrict"`, respectively. Summaries are provided in forms of stock proportions and age-by-stock compositions.
 
@@ -211,12 +210,14 @@ magma_summ$age_summ
 
 $N_{eff}$ (or `n_eff` in the summary table) represents an estimate of independent sample size in the posterior sample. A large $N_{eff}$ is considered better than a small $N_{eff}$. Some says you would need at least blah blah number to properly estimate the credible intervals, but there is no "official" number to go by. My experience tells me to look at $N_{eff}$ together with other diagnostics. Sometimes you may see GR (Gelman-Rubin statistic, or $\hat R$) passes the test but $N_{eff}$ is small. You may want to investigate the trace plot for that particular output. Also, when the simulation iterations are small, the results for $N_{eff}$ can get wacky.
 
-The items with "`_prop`" are the posterior samples/simulations (i.e., trace) for age or population proportions in a data frame. The data frame contains output from all MCMC chains stacked together. In this example, I run two chains with 50 iterations, burn-ins of 25, and no thinning. Because I chose to keep the burn-ins, the results are 50 rows of output in each chain. Stacking the two chains we end up with 100 rows of posterior samples.
+The items with "`_prop`" are the posterior samples/simulations (i.e., trace history) for age or population proportions in a data frame. The data frame contains output from all MCMC chains stacked together. In this example, I run two chains with 50 iterations, burn-ins of 25, and no thinning. Because I chose to keep the burn-ins, the results are 50 rows of output in each chain. Stacking the two chains we end up with 100 rows of posterior samples.
 
 ```{r age-prop}
 magma_summ$age_prop
 
 ```
+
+Trace histories can be included as a part of the summary output (default), or be saved as `Fst` files in a specified location. If one decided to save the trace histories as `Fst`, they will not be included in the summary. To save the trace histories, use the arghument `save_trace` to specify a location. A folder for the saved files will be automatically created. Each file is labelled based on the type, statistical district/subdistrict/week, and/or reporting group. For example, `ap_d2Alaska.fst` is the trace history for age proportions of district 2 for the Alaska reporting group. `p_d1s2w5.fst` is the trace history for group proportions of district 1, subdistrict 2, and week 5. 
 
 
 ### Trace Plot
@@ -224,9 +225,11 @@ magma_summ$age_prop
 The posterior samples trace can be used to make trace plots with your own code or with function `magmatize_tr_plot()`. If using `magmatize_tr_plot()`, you need to specify the amount of burn-ins and thinning you had when you ran the model. If you forget, you can find them in your raw magma output (e.g., `magma_out$specs`). `magmatize_tr_plot()` outputs one data frame (e.g. sampling period) at a time. The burn-in portion of the output is shaded in red.
 
 ```{r trace-plot, fig.height=12, fig.width=8, out.width="100%", fig.cap="Trace plots for age composition."}
-magmatize_tr_plot(magma_summ$age_prop[[1]], nburn = 25)
+magmatize_tr_plot(magma_summ$age_prop$D1_Koyukuk, nburn = 25)
 
 ```
+
+Note that one can read in the saved trace histories to make trace plots. For example, trace history for age proportions of the Koyukuk reporting group can be plotted using `magmatize_tr_plot(fst::read_fst(paste0(wd, "/trace_district/ap_d1Koyukuk.fst")), nburn = 25)`.
 
 
 ### Individual (group membership) assignment
@@ -234,7 +237,7 @@ magmatize_tr_plot(magma_summ$age_prop[[1]], nburn = 25)
 `magmatize_indiv()` summarizes the posterior means of group membership for each individual in the metadata. The probability output can be organized in populations or combined into reporting groups (for single districts only).
 
 ```{r ia}
-magma_indiv <- magmatize_indiv(ma_out = magma_out, ma_dat = yomamafat, out_repunit = TRUE)
+magma_indiv <- magmatize_indiv(ma_out = freak_out, ma_dat = yomamafat, out_repunit = TRUE)
 
 magma_indiv
 

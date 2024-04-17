@@ -134,7 +134,14 @@ magmatize_data <-
     }
 
 
-    #### Age Data #### ----
+    #### Read data #### ----
+
+    harvest <-
+      utils::read.table( paste0(wd, "/data/harvest", fishery, ".txt"),
+                         header = TRUE,
+                         sep = "\t",
+                         stringsAsFactors = FALSE
+      )
 
     metadat0 <-
       utils::read.table(
@@ -143,7 +150,29 @@ magmatize_data <-
         header = TRUE,
         stringsAsFactors = FALSE,
         row.names = 1
+      ) %>%
+      dplyr::filter(DISTRICT %in% unique(harvest$DISTRICT))
+
+    groups0 <-
+      utils::read.table(
+        file = paste0(wd, "/data/groups", fishery, ".txt"),
+        header = TRUE,
+        row.names = 1,
+        sep = "\t",
+        stringsAsFactors = FALSE
       )
+
+    group_names <-
+      utils::read.table(
+        file = paste0(wd, "/data/group_names", fishery, ".txt"),
+        header = TRUE,
+        sep = "\t",
+        stringsAsFactors = FALSE
+      ) %>%
+      dplyr::mutate_all(~ stringr::str_replace_all(., c("/" = "")))
+
+
+    #### Age Data #### ----
 
     euro_age <- stats::setNames(metadat0$AGE_EUROPEAN, rownames(metadat0))
 
@@ -151,6 +180,11 @@ magmatize_data <-
       sapply(euro_age[!is.na(euro_age)], function(chr) {
         paste(c(rep(0, 2 - nchar(chr)), chr), collapse = "")
       }) # add 0's to 0x class
+
+    age_classes[nchar(age_classes) < 2] <-
+      sapply(age_classes[nchar(age_classes) < 2], function(chr) {
+        paste(c(rep(0, 2 - nchar(chr)), chr), collapse = "")
+      }) %>% unlist() # add 0's to 0x class
 
     fw_age_range <-
       range(as.integer(substr(
@@ -169,10 +203,7 @@ magmatize_data <-
     extra_ages <-
       age_classes[which(!age_classes %in% c(euro_ages, "0X", "other", "all"))]
 
-    euro_ages <-
-      sort(c(extra_ages, euro_ages))
-
-    C <- length(euro_ages)
+    euro_ages <- sort(c(extra_ages, euro_ages))
 
     if ("all" %in% age_classes) {
       age_classes <- euro_ages
@@ -180,12 +211,16 @@ magmatize_data <-
       stop("Unspecified age class(es) found in metadata. Include an 'other' age class to catch unspecified age classes.")
     } else if (!all(c("0X", "other") %in% age_classes) & length(age_classes) > length(euro_ages)) {
       euro_ages <- age_classes
-      C <- length(euro_ages)
     }
 
     if ("other" %in% age_classes) {
       A <- match("other", age_classes)
-    } else A <- length(age_classes)
+    } else {
+      A <- length(age_classes)
+      euro_ages <- euro_ages[which(euro_ages %in% c(euro_age, age_classes))]
+    }
+
+    C <- length(euro_ages)
 
     age_class <- stats::setNames(rep(A, C), euro_ages)
 
@@ -198,23 +233,6 @@ magmatize_data <-
       match(euro_ages[euro_ages %in% age_classes], age_classes)
 
     #### Baseline Data #### ----
-
-    groups0 <-
-      utils::read.table(
-        file = paste0(wd, "/data/groups", fishery, ".txt"),
-        header = TRUE,
-        row.names = 1,
-        sep = "\t",
-        stringsAsFactors = FALSE
-      )
-
-    group_names <-
-      utils::read.table(
-        file = paste0(wd, "/data/group_names", fishery, ".txt"),
-        header = TRUE,
-        sep = "\t",
-        stringsAsFactors = FALSE
-      )
 
     hatcheries <- sort(unique(metadat0$SOURCE[metadat0$SOURCE != "WILD"]))
 
@@ -425,8 +443,7 @@ magmatize_data <-
 
     stat_weeks <- sort(unique(metadat0$STAT_WEEK))
     W <- length(stat_weeks)
-    stat_week <-
-      as.integer(factor(metadat0$STAT_WEEK, levels = stat_weeks))
+    stat_week <- as.integer(factor(metadat0$STAT_WEEK, levels = stat_weeks))
 
     metadat <-
       data.frame(
@@ -439,24 +456,18 @@ magmatize_data <-
         row.names = rownames(metadat0)
       )
 
-    harvest <-
-      utils::read.table( paste0(wd, "/data/harvest", fishery, ".txt"),
-                  header = TRUE,
-                  sep = "\t",
-                  stringsAsFactors = FALSE
+    harvest <- harvest %>%
+      dplyr::mutate(
+        DISTRICT = as.integer(factor(DISTRICT, levels = districts)),
+        SUBDISTRICT = sapply(seq.int(nrow(harvest)), function(rw) {
+          as.integer(
+            factor(harvest$SUBDISTRICT[rw],
+                   levels = subdistricts[[as.character(harvest$DISTRICT[rw])]])
+          )
+        }),
+        STAT_WEEK = as.integer(factor(STAT_WEEK, levels = stat_weeks)),
+        HARVEST = as.numeric(HARVEST)
       )
-    harvest$DISTRICT <-
-      as.integer(factor(harvest$DISTRICT, levels = districts))
-    harvest$SUBDISTRICT <-
-      sapply(seq(nrow(harvest)), function(rw) {
-        as.integer(
-          factor(harvest$SUBDISTRICT[rw],
-                 levels = subdistricts[[harvest$DISTRICT[rw]]])
-        )
-      })
-    harvest$STAT_WEEK <-
-      as.integer(factor(harvest$STAT_WEEK, levels = stat_weeks))
-    harvest$HARVEST <- as.numeric(harvest$HARVEST)
 
 
     #### save data and format output #### ----
@@ -479,40 +490,6 @@ magmatize_data <-
       subdistricts = subdistricts,
       stat_weeks = stat_weeks
     )
-
-    # if (save_data) {
-    #   magma_data_names <-
-    #     c("y", # baseline of allele freq
-    #       "x", # mixture data
-    #       "metadat", # metadata, where, when, age, otolith assignment (i)
-    #       "harvest", # harvest
-    #       "groups", # groupvec with all hatcheries
-    #       "group_names", # all reporting groups
-    #       "K", # wild pops
-    #       "H", # hatchery pops
-    #       "A", # age classes
-    #       "C", # total possible age classes
-    #       # "Yr", # year
-    #       "D", # District
-    #       "S", # Subdistrict
-    #       "W", # weeks
-    #       "age_class", # length = C; all possible
-    #       "age_classes", # length = A; age reporting groups
-    #       # "years2run", # year
-    #       "districts", # list of district names
-    #       "subdistricts", # subdistricts for each district
-    #       "stat_weeks", # which stat weeks
-    #       "loci", # list of loci
-    #       "nalleles", # number of possible alleles for each loci
-    #       "nstates", # number of possible alleles for each loci + number of possible ages
-    #       "hatcheries", # Hatcheries
-    #       "wildpops", # Wild populations
-    #       "magma_data_names",
-    #       "dat_out")
-    #
-    #   save(list = magma_data_names,
-    #        file = paste0(wd, "/data/magma_data", fishery, ".RData"))
-    # }
 
     if(isTRUE(save_data)) {
       saveRDS(dat_out, file = paste0(wd, "/data/magma_data", fishery, ".Rds"))
@@ -584,8 +561,8 @@ prep_malia_data <- function(magma_data, path) {
     trimws %>%
     utils::write.table(., paste0(path, "/groups.txt"), row.names = FALSE)
 
-  tibble::enframe(magma_data$age_class) %>%
-    dplyr::rename(class = value) %>%
+  tibble::enframe(magma_data$age_class, value = "class") %>%
+    dplyr::mutate(classes = magma_data$age_classes[class]) %>%
     as.matrix %>%
     trimws %>%
     utils::write.table(., paste0(path, "/age_class.txt"), row.names = FALSE)
@@ -597,7 +574,7 @@ prep_malia_data <- function(magma_data, path) {
 
 
 utils::globalVariables(c("SillySource", "locus", "n", "altyp", "n_allele",
-                         "SILLY_CODE", "mix", ".",#"fishery",
+                         "SILLY_CODE", "mix", ".",
                          "collection", "DISTRICT"))
 
 

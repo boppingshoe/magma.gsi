@@ -51,7 +51,7 @@ magma_out <- magmatize_mdl(magma_data, nreps = 50, nburn = 25, thin = 1, nchains
 Summarize the results:
 
 ```{r summary}
-magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district", type = "age")
+magma_summ <- magmatize_summ(ma_out = magma_out, ma_dat = magma_data, summ_level = "district")
 
 magma_summ$age_summ[1]
 
@@ -60,7 +60,7 @@ magma_summ$age_summ[1]
 There's a function in the package to make trace plots and inspect mixing of chains.
 
 ```{r example_trace_plot}
-tr_plot(magma_summ$age_prop[[1]])
+magmatize_tr_plot(magma_summ$age_prop[[1]])
 
 ```
 

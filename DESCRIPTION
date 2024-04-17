@@ -8,14 +8,16 @@ Description: Conduct genetic stock identification that includes hatchery marking
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Imports:
     abind,
     coda,
+    data.table,
     doParallel,
     doRNG,
     dplyr,
     foreach,
+    fst,
     ggplot2,
     magrittr,
     parallel,
@@ -24,6 +26,7 @@ Imports:
     stringr,
     tibble,
     tidyfst,
+    tidyft,
     tidyr
 URL: https://github.com/boppingshoe/magma.gsi
 BugReports: https://github.com/boppingshoe/magma.gsi/issues
