@@ -26,9 +26,6 @@ Identify district as 1, 2, ... Default = NULL will summarize all districts.}
 \item{fst_files}{Fst files location if MAGMA model output was saved.}
 
 \item{save_trace}{default = "in_memory" to have trace history as a part of summary. Or specify the path of a directory to save trace history as fst files.}
-
-\item{type}{Identify "pop" or "age" to summarize only populations or age class.
-if you don't specify a "type", it will summarize both pop and age at the same time.}
 }
 \value{
 Summary tables for reporting groups and/or age classes.

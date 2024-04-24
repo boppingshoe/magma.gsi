@@ -611,8 +611,6 @@ format_subdistrict <- function(outraw, dat_in, keep_list, nrows_ap_prop, nchains
 #' @param summ_level Summarize at district or subdistrict level
 #' @param which_dist Function format raw magma output one district at a time.
 #'   Identify district as 1, 2, ... Default = NULL will summarize all districts.
-#' @param type Identify "pop" or "age" to summarize only populations or age class.
-#'   if you don't specify a "type", it will summarize both pop and age at the same time.
 #' @param fst_files Fst files location if MAGMA model output was saved.
 #' @param save_trace default = "in_memory" to have trace history as a part of summary. Or specify the path of a directory to save trace history as fst files.
 #'
@@ -914,8 +912,10 @@ old_to_new <- function(oldraw, nrows_ap_prop, nchains, C, W, S, D, age_classes, 
 
 
 utils::globalVariables(c(".", "district", "subdist", "week", "HARVEST", "n", "agevec",
-                         "grpvec", "ppi", "DISTRICT", "SUBDISTRICT", "STAT_WEEK",
-                         "prop_harv", "p", "sum_harv", "stock_prop", "group", "age"))
+                         "grpvec", "ppi", "YEAR", "DISTRICT", "SUBDISTRICT", "STAT_WEEK",
+                         "prop_harv", "p", "sum_harv", "stock_prop", "group", "age",
+                         "d", "s", "w", "prop_harv_d", "prop_harv_wk", "ppi_d", "ppi_wk",
+                         "grpname", "prop_harv_s", "ppi_s", "ch", "out_jl"))
 
 
 
