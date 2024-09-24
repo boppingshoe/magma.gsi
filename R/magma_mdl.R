@@ -143,15 +143,16 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
       dimnames = list(wildpops, alleles)
     ) # genetic part of prior (beta)
 
-  age_priors <- (rep(1/ table(age_class), table(age_class)) / length(unique(age_class)))[match(names(age_class), names(sort(age_class)))] # flat age priors
+  age_priors <- (rep(1/ table(age_class), table(age_class)) / length(unique(age_class)))[match(names(age_class), names(sort(age_class)))] # flat age priors, sorted order
 
   if (age_prior == "zero_out") {
-    if (any(age_classes == "other")) {
-      other_age_class <- which(age_classes == "other")
-      age_priors[which(names(age_priors) == other_age_class)] <- 1e-5
-    } else {
-      age_priors[seq.int(length(age_class)) %in% metadat$age] <- 1e-5
-    }
+    # if (any(age_classes == "other")) { # force age classes in "other" to 0's
+    #   other_age_class <- which(age_classes == "other")
+    #   age_priors[which(names(age_priors) == other_age_class)] <- 1e-5
+    # } else {
+    #   age_priors[!seq.int(length(age_class)) %in% metadat$age] <- 1e-5
+    # }
+    age_priors[!seq.int(length(age_class)) %in% metadat$age] <- 1e-5
     age_priors <- prop.table(age_priors)
   } else if (age_prior == "weak_flat") {
     age_priors <- age_priors / 10
