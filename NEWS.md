@@ -1,3 +1,3 @@
-# magma.gsi (development version)
+# magma.gsi 1.0.0
 
-* Initial CRAN submission.
+* First working version as an R package
