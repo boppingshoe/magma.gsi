@@ -252,10 +252,10 @@ We will first introduce Pella-Masuda model in this section because it is the bac
 
 ## Pella-Masuda Model
 
-$$\newcommand{\mx}[1]{\mathbf{#1}}$$
-For a population comprised of multiple distinct groups, genetic stock identification (GSI) is used to estimate the group membership of each individual based on its genetic make-up (i.e., allele frequencies). The GSI model also estimates the overall group proportions based on the number of individuals assigned to each group. In the fishery context, genetic data of the individuals is called the *mixture* because it consists of multi-locus allele frequencies of individual fish collected from a mixed-stock fishery. $\mx x$ denotes the mixture. In this document, a bold-font letter represents a *number set*, or a collection of distinct elements. For example, $\mx x$ is a set that contains individual $x$ elements. And $x_{m,l,j}$ is the count of allele $j$ in locus $l$ for individual fish $m$, where $m \in \{1,2,...,M\}$, $l \in \{1,2,...,L\}$, and $j \in \{1,2,...,J_l\}$ depends on locus $l$.
+<!-- $$\newcommand{\mx}[1]{\mathbf{#1}}$$ -->
+For a population comprised of multiple distinct groups, genetic stock identification (GSI) is used to estimate the group membership of each individual based on its genetic make-up (i.e., allele frequencies). The GSI model also estimates the overall group proportions based on the number of individuals assigned to each group. In the fishery context, genetic data of the individuals is called the *mixture* because it consists of multi-locus allele frequencies of individual fish collected from a mixed-stock fishery. $\mathbf x$ denotes the mixture. In this document, a bold-font letter represents a *number set*, or a collection of distinct elements. For example, $\mathbf x$ is a set that contains individual $x$ elements. And $x_{m,l,j}$ is the count of allele $j$ in locus $l$ for individual fish $m$, where $m \in \{1,2,...,M\}$, $l \in \{1,2,...,L\}$, and $j \in \{1,2,...,J_l\}$ depends on locus $l$.
 
-Genetic data of the populations is called the *baseline* because it consists allele frequencies of various reference populations collected at their spawning locations. Researchers select sampling locations to best represent demographic production and genetic diversity of populations in an area. $\mx y$ denotes the baseline sample. $y_{k,l,j}$ is the count of allele $j$ in locus $l$ for a sample of size $n_{k,l}$ collected from baseline population $k$, where $k \in \{1,2,...,K\}$.
+Genetic data of the populations is called the *baseline* because it consists allele frequencies of various reference populations collected at their spawning locations. Researchers select sampling locations to best represent demographic production and genetic diversity of populations in an area. $\mathbf y$ denotes the baseline sample. $y_{k,l,j}$ is the count of allele $j$ in locus $l$ for a sample of size $n_{k,l}$ collected from baseline population $k$, where $k \in \{1,2,...,K\}$.
 
 For both mixture and baseline, it is assumed that allele counts in each locus follow a multinomial distribution[^3]. Using a made-up example, in a baseline, there are two alleles in locus 1 for population 2. Counts for the two alleles are $y_{1,2,1},  y_{1,2,2}$, and they follow a multinomial distribution with parameters $q_{1,2,1}, q_{1,2,2}$ and size $n_{2,1}$. Note that $q_{1,2,1}, q_{1,2,2}$ are the relative frequencies of the two alleles in locus 1 for population 2. In a Bayesian framework, we need to specify prior distributions for parameters; therefore, we place a Dirichlet[^4] prior distribution on $q_{1,2,1}, q_{1,2,2}$ with hyperparameters[^5] $\beta_{1,1}, \beta_{1,2}$, where $\beta_{1,1} = \beta_{1,2} = 1/2$ based on the number of alleles for locus 1.
 
@@ -267,39 +267,39 @@ For both mixture and baseline, it is assumed that allele counts in each locus fo
 
 [^5]: A hyperparameter is a parameter of a prior distribution.
 
-$\mx q$ represents $q_{1,2,1}$ and $q_{1,2,2}$, together with allele frequencies of other loci and other populations. As you can see, $\mx q$ and $\mx y$ have the same dimension because each relative frequency corresponds to an allele count. In the model, allele frequencies of baseline populations, $\mx q$, determine population proportions. And population proportions is used to determine the identities of individual fish. Individual identities are then tallied and summarized to update baseline allele frequencies. $\mx y$ can be expressed as follows:
+$\mathbf q$ represents $q_{1,2,1}$ and $q_{1,2,2}$, together with allele frequencies of other loci and other populations. As you can see, $\mathbf q$ and $\mathbf y$ have the same dimension because each relative frequency corresponds to an allele count. In the model, allele frequencies of baseline populations, $\mathbf q$, determine population proportions. And population proportions is used to determine the identities of individual fish. Individual identities are then tallied and summarized to update baseline allele frequencies. $\mathbf y$ can be expressed as follows:
 
-$\mx y_k \sim Mult(\mx n_k, \mx q_k)$
+$\mathbf y_k \sim Mult(\mathbf n_k, \mathbf q_k)$
 
-Prior distribution for $\mx q$:
+Prior distribution for $\mathbf q$:
 
-$\mx q_k \sim Dirich(\mx \beta)$,
+$\mathbf q_k \sim Dirich(\mathbf \beta)$,
 
-where $\mx \beta = 1/J_l$ is a commonly used prior for $\mx q$.
+where $\mathbf \beta = 1/J_l$ is a commonly used prior for $\mathbf q$.
 
-As mentioned, for mixture, allele counts in each locus of individual fish follows a multinomial distributions. Distribution of allele counts is related to the allele frequencies of the baseline population which the individual came from. However, the identity of the individual fish is unknown so it needs to be estimated. Here we let $\mx z_m$ represent the population identify for the $m$^th^ mixture individual. $\mx z_m$ is composed of 0's and an 1 with a length $K$ (e.g. number of baseline populations). $z_{m,k} = 1$ if individual $m$ belongs to population $k$, and $z_{m,k} = 0$ otherwise. In a made-up example, $\mx z_{100} = \{0, 0, 1, 0, 0\}$ means that there are only five populations, and individual fish #100 comes from population 3.
+As mentioned, for mixture, allele counts in each locus of individual fish follows a multinomial distributions. Distribution of allele counts is related to the allele frequencies of the baseline population which the individual came from. However, the identity of the individual fish is unknown so it needs to be estimated. Here we let $\mathbf z_m$ represent the population identify for the $m$^th^ mixture individual. $\mathbf z_m$ is composed of 0's and an 1 with a length $K$ (e.g. number of baseline populations). $z_{m,k} = 1$ if individual $m$ belongs to population $k$, and $z_{m,k} = 0$ otherwise. In a made-up example, $\mathbf z_{100} = \{0, 0, 1, 0, 0\}$ means that there are only five populations, and individual fish #100 comes from population 3.
 
-We place a multinomial distribution on $z_{m,1}, z_{m,2}, ..., z_{m,K}$ with size 1 and probabilities equal to population proportions $p_1, p_2, ..., p_K$. We specify a Dirichlet prior distribution on $p_1, p_2, ..., p_K$ with hyperparameters $\alpha_1, \alpha_2, ..., \alpha_K$, where $\alpha_1 = \alpha_2 = ... = \alpha_K = 1/K$. We express $\mx z$ as follows:
+We place a multinomial distribution on $z_{m,1}, z_{m,2}, ..., z_{m,K}$ with size 1 and probabilities equal to population proportions $p_1, p_2, ..., p_K$. We specify a Dirichlet prior distribution on $p_1, p_2, ..., p_K$ with hyperparameters $\alpha_1, \alpha_2, ..., \alpha_K$, where $\alpha_1 = \alpha_2 = ... = \alpha_K = 1/K$. We express $\mathbf z$ as follows:
 
-$\mx z_m \sim Mult(\mx 1, \mx p)$
+$\mathbf z_m \sim Mult(\mathbf 1, \mathbf p)$
 
-A commonly used prior for $\mx p$:
+A commonly used prior for $\mathbf p$:
 
-$\mx p \sim Dirich(\mx \alpha)$,
+$\mathbf p \sim Dirich(\mathbf \alpha)$,
 
-where $\mx \alpha = 1/K$.
+where $\mathbf \alpha = 1/K$.
 
-As mentioned, for mixture sample, allele counts in each locus of individual fish follows a multinomial distributions. The parameters are allele frequencies of the corresponding baseline population with size the numbers of ploidy for each respective locus. Remember that population identity $z_{m,k} = 1$ if individual $m$ belongs to population $k$, and $z_{m,k} = 0$ otherwise. When multiplying population identities, $z_{m,1}, z_{m,2}, ..., z_{m,K}$, and allele frequencies of baseline populations, $\mx q_1, \mx q_2, ..., \mx q_K$, only allele frequencies of baseline population which individual $m$ belong to would remain while the rest goes to zero. $\mx x$ is expressed below.
+As mentioned, for mixture sample, allele counts in each locus of individual fish follows a multinomial distributions. The parameters are allele frequencies of the corresponding baseline population with size the numbers of ploidy for each respective locus. Remember that population identity $z_{m,k} = 1$ if individual $m$ belongs to population $k$, and $z_{m,k} = 0$ otherwise. When multiplying population identities, $z_{m,1}, z_{m,2}, ..., z_{m,K}$, and allele frequencies of baseline populations, $\mathbf q_1, \mathbf q_2, ..., \mathbf q_K$, only allele frequencies of baseline population which individual $m$ belong to would remain while the rest goes to zero. $\mathbf x$ is expressed below.
 
-$\mx x_m \sim Mult(\mx{ploidy}, \mx z_m \circ \mx q)$,
+$\mathbf x_m \sim Mult(\mathbf{ploidy}, \mathbf z_m \circ \mathbf q)$,
 
-where $\mx{ploidy} = ploidy_1, ploidy_2, ..., ploidy_L$ denotes ploidy for each locus. We use $\circ$ to denote the element-wise product.
+where $\mathbf{ploidy} = ploidy_1, ploidy_2, ..., ploidy_L$ denotes ploidy for each locus. We use $\circ$ to denote the element-wise product.
 
-Moran and Anderson (2018) implement a genetic mixture analysis as a *R* package, *rubias*. Their program has been widely used by researchers around the world, including here at the GCL.  *rubias* utilizes a model structure called the conditional GSI model, that is modified from the Pella-Masuda model. The main difference between the two models is that, in the conditional model, $\mx q$ is integrated out of the distribution of mixture sample, $\mx x_m$. That is, baseline allele frequencies are not being updated in the model. The result of that, $\mx x_m$ takes a form of a compound Dirichlet-multinomial distribution (Johnson at el., 1997):
+Moran and Anderson (2018) implement a genetic mixture analysis as a *R* package, *rubias*. Their program has been widely used by researchers around the world, including here at the GCL.  *rubias* utilizes a model structure called the conditional GSI model, that is modified from the Pella-Masuda model. The main difference between the two models is that, in the conditional model, $\mathbf q$ is integrated out of the distribution of mixture sample, $\mathbf x_m$. That is, baseline allele frequencies are not being updated in the model. The result of that, $\mathbf x_m$ takes a form of a compound Dirichlet-multinomial distribution (Johnson at el., 1997):
 
-$\mx x_m \sim CDM(\mx{ploidy}, \mx z_m \circ \mx v)$,
+$\mathbf x_m \sim CDM(\mathbf{ploidy}, \mathbf z_m \circ \mathbf v)$,
 
-where $\mx v$ is $\mx \beta + \mx y$. We are not going to attempt proving the theory behind the conditional GSI model in this document (details can be found in Moran and Anderson, 2018). But since $\mx q$ has been integrated out of $\mx x_m$, the process for estimating parameters is simpler and more streamlined. We implemented a modified version of the conditional GSI in the updated edition of MAGMA.
+where $\mathbf v$ is $\mathbf \beta + \mathbf y$. We are not going to attempt proving the theory behind the conditional GSI model in this document (details can be found in Moran and Anderson, 2018). But since $\mathbf q$ has been integrated out of $\mathbf x_m$, the process for estimating parameters is simpler and more streamlined. We implemented a modified version of the conditional GSI in the updated edition of MAGMA.
 
 
 ## Mark and Age Inclusion
@@ -308,37 +308,37 @@ MAGMA is basically Pella-Masuda model with extension to include otolith marks an
 
 With the addition of otolith marking, the entire mixture sample of size $M$ is now comprised of three components: 1) the number of wild fish that are genotyped $M^{(1)}$; 2) the number of wild fish that are not genotyped $M^{(2)}$; and 3) the number of otolith-marked fish $M^{(3)}$. Note that $M = M^{(1)} + M^{(2)} + M^{(3)}$.
 
-Population identities are also partitioned into three components. $\mx z$ is now $\mx z^{(1)}$, $\mx z^{(2)}$, and $\mx z^{(3)}$, each corresponding to the respective sample-component. Compartmentalized $\mx z^{(i)}_m$, where $i \in \{1,2,3\}$, still follow a multinomial distribution with size 1 and parameter $\mx p$ as described previously. However, with the addition of hatchery populations, $\mx z^{(i)}_m$ and parameters $\mx p$ are now of length $K+H$. $p_1, p_2, ..., p_{K+H}$ have a Dirichlet distribution with hyperparameters $\alpha_1, \alpha_2, ..., \alpha_{K+H} = 1/(K+H)$. We express $\mx z^{(i)}$ and prior for $\mx p$ as follows:
+Population identities are also partitioned into three components. $\mathbf z$ is now $\mathbf z^{(1)}$, $\mathbf z^{(2)}$, and $\mathbf z^{(3)}$, each corresponding to the respective sample-component. Compartmentalized $\mathbf z^{(i)}_m$, where $i \in \{1,2,3\}$, still follow a multinomial distribution with size 1 and parameter $\mathbf p$ as described previously. However, with the addition of hatchery populations, $\mathbf z^{(i)}_m$ and parameters $\mathbf p$ are now of length $K+H$. $p_1, p_2, ..., p_{K+H}$ have a Dirichlet distribution with hyperparameters $\alpha_1, \alpha_2, ..., \alpha_{K+H} = 1/(K+H)$. We express $\mathbf z^{(i)}$ and prior for $\mathbf p$ as follows:
 
-$\mx z^{(i)}_m \sim Mult(\mx 1, \mx p)$
+$\mathbf z^{(i)}_m \sim Mult(\mathbf 1, \mathbf p)$
 
-$\mx p \sim Dirich(\mx \alpha)$,
+$\mathbf p \sim Dirich(\mathbf \alpha)$,
 
-where $\mx \alpha = 1/(K+H)$
+where $\mathbf \alpha = 1/(K+H)$
 
 Allele counts are only available from individual fish that are genotyped; hence, genetic information is now compartmentalized to component 1 of the mixture sample:
 
-$\mx x^{(1)}_m \sim Mult(\mx{ploidy}, \mx z^{(1)}_m \cdot \mx q)$
+$\mathbf x^{(1)}_m \sim Mult(\mathbf{ploidy}, \mathbf z^{(1)}_m \cdot \mathbf q)$
 
 It is similar for the conditional GSI model:
 
-$\mx x^{(1)}_m \sim CDM(\mx{ploidy}, \mx z^{(1)}_m \cdot \mx v)$
+$\mathbf x^{(1)}_m \sim CDM(\mathbf{ploidy}, \mathbf z^{(1)}_m \cdot \mathbf v)$
 
 No genetic baseline samples are required for the hatchery populations so that the genetic baseline $y$ is unchanged from the Pella-Masuda model; however, no age-class baseline is available for any population. As described earlier, some fish in the mixture sample are aged and some are not. However, in this document we will pretend that all fish are aged so that the notation would be less headache-inducing. The fundamental concept would still be the same when not all fish were aged, only with more complicated notations.
 
-Age class is identified as $c$, where $c \in \{1,2,...,C\}$. $\mx a$ denotes the age identities of mixture fish. Let $\mx a_m$ represent the age identify for the $m$^th^ mixture individual. $\mx a_m$ are also partitioned into three subsets, $\mx a^{(1)}$, $\mx a^{(2)}$, and $\mx a^{(3)}$, according to the sample-components. However, it is not necessary to compartmentalize $\mx a_m$ for the most part in the model. Age identity and population identity have a similar structure, and $\mx a_m$ is also composed of 0's and an 1 but with a length $C$. $a_{m,c}$ is the age identity for the $m$^th^ mixture individual in the $c$^th^ age class, where $a_{m,c} = 1$ if individual $m$ has age class $c$, and $a_{m,c} = 0$ otherwise. For example, if there were three age classes and fish #6 was age 3, then $\mx a_6 = \{0, 0, 1\}$.
+Age class is identified as $c$, where $c \in \{1,2,...,C\}$. $\mathbf a$ denotes the age identities of mixture fish. Let $\mathbf a_m$ represent the age identify for the $m$^th^ mixture individual. $\mathbf a_m$ are also partitioned into three subsets, $\mathbf a^{(1)}$, $\mathbf a^{(2)}$, and $\mathbf a^{(3)}$, according to the sample-components. However, it is not necessary to compartmentalize $\mathbf a_m$ for the most part in the model. Age identity and population identity have a similar structure, and $\mathbf a_m$ is also composed of 0's and an 1 but with a length $C$. $a_{m,c}$ is the age identity for the $m$^th^ mixture individual in the $c$^th^ age class, where $a_{m,c} = 1$ if individual $m$ has age class $c$, and $a_{m,c} = 0$ otherwise. For example, if there were three age classes and fish #6 was age 3, then $\mathbf a_6 = \{0, 0, 1\}$.
 
-We place a multinomial distribution on $a_{m,1}, a_{m,2}, ..., a_{m,C}$ with size 1 and probabilities equal to age-class frequencies $\mx z_m \cdot \mx \pi$, where $\mx \pi$ denotes age-class frequencies within each population 1 through $K+H$. You can picture $\mx \pi$ as a matrix with $K+H$ populations of rows and $C$ age classes of columns. Therefore, when multiplying population identities, $z_{m,1}, z_{m,2}, ..., z_{m,K}$, and age-class frequencies, $\mx \pi_{1,\{1,2,...,C\}}, \mx \pi_{2,\{1,2,...,C\}}, ..., \mx \pi_{K+H,\{1,2,...,C\}}$, only age-class frequencies within the population which individual $m$ belong to would remain while the rest goes to zero.
+We place a multinomial distribution on $a_{m,1}, a_{m,2}, ..., a_{m,C}$ with size 1 and probabilities equal to age-class frequencies $\mathbf z_m \cdot \mathbf \pi$, where $\mathbf \pi$ denotes age-class frequencies within each population 1 through $K+H$. You can picture $\mathbf \pi$ as a matrix with $K+H$ populations of rows and $C$ age classes of columns. Therefore, when multiplying population identities, $z_{m,1}, z_{m,2}, ..., z_{m,K}$, and age-class frequencies, $\mathbf \pi_{1,\{1,2,...,C\}}, \mathbf \pi_{2,\{1,2,...,C\}}, ..., \mathbf \pi_{K+H,\{1,2,...,C\}}$, only age-class frequencies within the population which individual $m$ belong to would remain while the rest goes to zero.
 
-We specify a Dirichlet prior on $\pi_{k,1}, \pi_{k,2}, ..., \pi_{k,C}$ with hyperparameters $\gamma_1, \gamma_2, ..., \gamma_C = 1/C$. We express $\mx a$ and prior for $\mx \pi$ as follows:
+We specify a Dirichlet prior on $\pi_{k,1}, \pi_{k,2}, ..., \pi_{k,C}$ with hyperparameters $\gamma_1, \gamma_2, ..., \gamma_C = 1/C$. We express $\mathbf a$ and prior for $\mathbf \pi$ as follows:
 
-$\mx a_m \sim Mult(\mx 1, \mx z_m \cdot \mx \pi)$
+$\mathbf a_m \sim Mult(\mathbf 1, \mathbf z_m \cdot \mathbf \pi)$
 
-$\mx \pi \sim Dirich(\mx \gamma)$,
+$\mathbf \pi \sim Dirich(\mathbf \gamma)$,
 
-where $\mx \gamma = 1/C$
+where $\mathbf \gamma = 1/C$
 
-Estimation of MAGMA parameters requires deriving the conditional distributions for $\mx p, \mx q,\mx z^{(1)}, \mx z^{(2)}, \mx\pi|\mx x, \mx y, \mx z^{(3)}, \mx a, \mx\alpha, \mx\beta, \mx\gamma$. In the next section, we will introduce the concepts and an algorithm to sample the posterior distribution.
+Estimation of MAGMA parameters requires deriving the conditional distributions for $\mathbf p, \mathbf q, \mathbf z^{(1)}, \mathbf z^{(2)}, \mathbf\pi|\mathbf x, \mathbf y, \mathbf z^{(3)}, \mathbf a, \mathbf\alpha, \mathbf\beta, \mathbf\gamma$. In the next section, we will introduce the concepts and an algorithm to sample the posterior distribution.
 
 ![MAGMA DAG: A simplified directed acyclic graph of MAGMA model. Ovals represent variables in the model. Shaded boxes represent observed variables. Diamond shapes represent the prior distributions. The large rectangles represent replication over individuals and/or loci. See main text for full explanation of the model.](magma_dag.png){width="100%"}
 
@@ -346,75 +346,75 @@ Estimation of MAGMA parameters requires deriving the conditional distributions f
 
 Gibbs sampler is a type of Markov chain Monte Carlo (MCMC) methods that sequentially sample parameter values from a Markov chain. With enough sampling, the Markov chain will eventually converge to the joint posterior distribution of the parameters. The most appealing quality of Gibbs sampler is its reduction of a multivariate problem (such as Pella-Masuda and MAGMA models) to a series of more manageable lower-dimensional problems. A full description of Gibbs sampler and MCMC methods is beyond the scope of this document; however, further information can be found in numerous resources devoting to Bayesian data analysis (see Carlin & Louis, 2009; Robert & Casella, 2010; Gelman et al., 2014)
 
-To illustrate, suppose we would like to determine the joint posterior distribution of interest, $p(\mx \theta|\mx y)$, where $\mx \theta = \{\theta_1, \theta_2,..., \theta_K\}$. Most likely the multivariate $p(\mx \theta|\mx y)$ would be too complicated to sample from. However, if we can figure out how to break up the joint posterior distribution into individual full conditional distributions[^2], each parameter in $\mx \theta$ can be sampled one by one sequentially using a Gibbs sampler algorithm. The process begins with an arbitrary set of starting values $\theta^{(0)}_2, \theta^{(0)}_3,..., \theta^{(0)}_K$ and proceeds as follows:
+To illustrate, suppose we would like to determine the joint posterior distribution of interest, $p(\mathbf \theta|\mathbf y)$, where $\mathbf \theta = \{\theta_1, \theta_2,..., \theta_K\}$. Most likely the multivariate $p(\mathbf \theta|\mathbf y)$ would be too complicated to sample from. However, if we can figure out how to break up the joint posterior distribution into individual full conditional distributions[^2], each parameter in $\mathbf \theta$ can be sampled one by one sequentially using a Gibbs sampler algorithm. The process begins with an arbitrary set of starting values $\theta^{(0)}_2, \theta^{(0)}_3,..., \theta^{(0)}_K$ and proceeds as follows:
 
 For $t = 1,2,...,T$, repeat
 
-1. Draw $\theta^{(t)}_1$ from $p(\theta_1|\theta^{(t-1)}_2, \theta^{(t-1)}_3,..., \theta^{(t-1)}_k, \mx y)$
-2. Draw $\theta^{(t)}_2$ from $p(\theta_2|\theta^{(t)}_1, \theta^{(t-1)}_3,..., \theta^{(t-1)}_k, \mx y)$
+1. Draw $\theta^{(t)}_1$ from $p(\theta_1|\theta^{(t-1)}_2, \theta^{(t-1)}_3,..., \theta^{(t-1)}_k, \mathbf y)$
+2. Draw $\theta^{(t)}_2$ from $p(\theta_2|\theta^{(t)}_1, \theta^{(t-1)}_3,..., \theta^{(t-1)}_k, \mathbf y)$
 
     ⋮
   
-k. Draw $\theta^{(t)}_k$ from $p(\theta_k|\theta^{(t)}_1, \theta^{(t)}_2,..., \theta^{(t)}_{k-1}, \mx y)$
+k. Draw $\theta^{(t)}_k$ from $p(\theta_k|\theta^{(t)}_1, \theta^{(t)}_2,..., \theta^{(t)}_{k-1}, \mathbf y)$
 
-This would work best if the full conditionals are some known distributions that we can easily sample from (although it's not required). In our case with MAGMA model, we rely on two main concepts, the Bayes theorem and conjugacy, to do the trick. Briefly, for estimating parameters $\mx\theta$ from data $\mx D$, according to Bayes Rule, $p(\mx\theta|\mx D) = \displaystyle \frac{p(\mx D|\mx\theta)p(\mx\theta)}{p(\mx D)}$. $p(\mx\theta|\mx D)$ is the joint posterior distribution for parameters $\mx\theta$, $p(\mx D|\mx\theta)$ is the likelihood of observing the data given the parameters, $p(\mx\theta)$ is the prior distribution of the parameters, and $p(\mx D)$ is the constant marginal distribution of the data. $p(\mx D)$ is often mathematically difficult to obtain; however, because $p(\mx D)$ is a constant number, we can ignore it by reducing the posterior distribution to $p(\mx\theta|\mx D) \propto p(\mx D|\mx\theta)p(\mx\theta)$.
+This would work best if the full conditionals are some known distributions that we can easily sample from (although it's not required). In our case with MAGMA model, we rely on two main concepts, the Bayes theorem and conjugacy, to do the trick. Briefly, for estimating parameters $\mathbf\theta$ from data $\mathbf D$, according to Bayes Rule, $p(\mathbf\theta|\mathbf D) = \displaystyle \frac{p(\mathbf D|\mathbf\theta)p(\mathbf\theta)}{p(\mathbf D)}$. $p(\mathbf\theta|\mathbf D)$ is the joint posterior distribution for parameters $\mathbf\theta$, $p(\mathbf D|\mathbf\theta)$ is the likelihood of observing the data given the parameters, $p(\mathbf\theta)$ is the prior distribution of the parameters, and $p(\mathbf D)$ is the constant marginal distribution of the data. $p(\mathbf D)$ is often mathematically difficult to obtain; however, because $p(\mathbf D)$ is a constant number, we can ignore it by reducing the posterior distribution to $p(\mathbf\theta|\mathbf D) \propto p(\mathbf D|\mathbf\theta)p(\mathbf\theta)$.
 
 So, how does Bayes Rule help us estimating parameters in MAGMA model? First, the joint posterior distribution has to be split up into smaller pieces. That is, we separate the joint posterior into likelihood of the data and priors for the parameters:
 
-$p(\mx p, \mx q, \mx z^{(1)}, \mx z^{(2)}, \mx\pi|\mx x, \mx y, \mx a, \mx z^{(3)}, \mx\alpha, \mx\beta, \mx\gamma)$
+$p(\mathbf p, \mathbf q, \mathbf z^{(1)}, \mathbf z^{(2)}, \mathbf\pi|\mathbf x, \mathbf y, \mathbf a, \mathbf z^{(3)}, \mathbf\alpha, \mathbf\beta, \mathbf\gamma)$
 
-$\propto p(\mx x|\mx z^{(1)}, \mx q) p(\mx y|\mx q) p(\mx a|\mx z,\mx\pi) p(\mx z^{(3)}|\mx p) \cdot p(\mx p|\mx\alpha) p(\mx q|\mx\beta) p(\mx z^{(1)}|\mx p) p(\mx z^{(2)}|\mx p) p(\mx \pi|\mx\gamma)$
+$\propto p(\mathbf x|\mathbf z^{(1)}, \mathbf q) p(\mathbf y|\mathbf q) p(\mathbf a|\mathbf z,\mathbf\pi) p(\mathbf z^{(3)}|\mathbf p) \cdot p(\mathbf p|\mathbf\alpha) p(\mathbf q|\mathbf\beta) p(\mathbf z^{(1)}|\mathbf p) p(\mathbf z^{(2)}|\mathbf p) p(\mathbf \pi|\mathbf\gamma)$
 
-$= p(\mx x|\mx z^{(1)}, \mx q) p(\mx y|\mx q) p(\mx a|\mx z,\mx\pi) \cdot p(\mx p|\mx\alpha) p(\mx q|\mx\beta) p(\mx z|\mx p) p(\mx \pi|\mx\gamma)$
+$= p(\mathbf x|\mathbf z^{(1)}, \mathbf q) p(\mathbf y|\mathbf q) p(\mathbf a|\mathbf z,\mathbf\pi) \cdot p(\mathbf p|\mathbf\alpha) p(\mathbf q|\mathbf\beta) p(\mathbf z|\mathbf p) p(\mathbf \pi|\mathbf\gamma)$
 
-With some re-arrangements and hand-waving, we arrive at the conditional distributions for $\mx q$, $\mx p$, and $\mx\pi$:
+With some re-arrangements and hand-waving, we arrive at the conditional distributions for $\mathbf q$, $\mathbf p$, and $\mathbf\pi$:
 
-$p(\mx x|\mx z^{(1)}, \mx q) p(\mx y|\mx q) p(\mx a|\mx z,\mx\pi) \cdot p(\mx p|\mx\alpha) p(\mx q|\mx\beta) p(\mx z|\mx p) p(\mx \pi|\mx\gamma)$
+$p(\mathbf x|\mathbf z^{(1)}, \mathbf q) p(\mathbf y|\mathbf q) p(\mathbf a|\mathbf z,\mathbf\pi) \cdot p(\mathbf p|\mathbf\alpha) p(\mathbf q|\mathbf\beta) p(\mathbf z|\mathbf p) p(\mathbf \pi|\mathbf\gamma)$
 
-$= p(\mx x|\mx z^{(1)}, \mx q) p(\mx y|\mx q) p(\mx q|\mx\beta) \cdot p(\mx z|\mx p) p(\mx p|\mx\alpha) \cdot p(\mx a|\mx z,\mx\pi) p(\mx \pi|\mx\gamma)$
+$= p(\mathbf x|\mathbf z^{(1)}, \mathbf q) p(\mathbf y|\mathbf q) p(\mathbf q|\mathbf\beta) \cdot p(\mathbf z|\mathbf p) p(\mathbf p|\mathbf\alpha) \cdot p(\mathbf a|\mathbf z,\mathbf\pi) p(\mathbf \pi|\mathbf\gamma)$
 
-$\propto p(\mx x,\mx y,\mx z^{(1)}|\mx q) p(\mx q|\mx\beta) \cdot p(\mx z|\mx p) p(\mx p|\mx\alpha) \cdot p(\mx a,\mx z|\mx\pi) p(\mx \pi|\mx\gamma)$
+$\propto p(\mathbf x,\mathbf y,\mathbf z^{(1)}|\mathbf q) p(\mathbf q|\mathbf\beta) \cdot p(\mathbf z|\mathbf p) p(\mathbf p|\mathbf\alpha) \cdot p(\mathbf a,\mathbf z|\mathbf\pi) p(\mathbf \pi|\mathbf\gamma)$
 
-$\propto p(\mx q|\mx x,\mx y,\mx z^{(1)},\mx\beta) \cdot p(\mx p|\mx z,\mx\alpha) \cdot p(\mx \pi|\mx a,\mx z,\mx\gamma)$
+$\propto p(\mathbf q|\mathbf x,\mathbf y,\mathbf z^{(1)},\mathbf\beta) \cdot p(\mathbf p|\mathbf z,\mathbf\alpha) \cdot p(\mathbf \pi|\mathbf a,\mathbf z,\mathbf\gamma)$
 
 Next, we take advantage of a mathematical property called *conjugacy* to help us determine the full conditional distributions. Based on this property, the posterior distribution follows the same parametric form as the prior distribution when prior is a *conjugate family* for the likelihood. For example, if the likelihood of data is binomial distribution and the prior of parameter is beta distribution, then the posterior is also beta distribution because beta is a conjugate family for binomial. There are many conjugate families, and Dirichlet and multinomial are another example.
 
-Utilizing conjugacy property, we will determine each of the conditional distributions for $\mx q$, $\mx p$, and $\mx\pi$.
+Utilizing conjugacy property, we will determine each of the conditional distributions for $\mathbf q$, $\mathbf p$, and $\mathbf\pi$.
 
 
 ### Conditional distribution p(q|x, y, z^(1)^, $\beta$)
 
-We determine that $p(\mx q|\mx x,\mx y,\mx z^{(1)},\mx\beta)$ is Dirichlet-distributed because Dirichlet prior $p(\mx q|\mx\beta)$ is a conjugate family for the multinomial likelihoods $p(\mx x|\mx z^{(1)}, \mx q)$ and $p(\mx y|\mx q)$. To determine the exact parameterization for the posterior distribution, we need to derive the prior and likelihoods first.
+We determine that $p(\mathbf q|\mathbf x,\mathbf y,\mathbf z^{(1)},\mathbf\beta)$ is Dirichlet-distributed because Dirichlet prior $p(\mathbf q|\mathbf\beta)$ is a conjugate family for the multinomial likelihoods $p(\mathbf x|\mathbf z^{(1)}, \mathbf q)$ and $p(\mathbf y|\mathbf q)$. To determine the exact parameterization for the posterior distribution, we need to derive the prior and likelihoods first.
 
-Likelihood $p(\mx x|\mx z^{(1)}, \mx q)$ can be derived in two steps. The first step we conditioned the likelihood on $\mx z^{(1)}$ so that
+Likelihood $p(\mathbf x|\mathbf z^{(1)}, \mathbf q)$ can be derived in two steps. The first step we conditioned the likelihood on $\mathbf z^{(1)}$ so that
 
-$p(\mx x|\mx z^{(1)}, \mx q) \propto \displaystyle \prod^{M^{(1)}}_{m=1} \prod^{K}_{k=1} [f(\mx x_m|\mx q_k)]^{z^{(1)}_{m,k}}$,
+$p(\mathbf x|\mathbf z^{(1)}, \mathbf q) \propto \displaystyle \prod^{M^{(1)}}_{m=1} \prod^{K}_{k=1} [f(\mathbf x_m|\mathbf q_k)]^{z^{(1)}_{m,k}}$,
 
-where $f(\mx x_m|\mx q_k)$ is the relative frequency of multi-locus genotype for individual $m$ in population $k$. In the next step, we derive $f(\mx x_m|\mx q_k)$:
+where $f(\mathbf x_m|\mathbf q_k)$ is the relative frequency of multi-locus genotype for individual $m$ in population $k$. In the next step, we derive $f(\mathbf x_m|\mathbf q_k)$:
 
-$f(\mx x_m|\mx q_k) \propto \displaystyle \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{x_{m,l,j}}_{k,l,j}$
+$f(\mathbf x_m|\mathbf q_k) \propto \displaystyle \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{x_{m,l,j}}_{k,l,j}$
 
 Then we combine the two,
 
-$p(\mx x|\mx z^{(1)}, \mx q) \propto \displaystyle \prod^{M^{(1)}}_{m=1} \prod^{K}_{k=1} [f(\mx x_m|\mx q_k)]^{z^{(1)}_{m,k}}$
+$p(\mathbf x|\mathbf z^{(1)}, \mathbf q) \propto \displaystyle \prod^{M^{(1)}}_{m=1} \prod^{K}_{k=1} [f(\mathbf x_m|\mathbf q_k)]^{z^{(1)}_{m,k}}$
 
 $\propto \displaystyle \prod^{M^{(1)}}_{m=1} \prod^{K}_{k=1} [\displaystyle \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{x_{m,l,j} \cdot z^{(1)}_{m,k}}_{k,l,j}]$
 
 $\propto \displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{\sum^{M^{(1)}}_{m=1} (x_{m,l,j} \cdot z^{(1)}_{m,k})}_{k,l,j}$
 
-Deriving likelihood $p(\mx y|\mx q)$ is more straightforward. It is the product of relative frequency of multi-locus genotype for each population:
+Deriving likelihood $p(\mathbf y|\mathbf q)$ is more straightforward. It is the product of relative frequency of multi-locus genotype for each population:
 
-$p(\mx y|\mx q) \propto \displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{y_{k,l,j}}_{k,l,j}$
+$p(\mathbf y|\mathbf q) \propto \displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{y_{k,l,j}}_{k,l,j}$
 
-And $p(q|\mx\beta)$ is Dirichlet prior distribution. Its probability density has a kernel[^7] of $\mx q^{\mx \beta - 1}$. We can express the likelihood as
+And $p(q|\mathbf\beta)$ is Dirichlet prior distribution. Its probability density has a kernel[^7] of $\mathbf q^{\mathbf \beta - 1}$. We can express the likelihood as
 
-$p(\mx q|\mx\beta) \propto \displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{\beta_{l,j} - 1}_{k,l,j}$.
+$p(\mathbf q|\mathbf\beta) \propto \displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{\beta_{l,j} - 1}_{k,l,j}$.
 
-[^7]: Without involving too much math, *kernel* here refers to what is left over after factoring out the constant from a probability density function (PDF). For example, The PDF of Dirichlet distribution is $\frac{1}{B(\mx \alpha)} \displaystyle \prod^K_{i=1} x^{\alpha_i - 1}_i$. Beta function $B(\mx \alpha)$ can be factored out, and $\displaystyle \prod^K_{i=1} x^{\alpha_i - 1}_i$ is the kernel.
+[^7]: Without involving too much math, *kernel* here refers to what is left over after factoring out the constant from a probability density function (PDF). For example, The PDF of Dirichlet distribution is $\frac{1}{B(\mathbf \alpha)} \displaystyle \prod^K_{i=1} x^{\alpha_i - 1}_i$. Beta function $B(\mathbf \alpha)$ can be factored out, and $\displaystyle \prod^K_{i=1} x^{\alpha_i - 1}_i$ is the kernel.
 
 Put all the likelihoods together,
 
-$p(\mx q|\mx x,\mx y,\mx z^{(1)},\mx\beta) \propto p(\mx x|\mx z^{(1)}, \mx q) p(\mx y|\mx q) p(\mx q|\mx\beta)$
+$p(\mathbf q|\mathbf x,\mathbf y,\mathbf z^{(1)},\mathbf\beta) \propto p(\mathbf x|\mathbf z^{(1)}, \mathbf q) p(\mathbf y|\mathbf q) p(\mathbf q|\mathbf\beta)$
  
 $\propto \displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{\sum^{M^{(1)}}_{m=1} (x_{m,l,j} \cdot z^{(1)}_{m,k})}_{k,l,j} \cdot \displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{y_{k,l,j}}_{k,l,j} \cdot \displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{\beta_{l,j} - 1}_{k,l,j}$
 
@@ -422,14 +422,14 @@ $= \displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{\sum^{M^{(
 
 It is *elementary* for anybody to recognize that $\displaystyle \prod^{K}_{k=1} \prod^{L}_{l=1} \prod^{J_l}_{j=1} q^{\sum^{M^{(1)}}_{m=1} (x_{m,l,j} \cdot z^{(1)}_{m,k}) + y_{k,l,j} + \beta_{l,j} - 1}_{k,l,j}$ is the kernel for Dirichlet distribution. Hence,
 
-$\mx q_{k,l}|\mx x,\mx y,\mx z^{(1)},\mx\beta \sim Dirich(\displaystyle \sum^{M^{(1)}}_{m=1} x_{m,l,j} z^{(1)}_{m,k} + y_{k,l,j} + \beta_{l,j})$
+$\mathbf q_{k,l}|\mathbf x,\mathbf y,\mathbf z^{(1)},\mathbf\beta \sim Dirich(\displaystyle \sum^{M^{(1)}}_{m=1} x_{m,l,j} z^{(1)}_{m,k} + y_{k,l,j} + \beta_{l,j})$
 
 
 ### Conditional distribution p(p|z, $\alpha$)
 
-Using the same logic as previously, $p(\mx p|\mx z,\mx\alpha)$ is also Dirichlet-distributed due to a Dirichlet prior $p(\mx p|\mx\alpha)$ and a multinomial likelihood $p(\mx z|\mx p)$.
+Using the same logic as previously, $p(\mathbf p|\mathbf z,\mathbf\alpha)$ is also Dirichlet-distributed due to a Dirichlet prior $p(\mathbf p|\mathbf\alpha)$ and a multinomial likelihood $p(\mathbf z|\mathbf p)$.
 
-$p(\mx p|\mx z,\mx\alpha) \propto p(\mx z|\mx p) p(\mx p|\mx\alpha)$
+$p(\mathbf p|\mathbf z,\mathbf\alpha) \propto p(\mathbf z|\mathbf p) p(\mathbf p|\mathbf\alpha)$
 
 $\propto \displaystyle \prod^{M}_{m=1} \prod^{K+H}_{k=1} p^{z_{m,k}}_k \cdot \prod^{K+H}_{k=1} p^{\alpha_k - 1}_k$
 
@@ -437,20 +437,20 @@ $\propto \displaystyle \prod^{K+H}_{k=1} p^{\sum^M_{m=1}z_{m,k} + \alpha_k - 1}_
 
 Once again, we recognize it as the kernel for Dirichlet distribution:
 
-$\mx p|\mx z,\mx\alpha \sim Dirich(\displaystyle \sum^M_{m=1}z_{m,k} + \alpha_k)$
+$\mathbf p|\mathbf z,\mathbf\alpha \sim Dirich(\displaystyle \sum^M_{m=1}z_{m,k} + \alpha_k)$
 
 
 ### Conditional distribution p($\pi$|a, z, $\gamma$)
 
-Lastly, $p(\mx \pi|\mx a,\mx z,\mx\gamma)$ is also Dirichlet-distributed due to a Dirichlet prior $p(\mx \pi|\mx\gamma)$ and a multinomial likelihood $p(\mx a|\mx z,\mx\pi)$.
+Lastly, $p(\mathbf \pi|\mathbf a,\mathbf z,\mathbf\gamma)$ is also Dirichlet-distributed due to a Dirichlet prior $p(\mathbf \pi|\mathbf\gamma)$ and a multinomial likelihood $p(\mathbf a|\mathbf z,\mathbf\pi)$.
 
-$p(\mx \pi|\mx a,\mx z,\mx\gamma) \propto p(\mx a|\mx z,\mx\pi) p(\mx \pi|\mx\gamma)$
+$p(\mathbf \pi|\mathbf a,\mathbf z,\mathbf\gamma) \propto p(\mathbf a|\mathbf z,\mathbf\pi) p(\mathbf \pi|\mathbf\gamma)$
 
-$\propto \displaystyle \prod^{M}_{m=1}\prod^{K+H}_{k=1}[h(\mx a_m|\mx\pi_k)]^{z_{m,k}} \cdot \prod^{K+H}_{k=1}\prod^{C}_{c=1}\pi^{\gamma_c - 1}_{k,c}$,
+$\propto \displaystyle \prod^{M}_{m=1}\prod^{K+H}_{k=1}[h(\mathbf a_m|\mathbf\pi_k)]^{z_{m,k}} \cdot \prod^{K+H}_{k=1}\prod^{C}_{c=1}\pi^{\gamma_c - 1}_{k,c}$,
 
-where likelihood $h(\mx a_m|\mx\pi_k) \propto \displaystyle \prod^C_{c=1}\pi^{a_{m,k}}_{k,c}$ is the product of relative frequency of age class for individual $m$ in population $k$. Plugging in $h(\mx a_m|\mx\pi_k)$,
+where likelihood $h(\mathbf a_m|\mathbf\pi_k) \propto \displaystyle \prod^C_{c=1}\pi^{a_{m,k}}_{k,c}$ is the product of relative frequency of age class for individual $m$ in population $k$. Plugging in $h(\mathbf a_m|\mathbf\pi_k)$,
 
-$\displaystyle \prod^{M}_{m=1}\prod^{K+H}_{k=1}[h(\mx a_m|\mx\pi_k)]^{z_{m,k}} \cdot \prod^{K+H}_{k=1}\prod^{C}_{c=1}\pi^{\gamma_c - 1}_{k,c}$
+$\displaystyle \prod^{M}_{m=1}\prod^{K+H}_{k=1}[h(\mathbf a_m|\mathbf\pi_k)]^{z_{m,k}} \cdot \prod^{K+H}_{k=1}\prod^{C}_{c=1}\pi^{\gamma_c - 1}_{k,c}$
 
 $= \displaystyle \prod^{M}_{m=1}\prod^{K+H}_{k=1}[\displaystyle \prod^C_{c=1}\pi^{a_{m,k}z_{m,k}}_{k,c}] \cdot \prod^{K+H}_{k=1}\prod^{C}_{c=1}\pi^{\gamma_c - 1}_{k,c}$
 
@@ -460,32 +460,32 @@ $= \displaystyle \prod^{K+H}_{k=1}\displaystyle \prod^C_{c=1}\pi^{\sum^M_{m=1}a_
 
 And we recognize it as the kernel for Dirichlet distribution:
 
-$\mx \pi_k|\mx a, \mx z, \mx\gamma \sim Dirich(\displaystyle \sum^M_{m=1}a_{m,k}z_{m,k} + \gamma_c)$
+$\mathbf \pi_k|\mathbf a, \mathbf z, \mathbf\gamma \sim Dirich(\displaystyle \sum^M_{m=1}a_{m,k}z_{m,k} + \gamma_c)$
 
 
 ### Algorithm
 
-There is one more distribution to figure out before we can start our Gibbs sampler routine (and you thought we're all set, lol). We would need to know how to sample $\mx z^{(1,2)}_m|\mx p, \mx q, \mx x^{(1,2)}_m, \mx\pi, \mx a^{(1,2)}_m$, the population identity for individual fish $m$ (in components 1 and 2) given the population proportions, genotype, and age. If the probability of fish $m$ belong to population $k$ is $p_k$, and the likelihood of observing relative frequency of genotype and age class for fish $m$ in population $k$ is $f(\mx x^{(1,2)}_m|\mx q_k) \cdot h(\mx a^{(1,2)}_m|\mx\pi_k)$, then the probability of fish $m$ belong to population $k$ given the population proportions genotype, and age is $\displaystyle \frac{p_k \cdot f(\mx x^{(1,2)}_m|\mx q_k) \cdot h(\mx a^{(1,2)}_m|\mx\pi_k)}{\sum^K_{k'=1}p_{k'} \cdot f(\mx x^{(1,2)}_m|\mx q_{k'}) \cdot h(\mx a^{(1,2)}_m|\mx\pi_{k'})}$. The denominator should sum to one, so we only need to calculate the numerator. $\mx z^{(1,2)}_m|\mx p, \mx q, \mx x^{(1,2)}_m, \mx\pi, \mx a^{(1,2)}_m$ has the following distribution:
+There is one more distribution to figure out before we can start our Gibbs sampler routine (and you thought we're all set, lol). We would need to know how to sample $\mathbf z^{(1,2)}_m|\mathbf p, \mathbf q, \mathbf x^{(1,2)}_m, \mathbf\pi, \mathbf a^{(1,2)}_m$, the population identity for individual fish $m$ (in components 1 and 2) given the population proportions, genotype, and age. If the probability of fish $m$ belong to population $k$ is $p_k$, and the likelihood of observing relative frequency of genotype and age class for fish $m$ in population $k$ is $f(\mathbf x^{(1,2)}_m|\mathbf q_k) \cdot h(\mathbf a^{(1,2)}_m|\mathbf\pi_k)$, then the probability of fish $m$ belong to population $k$ given the population proportions genotype, and age is $\displaystyle \frac{p_k \cdot f(\mathbf x^{(1,2)}_m|\mathbf q_k) \cdot h(\mathbf a^{(1,2)}_m|\mathbf\pi_k)}{\sum^K_{k'=1}p_{k'} \cdot f(\mathbf x^{(1,2)}_m|\mathbf q_{k'}) \cdot h(\mathbf a^{(1,2)}_m|\mathbf\pi_{k'})}$. The denominator should sum to one, so we only need to calculate the numerator. $\mathbf z^{(1,2)}_m|\mathbf p, \mathbf q, \mathbf x^{(1,2)}_m, \mathbf\pi, \mathbf a^{(1,2)}_m$ has the following distribution:
 
-$\mx z^{(1,2)}_m|\mx p, \mx q, \mx x^{(1,2)}_m, \mx\pi, \mx a^{(1,2)}_m \sim Mult(1, \mx{p'}_m)$,
+$\mathbf z^{(1,2)}_m|\mathbf p, \mathbf q, \mathbf x^{(1,2)}_m, \mathbf\pi, \mathbf a^{(1,2)}_m \sim Mult(1, \mathbf{p'}_m)$,
 
-<!-- where $p'_{m,k} = \displaystyle \frac{p_k \cdot f(\mx x^{(1,2)}_m|\mx q_k) \cdot h(\mx a^{(1,2)}_m|\mx\pi_k)}{\sum^K_{k'=1}p_{k'} \cdot f(\mx x^{(1,2)}_m|\mx q_{k'}) \cdot h(\mx a^{(1,2)}_m|\mx\pi_{k'})}$. -->
+<!-- where $p'_{m,k} = \displaystyle \frac{p_k \cdot f(\mathbf x^{(1,2)}_m|\mathbf q_k) \cdot h(\mathbf a^{(1,2)}_m|\mathbf\pi_k)}{\sum^K_{k'=1}p_{k'} \cdot f(\mathbf x^{(1,2)}_m|\mathbf q_{k'}) \cdot h(\mathbf a^{(1,2)}_m|\mathbf\pi_{k'})}$. -->
 
-where $p'_{m,k} = p_k \cdot f(\mx x^{(1,2)}_m|\mx q_k) \cdot h(\mx a^{(1,2)}_m|\mx\pi_k)$. We draw the initial values for $\mx q_k$ and $\mx \pi_k$ based on their prior distributions.
+where $p'_{m,k} = p_k \cdot f(\mathbf x^{(1,2)}_m|\mathbf q_k) \cdot h(\mathbf a^{(1,2)}_m|\mathbf\pi_k)$. We draw the initial values for $\mathbf q_k$ and $\mathbf \pi_k$ based on their prior distributions.
 
-Once we figured out all the pieces in the Gibbs sampler, we may begin the process with starting values for $\mx p^{(0)}$, $\mx q^{(0)}$, and $\mx \pi^{(0)}$. If not all fish were aged, $\mx a^{(1,2)(0)}_m$ at the initial step would contain all 0's for those individuals without an assigned age. Which is not a problem because age class will be determined in the subsequent steps. We proceed as follows:
+Once we figured out all the pieces in the Gibbs sampler, we may begin the process with starting values for $\mathbf p^{(0)}$, $\mathbf q^{(0)}$, and $\mathbf \pi^{(0)}$. If not all fish were aged, $\mathbf a^{(1,2)(0)}_m$ at the initial step would contain all 0's for those individuals without an assigned age. Which is not a problem because age class will be determined in the subsequent steps. We proceed as follows:
 
 For $t = 1,2,...,T$, repeat
 
-1. Determine the population membership of mixture individuals, ${{\mx z}^{(1,2)}_m}^{(t)}|\mx p^{(t-1)}, \mx q^{(t-1)}, \mx x^{(1,2)}_m, \mx\pi^{(t-1)}, {{\mx a}^{(1,2)}_m}^{(t-1)} \sim Mult(1, \mx {p'}_m)$.
+1. Determine the population membership of mixture individuals, ${{\mathbf z}^{(1,2)}_m}^{(t)}|\mathbf p^{(t-1)}, \mathbf q^{(t-1)}, \mathbf x^{(1,2)}_m, \mathbf\pi^{(t-1)}, {{\mathbf a}^{(1,2)}_m}^{(t-1)} \sim Mult(1, \mathbf {p'}_m)$.
 
-2. If not all individuals were aged, determine memberships of age classes for those with unknown age, $\mx a^{(t)}_m|\mx z^{(t)}_m, \mx \pi^{(t-1)} \sim Mult(1, \mx z^{(t)}_m \mx\pi^{(t-1)})$.
+2. If not all individuals were aged, determine memberships of age classes for those with unknown age, $\mathbf a^{(t)}_m|\mathbf z^{(t)}_m, \mathbf \pi^{(t-1)} \sim Mult(1, \mathbf z^{(t)}_m \mathbf\pi^{(t-1)})$.
 
-3. Draw updated values for $\mx q^{(t)}$, $\mx p^{(t)}$, and $\mx\pi^{(t)}$ from $p(\mx q|\mx x,\mx y,{{\mx z}^{(1)}}^{(t)},\mx\beta)$, $p(\mx p|\mx z^{(t)},\mx \alpha)$, and $p(\mx \pi|\mx a^{(t)},\mx z^{(t)},\mx \gamma)$ respectively.
+3. Draw updated values for $\mathbf q^{(t)}$, $\mathbf p^{(t)}$, and $\mathbf\pi^{(t)}$ from $p(\mathbf q|\mathbf x,\mathbf y,{{\mathbf z}^{(1)}}^{(t)},\mathbf\beta)$, $p(\mathbf p|\mathbf z^{(t)},\mathbf \alpha)$, and $p(\mathbf \pi|\mathbf a^{(t)},\mathbf z^{(t)},\mathbf \gamma)$ respectively.
 
 $T$ should be large enough to ensure the sampler chain converges to the posterior distribution of the parameters. Usually it takes thousands of iterations. That completes the Gibbs sampler process. Whew.
 
-Implementing the conditional GSI model only requires a slight modification from the above algorithm. Basically, $f(\mx x^{(1,2)}_m|\mx q_k)$ would only need to be derived once in the beginning of the process, and $\mx q$ would no longer need to be updated in step 3. Everything else would stay the same.
+Implementing the conditional GSI model only requires a slight modification from the above algorithm. Basically, $f(\mathbf x^{(1,2)}_m|\mathbf q_k)$ would only need to be derived once in the beginning of the process, and $\mathbf q$ would no longer need to be updated in step 3. Everything else would stay the same.
 
 we eventually realized that a purely conditional GSI algorithm would not work for MAGMA because the baseline allele frequencies needed to be updated so that the age frequencies would be updated as well. Instead, we adapted an algorithm that is the hybrid of conditional and fully Bayesian GSI. Mainly, we would run the model in the conditional GSI algorithm with the fully Bayesian algorithm at every 10^th^ iteration.
 

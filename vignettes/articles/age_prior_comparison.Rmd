@@ -1,0 +1,443 @@
+---
+title: "Age priors configurations comparison"
+subtitle: "Mansplaining age priors of MAGMA"
+author: Bobby Hsu
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Objectives
+
+  * Mansplain the roles of age priors in the MAGMA model.
+  * Compare three different setups for age priors: 1) conventional flat priors with an equal value among age classes, 2) flat priors with a small value and equal among age classes, and 3) unequal prior values with greater weights concentrating on the major age classes and close-to-zero values for age classes unobserved in the harvest sample.
+
+
+# Background
+
+Bayesian estimation of MAGMA parameters (i.e., stock proportions, age-by-stock composition, and individual group membership assignments) is done through a type of Markov Chain Monte Carlo method called the Gibbs sampler. The Gibbs sampler algorithm isolates the model parameters as separate full conditional distributions[^1], which can be dealt with individually and are easier to work with than a joint distribution of the parameters.
+
+[^1]: The distribution of a parameter conditioned on the data and other parameters in the model.
+
+In the Gibbs sampler algorithm for MAGMA, values for the age proportions are updated based on a Dirichlet distribution with parameters equal to the sum of 1) the tallies of individuals in each age class of each population in the mixture and 2) the prior value specified for each age class. The algorithm then updates the age class memberships for individuals without an observed age based on the updated age proportions. New summaries are tallied for the age classes and new age proportions are being updated. The cycle is repeated until the simulated values converged to the posterior distribution of the age proportions.
+
+Conventionally, we set the values of age priors equally among age classes. For example, if we have nine age classes to estimate, the value of prior for each age class is $\frac{1}{9}$, and we do so for all populations. If we counted 10 individuals in a specific age class of a population, the ratio for the empirical data and prior is 90:1. It is easy to see how the empirical data often overpower the prior in the Gibbs sampler algorithm. However, if we have no (or a very small number of) individuals in an age class, age prior will be more influential than empirical data in determining the age proportion.
+
+A likelihood-based model shows zero, or near-zero, for an estimate if no individual is observed in that age class. However, unlike likelihood-based models, our current setup for age priors of MAGMA model prevents any age class from being zero, even if we observed no individual in such age class. It is not necessarily a bad thing to not force the proportion of an unobserved age class to be zero (i.e., "zero-out"). One may believe that an age class exists in the population, but we do not always end up with individuals of that age class in the sample because they are rare. By assigning a small value to the prior of such age class, we ensure that at least some quantity of proportion will be allocated to that age class during events of absence.
+
+Still, some people prefer to zero-out the unobserved age classes so the MAGMA model estimates are more comparable to a likelihood-based framework. Updated MAGMA package has an option for assigning 0's[^2] as age priors of unobserved age classes. This setup effectively zero-out the proportion of an age class if it is unobserved in the mixture. There is another option in the MAGMA package that assigns a small value[^3] to age priors equally across all age classes. This third option minimizes the proportions of unobserved age classes without forcing them to be zeros.
+
+[^2]: Actually $10^{-5}$.
+
+[^3]: Conventional flat priors $\times \frac{1}{10}$.
+
+However, we don't know the effects of the new setups have on the estimation of MAGMA model parameters. In this document, I use a simulation analysis to assess the possible effects of age priors on the accuracy and precision of the estimation of the MAGMA model. I run simulated data sets using the above-mentioned three age prior configurations and compare the results.
+
+## Update for September 2024 (Lynn Canal)
+I updated the analysis with Lynn Canal sockeye baseline and a multi-stratum set up. Lynn Canal post-season reporting has 251 collections divided into seven groups. Majority of collections are included in the "Other" reporting group. For age, there are 15 classes total. Five of them are major age classes (03, 12, 13, 22, 23), and the rest are included in "other."
+
+
+# Methods
+
+## Yukon Chinook
+I used a Yukon Chinook baseline for the simulation analysis. The Chinook baseline was modified in a previous analysis and contained only a portion of the original collections. This modified baseline had a marker-set of 380 loci that could differentiate Chinook salmon among four reporting groups from the middle/upper Yukon River (Koyukuk, Tanana, Upper U.S., and Canada; Lee et al. 2021). I used the modified baseline to generate 100 sets of MAGMA mixtures (single district, single subdistrict, and single week) with randomly set age-by-stock compositions, and ran the mixtures using the three configurations of age priors. Finally, I calculated and compared root mean-square-errors (RMSE), deviations, and bias for the 100 analyses.
+
+Procedures for generating one set of MAGMA data are as follows:
+
+  1) Randomly set proportions for the four reporting groups. Based on the set proportions, randomly allocate 190 individuals to populations within each reporting group.
+  
+  2) Simulate genotypes of mixture individuals based on the baseline allele frequencies corresponding to their assigned population memberships. The simulated values are drawn from multinomial distributions.
+  
+  3) randomly set proportions for the age-by-stock compositions. The age-by-stock composition is a $4 \times 9$ matrix with rows represent reporting groups and columns represent age classes. There are nine age classes and they are ages 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 3.1, 3.2, and 3.3. The proportions for ages 1.1, 1.2, and 3.3 are always 0's in this analysis, and the rest are randomly set. The age proportions within each reporting group add up to 1.
+  
+  4) Assign an age for each mixture individual based on its assigned reporting group membership. Randomly withheld the age identities for 15% of the mixture individuals.
+  
+  5) Format the data set for MAGMA model (i.e., magmatize data). There is only one district, one subdistrict, and one week in the mixture data set.
+  
+I ran each of the 100 MAGMA data sets with three configurations of age priors: 1) "flat": conventional flat priors with an equal value among age classes, 2) "weak flat": flat priors with a small value and equal among age classes, and 3) "zero out": unequal prior values with greater weights concentrating on the major age classes and 0's for age classes unobserved in the harvest sample. I ran each model with 1,000 iterations, 500 burn-ins, no thinning, and four chains in the "hybrid" conditional GSI mode. I compared the posterior means and the true proportions of the nine age classes and calculated RMSE and bias/deviation. RMSE is calculated as $RMSE = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (Y_i - \hat Y_i)^2}$, where $n$ was the number of cross-validation analyses, $Y_i$ was the true proportion of age $y$ for the $i$^th^ analysis, and $\hat Y_i$ was the posterior mean proportion of age $y$ for the $i$^th^ analysis. Bias was derived by taking the difference between the posterior mean and the true proportion of each age class for each cross-validation analysis. "Deviation $\geq$ 0.1" quantified the portion of the cross-validation analyses with absolute biases greater or equal to 0.1.
+
+## Update for September 2024 (Lynn Canal)
+Simulations for Lynn Canal followed the same procedures as before, with addition of multiple strata. There were one district and two subdistricts with two weeks each. Age-by-stock composition was a $7 \times 15$ matrix for the whole district. I ran two sets of simulations. The first set had 0 portion for all minor age classes. The second set had a small portion (randomly set) for some of the minor age classes.
+
+Harvest were randomly selected from the 2023 harvest record to represent a simulated harvest for the four strata in each iteration of the analysis. Sample size for each stratum was randomly drawn from a negative binomial distribution with a mean of 190 fish and a dispersion parameter of 8 (Neg-bin($\mu$ = 190, size = 8)). I ran total of 50 iterations (to save time).
+
+
+# Results
+
+## Yukon Chinook
+
+```{r, include = FALSE}
+pacman::p_load(tidyverse, wesanderson, DT)
+
+magma_age <- readRDS("D:/bobby_adfg/projects/magma/age_prior/magma_age.Rds") %>%
+  mutate(type = case_when(type == "flat" ~ "Flat",
+                          type == "weak_flat" ~ "Weak flat",
+                          type == "zero_out" ~ "Zero out",
+                          TRUE ~ NA),
+         dif = mean - sample,
+         age = paste0("Age ", age))
+
+err_table <-
+  magma_age %>%
+  group_by(type, age) %>%
+  summarise(mse = sqrt(mean(dif^2)),
+            dev = mean(abs(dif) > 0.1),
+            .groups = "drop")
+
+```
+
+### Precision
+
+I plotted the comparisons between the posterior means and the true values in Figure 1. performance of the three configurations were similar for the major age classes (1.3, 2.1, 2.2, 2.3, 3.1, and 3.2). "Zero out" configuration performed better for the age classes with 0 proportion (1.1, 1.2, and 3.3) compared to others (Figure 1).
+
+```{r, fig.width=10, fig.height=4, echo=FALSE}
+magma_age %>%
+  ggplot(aes(x = sample, y = mean, color = type)) +
+  geom_point(size = 2) +
+  geom_abline(slope = 1, intercept = 0, linewidth = 0.7, color = "black") +
+  geom_abline(slope = 1, intercept = 0.1, linetype = "dashed", linewidth = 0.7, color = "black") +
+  geom_abline(slope = 1, intercept = -0.1, linetype = "dashed", linewidth = 0.7, color = "black") +
+  facet_grid(cols = vars(age), rows = vars(type)) +
+  theme(legend.position = "none") +
+  labs(x = "True proportion", y = "Posterior mean proportion")
+
+```
+Figure 1: Comparison between the posterior means and the true values of the 100 cross-validation analyses for the three age prior configurations: 'flat,' 'weak flat,' and 'zero out.' Red diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed red lines mark the $\pm$0.1 deviation from the 1:1 line.
+
+### RMSE
+
+For the major age classes, performances of the three configuration were similar. "Zero out" had the lowest RMSE for age classes with 0 proportion (Table 1; Figure 2).
+
+Table 1: Comparison of root mean-square-errors for each age class among the three age prior configurations.
+```{r, echo=FALSE}
+err_table %>%
+  select(age, type, mse) %>%
+  mutate(mse = round(mse, 3)) %>%
+  pivot_wider(names_from = type, values_from = mse) %>%
+  datatable(filter = "top")
+
+```
+
+```{r mse, fig.width=9, fig.height=3, echo=FALSE}
+err_table %>%
+  ggplot(aes(x = type, y = mse, fill = age)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Age prior", y = "RMSE")
+
+```
+Figure 2: Root mean-square-errors of each age class for the three age prior configurations.
+
+### Bias
+
+Three configurations for age priors exhibited similar amount of biases for the major age classes (Figure 3). For the age classes with 0 proportion, "weak flat" showed less biases than "flat," and "zero out" had the least biases among the three configurations (Figure 3).
+
+```{r bias, fig.width=5, fig.height=10, echo=FALSE}
+magma_age %>%
+  ggplot(aes(dif, color = age)) +
+  geom_histogram(bins = 30) +
+  facet_grid(rows = vars(age), cols = vars(type)) +
+  labs(x = "Bias", y = "Count") +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+
+Figure 3: Bias of each age class for the three age prior configurations.
+
+### Deviation $\geq 0.1$
+
+"Weak flat" prior configuration seemed to perform slightly better than others for the major age classes, but it was mostly due to the randomness in the simulations. Overall, the three configurations showed similar performances. For the age classes with 0 proportion, "zero out" had the least deviations (Table 2; Figure 4).
+
+Table 2: Comparison of deviation $\geq 0.1$ for each age class among the three age prior configurations.
+```{r, echo=FALSE}
+err_table %>%
+  select(age, type, dev) %>%
+  mutate(dev = round(dev, 3)) %>%
+  pivot_wider(names_from = type, values_from = dev) %>%
+  datatable(filter = "top")
+
+```
+
+
+```{r deviations, fig.width=9, fig.height=3, echo=FALSE}
+err_table %>%
+  ggplot(aes(x = type, y = dev, fill = age)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Age prior", y = "Deviation")
+
+```
+Figure 4: Deviation $\geq 0.1$ of each age class for the three age prior configurations.
+
+## Update for September 2024 (Lynn Canal)
+
+### True 0 proportions for minor age classes
+```{r, include = FALSE}
+lynn_sims <- readRDS("D:/bobby_adfg/projects/magma/age_prior/lynn_sims00_age_prior_all.Rds") %>%
+  bind_rows() %>%
+  select(-GR) %>%
+  replace_na(list(true_prop = 0)) %>%
+  pivot_wider(names_from = "type", values_from = "mean") %>%
+  pivot_longer(-c(group, age, itr, true_prop, mix_prop),
+               names_to = "type", values_to = "mean")
+
+err_table <-
+  lynn_sims %>%
+  group_by(group, type, age) %>%
+  summarise(rmse =  sqrt(mean((mean - mix_prop)^2)),
+            dev = mean(abs(mean - mix_prop) > 0.1),
+            bias = mean(mean - mix_prop),
+            .groups = "drop")
+
+```
+
+#### Precision
+
+Performance of the three configurations were similar for the three configurations (Figure 5). Dots for the "weak flat" configuration seemed more diffused compared to others, but not very noticeable (Figure 5).
+
+```{r, fig.width=10, fig.height=20, echo=FALSE}
+lynn_sims %>%
+  ggplot(aes(x = mix_prop, y = mean, color = type)) +
+  geom_point(size = 2) +
+  geom_abline(slope = 1, intercept = 0, linewidth = 0.7, color = "black") +
+  geom_abline(slope = 1, intercept = 0.1, linetype = "dashed", linewidth = 0.7, color = "black") +
+  geom_abline(slope = 1, intercept = -0.1, linetype = "dashed", linewidth = 0.7, color = "black") +
+  scale_color_manual(values = wes_palette("Darjeeling1", 3)) +
+  facet_grid(cols = vars(age), rows = vars(group, type)) +
+  theme(legend.position = "none") +
+  labs(x = "True proportion", y = "Estimate") +
+  theme(axis.text.x = element_text(angle = 40, vjust = 0.5, hjust = 1))
+
+```
+Figure 5: Comparison between the posterior means and the true values of the 50 cross-validation analyses for the three age prior configurations: 'flat,' 'weak flat,' and 'zero out' using Lynn Canal sockeye baseline. True 0 proportions for minor age classes. Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the $\pm$0.1 deviation from the 1:1 line.
+
+#### RMSE
+
+"Other" age class of "Other" reporting group had the highest errors across all three configurations. "Weak-flat" priors had higher errors overall compared to "flat" and "zero-out" (Table 3; Figure 6).
+
+Table 3: Comparison of root mean-square-errors for each age class among the three age prior configurations using Lynn Canal sockeye baseline. True 0 proportions for minor age classes.
+```{r, echo=FALSE}
+err_table %>%
+  select(group, age, type, rmse) %>%
+  mutate(rmse = round(rmse, 3)) %>%
+  pivot_wider(names_from = type, values_from = rmse) %>%
+  datatable(filter = "top")
+
+```
+
+```{r mse lynn, fig.width=6, fig.height=8, echo=FALSE}
+err_table %>%
+  ggplot(aes(x = type, y = rmse, color = type, group = age, fill = age)) +
+  geom_bar(stat = "identity", position = "dodge", linewidth = 1.5) +
+  geom_hline(yintercept = 0.05, linetype = "dashed", color = "maroon", linewidth = 1) +
+  scale_color_manual(values = wes_palette("Darjeeling1")) +
+  scale_fill_manual(values = wes_palette("Zissou1Continuous")) +
+  facet_grid(rows = vars(group)) +
+  labs(x = "Age prior", y = "RMSE")
+
+```
+
+Figure 6: Root mean-square-errors of each age class for the three age prior configurations using Lynn Canal sockeye baseline. True 0 proportions for minor age classes.
+
+#### Bias
+
+Three configurations for age priors exhibited similar amount of biases for the major age classes (Figure 7). For the "other" age classes with 0 proportions, "flat" priors showed the most biases. And "zero out" priors had the least biases among the three configurations (Figure 7).
+
+```{r bias lynn, fig.width=6, fig.height=8, echo=FALSE}
+err_table %>%
+  ggplot(aes(x = type, y = bias, color = type, group = age, fill = age)) +
+  geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
+  geom_hline(yintercept =  c(-0.05, 0.05), linetype = "dashed", color = "maroon", linewidth = 1) +
+  scale_color_manual(values = wes_palette("Darjeeling1")) +
+  scale_fill_manual(values = wes_palette("Zissou1Continuous")) +
+  facet_grid(rows = vars(group)) +
+  labs(x = "Age prior", y = "Mean bias")
+
+```
+
+Figure 7: Bias of each age class for the three age prior configurations using Lynn Canal sockeye baseline. True 0 proportions for minor age classes.
+
+#### Deviation $\geq 0.1$
+
+"Weak flat" prior configuration seemed to have the most deviation overall compared to others. For the "other" age class of "Other" reporting group, "zero out" and "flat" priors showed similar amount of deviations (Table 4; Figure 8).
+
+Table 4: Comparison of deviation $\geq 0.1$ for each age class among the three age prior configurations using Lynn Canal sockeye baseline. True 0 proportions for minor age classes.
+```{r, echo=FALSE}
+err_table %>%
+  select(age, group, type, dev) %>%
+  mutate(dev = round(dev, 3)) %>%
+  pivot_wider(names_from = type, values_from = dev) %>%
+  datatable(filter = "top")
+
+```
+
+
+```{r deviations lynn, fig.width=6, fig.height=8, echo=FALSE}
+err_table %>%
+  ggplot(aes(x = type, y = dev, color = type, group = age, fill = age)) +
+  geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
+  geom_hline(yintercept = 0.1, linetype = "dashed", color = "maroon", linewidth = 1) +
+  scale_color_manual(values = wes_palette("Darjeeling1")) +
+  scale_fill_manual(values = wes_palette("Zissou1Continuous")) +
+  facet_grid(rows = vars(group)) +
+  labs(x = "Age prior", y = "Deviation")
+
+```
+
+Figure 8: Deviation $\geq 0.1$ of each age class for the three age prior configurations using Lynn Canal sockeye baseline. True 0 proportions for minor age classes.
+
+### Small proportions for some of the minor age classes
+```{r, include = FALSE}
+lynn_sims2 <- readRDS("D:/bobby_adfg/projects/magma/age_prior/lynn_sims00_age_prior_all_not_true_0s.Rds") %>%
+  bind_rows() %>%
+  select(-GR) %>%
+  replace_na(list(true_prop = 0)) %>%
+  pivot_wider(names_from = "type", values_from = "mean") %>%
+  pivot_longer(-c(group, age, itr, true_prop, mix_prop),
+               names_to = "type", values_to = "mean")
+
+err_table2 <-
+  lynn_sims2 %>%
+  group_by(group, type, age) %>%
+  summarise(rmse =  sqrt(mean((mean - mix_prop)^2)),
+            dev = mean(abs(mean - mix_prop) > 0.1),
+            bias = mean(mean - mix_prop),
+            .groups = "drop")
+
+```
+
+#### Precision
+
+Performance of the "weak flat" configurations seemed to be less ideal compared to "flat" and "zero out". Dots of "weak flat" configuration seemed more diffused overall (Figure 9).
+
+```{r, fig.width=10, fig.height=20, echo=FALSE}
+lynn_sims2 %>%
+  ggplot(aes(x = mix_prop, y = mean, color = type)) +
+  geom_point(size = 2) +
+  geom_abline(slope = 1, intercept = 0, linewidth = 0.7, color = "black") +
+  geom_abline(slope = 1, intercept = 0.1, linetype = "dashed", linewidth = 0.7, color = "black") +
+  geom_abline(slope = 1, intercept = -0.1, linetype = "dashed", linewidth = 0.7, color = "black") +
+  scale_color_manual(values = wes_palette("Darjeeling1", 3)) +
+  facet_grid(cols = vars(age), rows = vars(group, type)) +
+  theme(legend.position = "none") +
+  labs(x = "True proportion", y = "Estimate") +
+  theme(axis.text.x = element_text(angle = 40, vjust = 0.5, hjust = 1))
+
+```
+Figure 9: Comparison between the posterior means and the true values of the 50 cross-validation analyses for the three age prior configurations: 'flat,' 'weak flat,' and 'zero out' using Lynn Canal sockeye baseline. Small proportions for some of the minor age classes. Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the $\pm$0.1 deviation from the 1:1 line.
+
+#### RMSE
+
+"Zero out" and "flat" priors showed similar amount of errors,  and "weak flat" had the highest RMSE overall (Table 5; Figure 10). 
+
+Table 5: Comparison of root mean-square-errors for each age class among the three age prior configurations using Lynn Canal sockeye baseline. Small proportions for some of the minor age classes.
+```{r, echo=FALSE}
+err_table2 %>%
+  select(group, age, type, rmse) %>%
+  mutate(rmse = round(rmse, 3)) %>%
+  pivot_wider(names_from = type, values_from = rmse) %>%
+  datatable(filter = "top")
+
+```
+
+```{r mse lynn small, fig.width=6, fig.height=8, echo=FALSE}
+err_table2 %>%
+  ggplot(aes(x = type, y = rmse, color = type, group = age, fill = age)) +
+  geom_bar(stat = "identity", position = "dodge", linewidth = 1.5) +
+  geom_hline(yintercept = 0.05, linetype = "dashed", color = "maroon", linewidth = 1) +
+  scale_color_manual(values = wes_palette("Darjeeling1")) +
+  scale_fill_manual(values = wes_palette("Zissou1Continuous")) +
+  facet_grid(rows = vars(group)) +
+  labs(x = "Age prior", y = "RMSE")
+
+```
+
+Figure 10: Root mean-square-errors of each age class for the three age prior configurations using Lynn Canal sockeye baseline. Small proportions for some of the minor age classes.
+
+#### Bias
+
+Three configurations showed similar amount of biases (Figure 11).
+
+```{r bias lynn small, fig.width=6, fig.height=8, echo=FALSE}
+err_table2 %>%
+  ggplot(aes(x = type, y = bias, color = type, group = age, fill = age)) +
+  geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
+  geom_hline(yintercept =  c(-0.05, 0.05), linetype = "dashed", color = "maroon", linewidth = 1) +
+  scale_color_manual(values = wes_palette("Darjeeling1")) +
+  scale_fill_manual(values = wes_palette("Zissou1Continuous")) +
+  facet_grid(rows = vars(group)) +
+  labs(x = "Age prior", y = "Mean bias")
+
+```
+
+Figure 11: Bias of each age class for the three age prior configurations using Lynn Canal sockeye baseline. Small proportions for some of the minor age classes.
+
+#### Deviation $\geq 0.1$
+
+"Weak flat" prior configuration seemed to have the most deviations compared to others (Table 6,; Figure 12).
+
+Table 6: Comparison of deviation $\geq 0.1$ for each age class among the three age prior configurations using Lynn Canal sockeye baseline. Small proportions for some of the minor age classes.
+```{r, echo=FALSE}
+err_table2 %>%
+  select(age, group, type, dev) %>%
+  mutate(dev = round(dev, 3)) %>%
+  pivot_wider(names_from = type, values_from = dev) %>%
+  datatable(filter = "top")
+
+```
+
+
+```{r deviations lynn small, fig.width=6, fig.height=8, echo=FALSE}
+err_table2 %>%
+  ggplot(aes(x = type, y = dev, color = type, group = age, fill = age)) +
+  geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
+  geom_hline(yintercept = 0.1, linetype = "dashed", color = "maroon", linewidth = 1) +
+  scale_color_manual(values = wes_palette("Darjeeling1")) +
+  scale_fill_manual(values = wes_palette("Zissou1Continuous")) +
+  facet_grid(rows = vars(group)) +
+  labs(x = "Age prior", y = "Deviation")
+
+```
+
+Figure 12: Deviation $\geq 0.1$ of each age class for the three age prior configurations using Lynn Canal sockeye baseline. Small proportions for some of the minor age classes.
+
+
+# Discussion
+
+## Yukon Chinook
+The comparison of 100 cross-validation analyses of the three age prior configurations showed similar precision and accuracy for the major age classes. "Zero out" and "weak flat" priors had the intended purpose of reducing bias for the age classes with 0 proportion.
+
+It is worth noting that the "true values" in these cross-validation analyses were the observed proportions of the simulated data. Proportions of the simulated data might deviate from the (randomly set) population values that were used as the reference when constructing the mixture samples. The differences between the simulated values and the true population values were referred to as the *sampling errors*, which I ignored mainly to confine the variables of the analysis to the configurations of age priors. Still, it might be worthwhile to assess the performance of the MAGMA model with presence of sampling errors in the future analyses.
+
+## Update for September 2024 (Lynn Canal)
+The set up for Lynn Canal lumps majority of collections into "Other" reporting group and makes it the biggest. Furthermore, "other" age class is also the biggest age class with 10 minor age classes. Cross-validation simulations demonstrate how the biases in each groups are accumulated and show up in the results. "zero out" configuration helps minimizing the biases in the minor age classes if we don't expect to see them in the data. However, if there are a low number of samples in minor age classes observed in the data, the results are similar for "flat" and "zero out" configurations.
+
+Simulation using Lynn Canal sockeye baseline has a multi-stratum set up. Multiple strata might also increase biases in the "other" age classes because the estimates are averaged across the strata. But I'm not quite sure the influence of the multi-strata.
+
+Talking to Kyle (GCL fishery geneticist), it seems that biases in "other" groups (age class and reporting) would not be a big concern because they consist of only a small portion in MSA. Plus, these groups are not used by the SEAK biologists.
+
+
+# References
+
+Lee, E., Dann, T., Hoyt, H. (2021). Yukon River Chinook Genetic Baseline Improvements. Yukon River Panel Restoration and Enhancement Fund Final Report, URE-163-19N.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
