@@ -94,7 +94,7 @@ err_table <-
 
 I plotted the comparisons between the posterior means and the true values and the performances were similar between the two algorithms for the four reporting groups (Figure 1).
 
-```{r, fig.width=10, fig.height=9, echo=FALSE}
+```{r, fig.width=10, fig.height=9, echo=FALSE, fig.alt="Figure 1 Comparison between the posterior means and the true values of the 100 cross-validation analyses for the two model algorithms"}
 magma_sims %>%
   ggplot(aes(x = mix_prop, y = mean, color = type)) +
   geom_point(size = 2) +
@@ -108,7 +108,7 @@ magma_sims %>%
   labs(x = "True proportion", y = "Estimate")
 
 ```
-Figure 1: Comparison between the posterior means and the true values of the 100 cross-validation analyses for the two model algorithms: 'Cond. GSI' and 'Fully Bayes.' Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the $\pm$0.1 deviation from the 1:1 line.
+Figure 1: Comparison between the posterior means and the true values of the 100 cross-validation analyses for the two model algorithms: 'Cond. GSI' and 'Fully Bayes.' Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the ± 0.1 deviation from the 1:1 line.
 
 ### RMSE
 
@@ -262,7 +262,7 @@ lynn_sims %>%
 
 ```
 
-Figure 6: Comparison between the posterior means and the true values of the 100 cross-validation analyses for the two model algorithms, 'Cond. GSI' and 'Fully Bayes,' using the Lynn Canal sockeye baseline. Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the $\pm$0.1 deviation from the 1:1 line.
+Figure 6: Comparison between the posterior means and the true values of the 100 cross-validation analyses for the two model algorithms, 'Cond. GSI' and 'Fully Bayes,' using the Lynn Canal sockeye baseline. Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the ± 0.1 deviation from the 1:1 line.
 
 ### RMSE
 
@@ -278,7 +278,7 @@ err_table_lynn %>%
 
 ```
 
-```{r mse lynn, fig.width=6, fig.height=8, echo=FALSE}
+```{r mse_lynn, fig.width=6, fig.height=8, echo=FALSE}
 err_table_lynn %>%
   ggplot(aes(x = type, y = rmse, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 1.5) +
@@ -296,7 +296,7 @@ Figure 7: Root mean-square-errors of each age class for the two model algorithms
 
 The two algorithms of MAGMA exhibited similar amount of biases for the seven reporting groups of the Lynn Canal sockeye baseline (Figure 8).
 
-```{r bias lynn, fig.width=6, fig.height=8, echo=FALSE}
+```{r bias_lynn, fig.width=6, fig.height=8, echo=FALSE}
 err_table_lynn %>%
   ggplot(aes(x = type, y = bias, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
@@ -325,7 +325,7 @@ err_table_lynn %>%
 ```
 
 
-```{r deviations lynn, fig.width=6, fig.height=8, echo=FALSE}
+```{r deviations_lynn, fig.width=6, fig.height=8, echo=FALSE}
 err_table_lynn %>%
   ggplot(aes(x = type, y = dev, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
@@ -343,7 +343,7 @@ Figure 9: Deviation $\geq$ 0.1 of each age class for the two model algorithms us
 
 I also compared the convergence of the posterior samples between the two algorithms by plotting the Gelman-Rubin shrink factor (GR) of 100 simulations in overlapping histograms (Figure 10). The convergence seemed to be similar between the two algorithms with Lynn Canal sockeye baseline.
 
-```{r gr lynn, fig.width=9, fig.height=6, echo=FALSE}
+```{r gr_lynn, fig.width=9, fig.height=6, echo=FALSE}
 lynn_sims_gr <-
   lynn_sims00 %>%
   select(-mean) %>%

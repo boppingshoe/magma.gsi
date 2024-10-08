@@ -107,7 +107,7 @@ magma_age %>%
   labs(x = "True proportion", y = "Posterior mean proportion")
 
 ```
-Figure 1: Comparison between the posterior means and the true values of the 100 cross-validation analyses for the three age prior configurations: 'flat,' 'weak flat,' and 'zero out.' Red diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed red lines mark the $\pm$0.1 deviation from the 1:1 line.
+Figure 1: Comparison between the posterior means and the true values of the 100 cross-validation analyses for the three age prior configurations: 'flat,' 'weak flat,' and 'zero out.' Red diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed red lines mark the ± 0.1 deviation from the 1:1 line.
 
 ### RMSE
 
@@ -213,7 +213,7 @@ lynn_sims %>%
   theme(axis.text.x = element_text(angle = 40, vjust = 0.5, hjust = 1))
 
 ```
-Figure 5: Comparison between the posterior means and the true values of the 50 cross-validation analyses for the three age prior configurations: 'flat,' 'weak flat,' and 'zero out' using Lynn Canal sockeye baseline. True 0 proportions for minor age classes. Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the $\pm$0.1 deviation from the 1:1 line.
+Figure 5: Comparison between the posterior means and the true values of the 50 cross-validation analyses for the three age prior configurations: 'flat,' 'weak flat,' and 'zero out' using Lynn Canal sockeye baseline. True 0 proportions for minor age classes. Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the ± 0.1 deviation from the 1:1 line.
 
 #### RMSE
 
@@ -229,7 +229,7 @@ err_table %>%
 
 ```
 
-```{r mse lynn, fig.width=6, fig.height=8, echo=FALSE}
+```{r mse_lynn, fig.width=6, fig.height=8, echo=FALSE}
 err_table %>%
   ggplot(aes(x = type, y = rmse, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 1.5) +
@@ -247,7 +247,7 @@ Figure 6: Root mean-square-errors of each age class for the three age prior conf
 
 Three configurations for age priors exhibited similar amount of biases for the major age classes (Figure 7). For the "other" age classes with 0 proportions, "flat" priors showed the most biases. And "zero out" priors had the least biases among the three configurations (Figure 7).
 
-```{r bias lynn, fig.width=6, fig.height=8, echo=FALSE}
+```{r bias_lynn, fig.width=6, fig.height=8, echo=FALSE}
 err_table %>%
   ggplot(aes(x = type, y = bias, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
@@ -276,7 +276,7 @@ err_table %>%
 ```
 
 
-```{r deviations lynn, fig.width=6, fig.height=8, echo=FALSE}
+```{r deviations_lynn, fig.width=6, fig.height=8, echo=FALSE}
 err_table %>%
   ggplot(aes(x = type, y = dev, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
@@ -328,7 +328,7 @@ lynn_sims2 %>%
   theme(axis.text.x = element_text(angle = 40, vjust = 0.5, hjust = 1))
 
 ```
-Figure 9: Comparison between the posterior means and the true values of the 50 cross-validation analyses for the three age prior configurations: 'flat,' 'weak flat,' and 'zero out' using Lynn Canal sockeye baseline. Small proportions for some of the minor age classes. Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the $\pm$0.1 deviation from the 1:1 line.
+Figure 9: Comparison between the posterior means and the true values of the 50 cross-validation analyses for the three age prior configurations: 'flat,' 'weak flat,' and 'zero out' using Lynn Canal sockeye baseline. Small proportions for some of the minor age classes. Diagonal line represents 1:1 relationship between the true proportions and the posterior means. Dashed lines mark the ± 0.1 deviation from the 1:1 line.
 
 #### RMSE
 
@@ -344,7 +344,7 @@ err_table2 %>%
 
 ```
 
-```{r mse lynn small, fig.width=6, fig.height=8, echo=FALSE}
+```{r mse_lynn_small, fig.width=6, fig.height=8, echo=FALSE}
 err_table2 %>%
   ggplot(aes(x = type, y = rmse, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 1.5) +
@@ -362,7 +362,7 @@ Figure 10: Root mean-square-errors of each age class for the three age prior con
 
 Three configurations showed similar amount of biases (Figure 11).
 
-```{r bias lynn small, fig.width=6, fig.height=8, echo=FALSE}
+```{r bias_lynn_small, fig.width=6, fig.height=8, echo=FALSE}
 err_table2 %>%
   ggplot(aes(x = type, y = bias, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
@@ -391,7 +391,7 @@ err_table2 %>%
 ```
 
 
-```{r deviations lynn small, fig.width=6, fig.height=8, echo=FALSE}
+```{r deviations_lynn_small, fig.width=6, fig.height=8, echo=FALSE}
 err_table2 %>%
   ggplot(aes(x = type, y = dev, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
