@@ -74,7 +74,7 @@ Harvest were randomly selected from the 2023 harvest record to represent a simul
 ```{r, include = FALSE}
 pacman::p_load(tidyverse, wesanderson, DT)
 
-magma_age <- readRDS("D:/bobby_adfg/projects/magma/age_prior/magma_age.Rds") %>%
+magma_age <- readRDS("magma_age.Rds") %>%
   mutate(type = case_when(type == "flat" ~ "Flat",
                           type == "weak_flat" ~ "Weak flat",
                           type == "zero_out" ~ "Zero out",
@@ -177,7 +177,7 @@ Figure 4: Deviation $\geq 0.1$ of each age class for the three age prior configu
 
 ### True 0 proportions for minor age classes
 ```{r, include = FALSE}
-lynn_sims <- readRDS("D:/bobby_adfg/projects/magma/age_prior/lynn_sims00_age_prior_all.Rds") %>%
+lynn_sims <- readRDS("lynn_sims00_age_prior_all.Rds") %>%
   bind_rows() %>%
   select(-GR) %>%
   replace_na(list(true_prop = 0)) %>%
@@ -292,7 +292,7 @@ Figure 8: Deviation $\geq 0.1$ of each age class for the three age prior configu
 
 ### Small proportions for some of the minor age classes
 ```{r, include = FALSE}
-lynn_sims2 <- readRDS("D:/bobby_adfg/projects/magma/age_prior/lynn_sims00_age_prior_all_not_true_0s.Rds") %>%
+lynn_sims2 <- readRDS("lynn_sims00_age_prior_all_not_true_0s.Rds") %>%
   bind_rows() %>%
   select(-GR) %>%
   replace_na(list(true_prop = 0)) %>%

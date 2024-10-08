@@ -65,7 +65,7 @@ Harvest were randomly selected from the 2023 harvest record to represent a simul
 ```{r, include = FALSE}
 pacman::p_load(DT, tidyverse, wesanderson)
 
-magma_sims00 <- readRDS("D:/bobby_adfg/projects/magma/cond_gsi_vs_fully_bayes/magma_sims00.Rds")
+magma_sims00 <- readRDS("magma_sims00.Rds")
 
 magma_sims <-  magma_sims00 %>%
   bind_rows() %>%
@@ -209,10 +209,10 @@ Figure 5: Gelman-Rubin diagnostic (GR) of each reporting group for the two model
 ## Update for October 2024 (Lynn Canal)
 
 ```{r, include = FALSE}
-lynn_sims00 <- readRDS("D:/bobby_adfg/projects/magma/cond_gsi_vs_fully_bayes/lynn_sims/lynn_sims00_2.Rds") %>%
+lynn_sims00 <- readRDS("lynn_sims00_2.Rds") %>%
   bind_rows() %>%
   mutate(itr = itr + 50) %>%
-  bind_rows(readRDS("D:/bobby_adfg/projects/magma/cond_gsi_vs_fully_bayes/lynn_sims/lynn_sims00.Rds"))
+  bind_rows(readRDS("lynn_sims00.Rds"))
 
 lynn_sims <-
   lynn_sims00 %>%
