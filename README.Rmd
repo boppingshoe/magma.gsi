@@ -59,7 +59,7 @@ magma_summ$age_summ[1]
 
 There's a function in the package to make trace plots and inspect mixing of chains.
 
-```{r example_trace_plot}
+```{r example_trace_plot, fig.alt="trace plot render"}
 magmatize_tr_plot(magma_summ$age_prop[[1]])
 
 ```

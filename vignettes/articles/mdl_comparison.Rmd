@@ -94,7 +94,7 @@ err_table <-
 
 I plotted the comparisons between the posterior means and the true values and the performances were similar between the two algorithms for the four reporting groups (Figure 1).
 
-```{r, fig.width=10, fig.height=9, echo=FALSE, fig.alt="Figure 1 Comparison between the posterior means and the true values of the 100 cross-validation analyses for the two model algorithms"}
+```{r, fig.width=10, fig.height=9, echo=FALSE, fig.alt="Figure 1 precision yukon chinook"}
 magma_sims %>%
   ggplot(aes(x = mix_prop, y = mean, color = type)) +
   geom_point(size = 2) +
@@ -124,7 +124,7 @@ err_table %>%
 
 ```
 
-```{r mse, fig.width=9, fig.height=6, echo=FALSE}
+```{r mse, fig.width=9, fig.height=6, echo=FALSE, fig.alt="Figure 2 Root mean-square-errors yukon chinook"}
 err_table %>%
   ggplot(aes(x = type, y = rmse, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 1.5) +
@@ -141,7 +141,7 @@ Figure 2: Root mean-square-errors of each age class for the two model algorithms
 
 The two algorithms of MAGMA exhibited similar amount of biases (or lack thereof) for the four reporting groups (Figure 3).
 
-```{r bias, fig.width=9, fig.height=6, echo=FALSE}
+```{r bias, fig.width=9, fig.height=6, echo=FALSE, fig.alt="Figure 3 Bias yukon chinook"}
 err_table %>%
   ggplot(aes(x = type, y = bias, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
@@ -169,7 +169,7 @@ err_table %>%
 ```
 
 
-```{r deviations, fig.width=9, fig.height=6, echo=FALSE}
+```{r deviations, fig.width=9, fig.height=6, echo=FALSE, fig.alt="Figure 4 deviation yukon chinook"}
 err_table %>%
   ggplot(aes(x = type, y = dev, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
@@ -186,7 +186,7 @@ Figure 4: Deviation $\geq$ 0.1 of each age class for the two model algorithms.
 
 I also compared the convergence of the posterior samples between the two algorithms by plotting the Gelman-Rubin shrink factor (GR) of 100 simulations in overlapping histograms (Figure 5). The convergence seemed to be similar between the two algorithms.
 
-```{r gr, fig.width=9, fig.height=6, echo=FALSE}
+```{r gr, fig.width=9, fig.height=6, echo=FALSE, fig.alt="Figure 5 gr yukon chinook"}
 magma_sims_gr <-
   magma_sims00 %>%
   bind_rows() %>%
@@ -245,7 +245,7 @@ err_table_lynn <-
 
 Comparisons between the posterior means and the true values showed that the performances were similar between the two algorithms for the seven reporting groups of the Lynn Canal sockeye baseline (Figure 6).
 
-```{r, fig.width=8, fig.height=16, echo=FALSE}
+```{r, fig.width=8, fig.height=16, echo=FALSE, fig.alt="Figure 6 precision lynn"}
 lynn_sims %>%
   ggplot(aes(x = mix_prop, y = mean, color = type)) +
   geom_point(size = 2.5) +
@@ -278,7 +278,7 @@ err_table_lynn %>%
 
 ```
 
-```{r mse_lynn, fig.width=6, fig.height=8, echo=FALSE}
+```{r mse_lynn, fig.width=6, fig.height=8, echo=FALSE, fig.alt="Figure 7 mse lynn"}
 err_table_lynn %>%
   ggplot(aes(x = type, y = rmse, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 1.5) +
@@ -296,7 +296,7 @@ Figure 7: Root mean-square-errors of each age class for the two model algorithms
 
 The two algorithms of MAGMA exhibited similar amount of biases for the seven reporting groups of the Lynn Canal sockeye baseline (Figure 8).
 
-```{r bias_lynn, fig.width=6, fig.height=8, echo=FALSE}
+```{r bias_lynn, fig.width=6, fig.height=8, echo=FALSE, fig.alt="Figure 8 bias lynn"}
 err_table_lynn %>%
   ggplot(aes(x = type, y = bias, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
@@ -325,7 +325,7 @@ err_table_lynn %>%
 ```
 
 
-```{r deviations_lynn, fig.width=6, fig.height=8, echo=FALSE}
+```{r deviations_lynn, fig.width=6, fig.height=8, echo=FALSE, fig.alt="Figure 9 deviation lynn"}
 err_table_lynn %>%
   ggplot(aes(x = type, y = dev, color = type, group = age, fill = age)) +
   geom_bar(stat = "identity", position = "dodge", linewidth = 2) +
@@ -343,7 +343,7 @@ Figure 9: Deviation $\geq$ 0.1 of each age class for the two model algorithms us
 
 I also compared the convergence of the posterior samples between the two algorithms by plotting the Gelman-Rubin shrink factor (GR) of 100 simulations in overlapping histograms (Figure 10). The convergence seemed to be similar between the two algorithms with Lynn Canal sockeye baseline.
 
-```{r gr_lynn, fig.width=9, fig.height=6, echo=FALSE}
+```{r gr_lynn, fig.width=9, fig.height=6, echo=FALSE, fig.alt="Figure 10 gr lynn"}
 lynn_sims_gr <-
   lynn_sims00 %>%
   select(-mean) %>%
