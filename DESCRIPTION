@@ -26,7 +26,10 @@ Imports:
     stringr,
     tibble,
     tidyfst,
-    tidyr
+    tidyr,
+	DT,
+	wesanderson,
+	pacman
 URL: https://github.com/boppingshoe/magma.gsi, https://boppingshoe.github.io/magma.gsi/
 BugReports: https://github.com/boppingshoe/magma.gsi/issues
 Suggests: 
