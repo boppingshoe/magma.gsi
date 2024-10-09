@@ -63,7 +63,9 @@ Harvest were randomly selected from the 2023 harvest record to represent a simul
 ## Yukon Chinook
 
 ```{r, include = FALSE}
-pacman::p_load(DT, tidyverse, wesanderson)
+library(tidyverse)
+library(wesanderson)
+library(DT)
 
 magma_sims00 <- readRDS("magma_sims00.Rds")
 
