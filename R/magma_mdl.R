@@ -143,7 +143,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
       dimnames = list(wildpops, alleles)
     ) # genetic part of prior (beta)
 
-  age_priors <- (rep(1/ table(age_class), table(age_class)) / length(unique(age_class)))[match(names(age_class), names(sort(age_class)))] # flat age priors, sorted order
+  age_priors <- c((1/ table(age_class)/ length(unique(age_class)))[age_class]) # flat age priors, sorted order
 
   if (age_prior == "zero_out") {
     # if (any(age_classes == "other")) { # force age classes in "other" to 0's
@@ -385,7 +385,7 @@ magmatize_mdl <- function(dat_in, nreps, nburn, thin, nchains, nadapt = 50, keep
     sapply(seq.int(length(magma_out$outraw)), function(i) tidyfst::export_fst(magma_out$outraw[[i]], path = paste0(file, "/magma_raw_ch", i, ".fst")))
     if (iden_output == TRUE) {
       message(paste("IA posteriors saved in", file, "as magma_idens.fst"))
-      tidyfst::export_fst(magma_out$idens, path = paste0(file, "/magmma_iden.fst"))
+      tidyfst::export_fst(magma_out$idens, path = paste0(file, "/magma_iden.fst"))
     }
   }
 
