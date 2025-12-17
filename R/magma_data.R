@@ -234,7 +234,7 @@ magmatize_data <-
 
     #### Baseline Data #### ----
 
-    hatcheries <- sort(unique(metadat0$SOURCE[metadat0$SOURCE != "WILD"]))
+    hatcheries <- unique(metadat0$SOURCE[metadat0$SOURCE != "WILD"])
 
     # identify hatcheries show up in metadat but missing from groups
     miss_hatch_grp <- hatcheries[!hatcheries %in% rownames(groups0)]
@@ -261,9 +261,10 @@ magmatize_data <-
       rownames(groups)[grepl("([0-9]+).*$", rownames(groups)) & sapply(rownames(groups), function(gn) nchar(gn) > 4)] # look for pops with numbers (sample year) and > 4 characters, not sure this works all the time?
 
     # identify hatcheries in groups that didn't show up in metadat (sample)
-    miss_hatch_meta <- rownames(groups)[!rownames(groups) %in% c(wildpops, hatcheries)]
+    # miss_hatch_meta <- rownames(groups)[!rownames(groups) %in% c(wildpops, hatcheries)]
+    # hatcheries <- c(hatcheries, miss_hatch_meta)
 
-    hatcheries <- c(hatcheries, miss_hatch_meta)
+    hatcheries <- rownames(groups)[!rownames(groups) %in% wildpops] # this should keep the order of hatchies unchanged
 
     all_pops <- c(wildpops, hatcheries)
 
