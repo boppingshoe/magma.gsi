@@ -362,7 +362,7 @@ input data as a list. Users will need to assign the list as an
 <span><span class="co">#&gt; Compiling input data, may take a minute or two...</span></span>
 <span><span class="co">#&gt; FAKE is the fishery identified in the mixture.RData</span></span>
 <span><span class="co">#&gt; No missing hatcheries</span></span>
-<span><span class="co">#&gt; Time difference of 9.401862 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 9.66234 secs</span></span></code></pre></div>
 <p>The function gives you the option to save the compiled input data.
 The default is <code>save_data = TRUE</code>, and it will save the data
 with the fishery extension as <em>magma_dataXXX.Rds</em> in the
@@ -437,8 +437,8 @@ need to assign the output as an object as shown in the code below.</p>
 <span>                keep_burn <span class="op">=</span> <span class="cn">TRUE</span>, age_prior <span class="op">=</span> <span class="st">"zero_out"</span>,</span>
 <span>                cond_gsi <span class="op">=</span> <span class="cn">TRUE</span>, file <span class="op">=</span> <span class="cn">NULL</span>, seed <span class="op">=</span> <span class="cn">NULL</span>, iden_output <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running model... and if oppotunity doesn't knock, build Lofting!</span></span>
-<span><span class="co">#&gt; Time difference of 2.247202 secs</span></span>
-<span><span class="co">#&gt; 2025-11-06 20:41:18.366175</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.2317 secs</span></span>
+<span><span class="co">#&gt; 2025-12-17 23:26:19.741712</span></span></code></pre></div>
 <p>Burn-ins are excluded in the summary calculations even if a user
 choose to keep the burn-in output. <code>nadapt</code>,
 <code>keep_burn</code>, <code>flat_age_prior</code>,
@@ -496,8 +496,8 @@ to specify the location of the saved files.</p>
 <span>                 ma_dat <span class="op">=</span> <span class="va">yomamafat</span>,</span>
 <span>                 summ_level <span class="op">=</span> <span class="st">"district"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Preparing output (patience grasshopper...)</span></span>
-<span><span class="co">#&gt; Time difference of 0.4627504 secs</span></span>
-<span><span class="co">#&gt; 2025-11-06 20:41:18.902341</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 0.4757178 secs</span></span>
+<span><span class="co">#&gt; 2025-12-17 23:26:20.28992</span></span></code></pre></div>
 <p>For big fisheries like TBR in SEAK, output can be too large for our
 work laptops to process. The summary process can be ran one district at
 a time (using argument <code>which_dist</code>) to manage memory
@@ -728,7 +728,7 @@ the output is shaded in red.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/magmatize_tr_plot.html">magmatize_tr_plot</a></span><span class="op">(</span><span class="va">magma_summ</span><span class="op">$</span><span class="va">age_prop</span><span class="op">$</span><span class="va">D1_Koyukuk</span>, nburn <span class="op">=</span> <span class="fl">25</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="magma-vignette_files/figure-html/trace-plot-1.png" alt="Trace plots for age composition." width="100%"><p class="caption">
+<img src="magma-vignette_files/figure-html/trace-plot-1.png" class="r-plt" alt="Trace plots for age composition." width="100%"><p class="caption">
 Trace plots for age composition.
 </p>
 </div>
@@ -1495,7 +1495,7 @@ with R</em>. Springer. New York.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
