@@ -1,5 +1,13 @@
 # Changelog
 
+## magma.gsi 1.0.1
+
+### bug fix
+
+- An error in the code that caused mismatching of hatcheries and their
+  proportions. The error was only applicable to analyses with hatchery
+  groups. The error was resolved.
+
 ## magma.gsi 1.0.0
 
 - First working version as an R package.

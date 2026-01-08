@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">magma.gsi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -266,11 +266,13 @@ MAGMA model. Those files are: <em>baseline.RData</em>,
 <p><em>group_namesXXX.txt</em> and <em>groupsXXX.txt</em> are saved with
 fishery extension. For example, <em>group_namesFAKE.txt</em> and
 <em>groupsFAKE.txt</em> are files for the “FAKE” fishery.
+<em>group_namesXXX.txt</em> and <em>groupsXXX.txt</em> are tables with
+each district organized in a column. In an analysis involving multiple
+districts, each district should have its own column. As shown below,
 <em>group_namesXXX.txt</em> contains the names of the reporting groups
-in order of their group identifying numbers (groupvec).
+in order of their group identifying numbers (groupvec), and
 <em>groupsXXX.txt</em> contains the groupvec for each population in the
-data. The following shows the format of <em>group_namesXXX.txt</em> and
-<em>groupsXXX.txt</em>.</p>
+data.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_table.html" class="external-link">read_table</a></span><span class="op">(</span><span class="st">"data/group_namesFAKE.txt"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 1</span></span></span>
@@ -362,7 +364,7 @@ input data as a list. Users will need to assign the list as an
 <span><span class="co">#&gt; Compiling input data, may take a minute or two...</span></span>
 <span><span class="co">#&gt; FAKE is the fishery identified in the mixture.RData</span></span>
 <span><span class="co">#&gt; No missing hatcheries</span></span>
-<span><span class="co">#&gt; Time difference of 9.66234 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 9.257661 secs</span></span></code></pre></div>
 <p>The function gives you the option to save the compiled input data.
 The default is <code>save_data = TRUE</code>, and it will save the data
 with the fishery extension as <em>magma_dataXXX.Rds</em> in the
@@ -377,9 +379,10 @@ ranges. For example, if the observed age classes are: 12, 13, 21, 22,
 21, 22, and 31, user can specify an “other” group to include ages 13,
 23, 32, and 33. In a similar fashion, user can specify a “0X” age to
 catch all 0 freshwater ages.</p>
-<p>MAGMA user can provide a list of loci as a check against baseline and
-mixture data (optional). A warning message is returned if there are
-difference between the data sets and the list provided.</p>
+<p>An optional loci_names argument in magmatize_data() does two things:
+1) check provided loci names against data set and return warning message
+if they don’t match, and 2) subset loci of data sets based on provided
+loci names.</p>
 <p>The formatted input files have the following structure:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">yomamafat</span><span class="op">)</span></span>
@@ -437,8 +440,8 @@ need to assign the output as an object as shown in the code below.</p>
 <span>                keep_burn <span class="op">=</span> <span class="cn">TRUE</span>, age_prior <span class="op">=</span> <span class="st">"zero_out"</span>,</span>
 <span>                cond_gsi <span class="op">=</span> <span class="cn">TRUE</span>, file <span class="op">=</span> <span class="cn">NULL</span>, seed <span class="op">=</span> <span class="cn">NULL</span>, iden_output <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running model... and if oppotunity doesn't knock, build Lofting!</span></span>
-<span><span class="co">#&gt; Time difference of 2.2317 secs</span></span>
-<span><span class="co">#&gt; 2025-12-17 23:26:19.741712</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.1819 secs</span></span>
+<span><span class="co">#&gt; 2026-01-08 20:14:36.853274</span></span></code></pre></div>
 <p>Burn-ins are excluded in the summary calculations even if a user
 choose to keep the burn-in output. <code>nadapt</code>,
 <code>keep_burn</code>, <code>flat_age_prior</code>,
@@ -496,8 +499,8 @@ to specify the location of the saved files.</p>
 <span>                 ma_dat <span class="op">=</span> <span class="va">yomamafat</span>,</span>
 <span>                 summ_level <span class="op">=</span> <span class="st">"district"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Preparing output (patience grasshopper...)</span></span>
-<span><span class="co">#&gt; Time difference of 0.4757178 secs</span></span>
-<span><span class="co">#&gt; 2025-12-17 23:26:20.28992</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 0.4570401 secs</span></span>
+<span><span class="co">#&gt; 2026-01-08 20:14:37.381863</span></span></code></pre></div>
 <p>For big fisheries like TBR in SEAK, output can be too large for our
 work laptops to process. The summary process can be ran one district at
 a time (using argument <code>which_dist</code>) to manage memory

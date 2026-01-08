@@ -141,11 +141,12 @@ and *mixture.RData*.
 
 *group_namesXXX.txt* and *groupsXXX.txt* are saved with fishery
 extension. For example, *group_namesFAKE.txt* and *groupsFAKE.txt* are
-files for the “FAKE” fishery. *group_namesXXX.txt* contains the names of
-the reporting groups in order of their group identifying numbers
-(groupvec). *groupsXXX.txt* contains the groupvec for each population in
-the data. The following shows the format of *group_namesXXX.txt* and
-*groupsXXX.txt*.
+files for the “FAKE” fishery. *group_namesXXX.txt* and *groupsXXX.txt*
+are tables with each district organized in a column. In an analysis
+involving multiple districts, each district should have its own column.
+As shown below, *group_namesXXX.txt* contains the names of the reporting
+groups in order of their group identifying numbers (groupvec), and
+*groupsXXX.txt* contains the groupvec for each population in the data.
 
 ``` r
 readr::read_table("data/group_namesFAKE.txt")
@@ -246,7 +247,7 @@ yomamafat <-
 #> Compiling input data, may take a minute or two...
 #> FAKE is the fishery identified in the mixture.RData
 #> No missing hatcheries
-#> Time difference of 9.66234 secs
+#> Time difference of 9.257661 secs
 ```
 
 The function gives you the option to save the compiled input data. The
@@ -265,9 +266,10 @@ ranges. For example, if the observed age classes are: 12, 13, 21, 22,
 23, 32, and 33. In a similar fashion, user can specify a “0X” age to
 catch all 0 freshwater ages.
 
-MAGMA user can provide a list of loci as a check against baseline and
-mixture data (optional). A warning message is returned if there are
-difference between the data sets and the list provided.
+An optional loci_names argument in magmatize_data() does two things: 1)
+check provided loci names against data set and return warning message if
+they don’t match, and 2) subset loci of data sets based on provided loci
+names.
 
 The formatted input files have the following structure:
 
@@ -330,8 +332,8 @@ freak_out <-
                 keep_burn = TRUE, age_prior = "zero_out",
                 cond_gsi = TRUE, file = NULL, seed = NULL, iden_output = TRUE)
 #> Running model... and if oppotunity doesn't knock, build Lofting!
-#> Time difference of 2.2317 secs
-#> 2025-12-17 23:26:19.741712
+#> Time difference of 2.1819 secs
+#> 2026-01-08 20:14:36.853274
 ```
 
 Burn-ins are excluded in the summary calculations even if a user choose
@@ -389,8 +391,8 @@ magma_summ <-
                  ma_dat = yomamafat,
                  summ_level = "district")
 #> Preparing output (patience grasshopper...)
-#> Time difference of 0.4757178 secs
-#> 2025-12-17 23:26:20.28992
+#> Time difference of 0.4570401 secs
+#> 2026-01-08 20:14:37.381863
 ```
 
 For big fisheries like TBR in SEAK, output can be too large for our work
