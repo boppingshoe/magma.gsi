@@ -82,7 +82,7 @@ Using the posterior distribution, we summarize the point estimates and credible 
 
 Before running `magmatize_data()` function, we need to set up a *data* folder in the working directory. The *data* folder is where you put the files to compile input data for running the MAGMA model. Those files are: *baseline.RData*, *group_namesXXX.txt*, *groupsXXX.txt*, *harvestXXX.txt*, *metadata.txt*, and *mixture.RData*. 
 
-*group_namesXXX.txt* and *groupsXXX.txt* are saved with fishery extension. For example, *group_namesFAKE.txt* and *groupsFAKE.txt* are files for the "FAKE" fishery. *group_namesXXX.txt* contains the names of the reporting groups in order of their group identifying numbers (groupvec). *groupsXXX.txt* contains the groupvec for each population in the data. The following shows the format of *group_namesXXX.txt* and *groupsXXX.txt*.
+*group_namesXXX.txt* and *groupsXXX.txt* are saved with fishery extension. For example, *group_namesFAKE.txt* and *groupsFAKE.txt* are files for the "FAKE" fishery. *group_namesXXX.txt* and *groupsXXX.txt* are tables with each district organized in a column. In an analysis involving multiple districts, each district should have its own column. As shown below, *group_namesXXX.txt* contains the names of the reporting groups in order of their group identifying numbers (groupvec), and *groupsXXX.txt* contains the groupvec for each population in the data.
 
 ```{r groupvec, message=FALSE}
 readr::read_table("data/group_namesFAKE.txt")
@@ -128,7 +128,7 @@ The function gives you the option to save the compiled input data. The default i
 
 Age classes for the analysis is identified at this step. User can specify the age classes or let MAGMA choose what age classes to estimate. By default, MAGMA identifies the ranges for freshwater and saltwater ages in metadata and expand the age classes using the age ranges. For example, if the observed age classes are: 12, 13, 21, 22, 23, and 31, MAGMA would expand the age classes to 11, 12, 13, 21, 22, 23, 31, 32, and 33. If the analysis only has five major classes: 11, 12, 21, 22, and 31, user can specify an "other" group to include ages 13, 23, 32, and 33. In a similar fashion, user can specify a "0X" age to catch all 0 freshwater ages.
 
-MAGMA user can provide a list of loci as a check against baseline and mixture data (optional). A warning message is returned if there are difference between the data sets and the list provided.
+An optional loci_names argument in magmatize_data() does two things: 1) check provided loci names against data set and return warning message if they don't match, and 2) subset loci of data sets based on provided loci names.
 
 The formatted input files have the following structure:
 
