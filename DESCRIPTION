@@ -1,6 +1,6 @@
 Package: magma.gsi
 Title: Mark and Age-enhanced Genetic Mixture Analysis
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: 
     person("Bobby", "Hsu", , "bobby.hsu@alaska.gov", role = c("aut", "cre"))
 Description: Conduct genetic stock identification that includes hatchery marking and age information,
