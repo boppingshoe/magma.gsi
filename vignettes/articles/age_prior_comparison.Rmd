@@ -2,7 +2,8 @@
 title: "Age priors configurations comparison"
 subtitle: "Mansplaining age priors of MAGMA"
 author: Bobby Hsu
-date: "`r format(Sys.time(), '%B %d, %Y')`"
+# date: "`r format(Sys.time(), '%B %d, %Y')`"
+date: "October 9, 2024"
 output:
   html_document:
     toc: true
