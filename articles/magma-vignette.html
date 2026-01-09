@@ -364,7 +364,7 @@ input data as a list. Users will need to assign the list as an
 <span><span class="co">#&gt; Compiling input data, may take a minute or two...</span></span>
 <span><span class="co">#&gt; FAKE is the fishery identified in the mixture.RData</span></span>
 <span><span class="co">#&gt; No missing hatcheries</span></span>
-<span><span class="co">#&gt; Time difference of 9.307102 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 9.564784 secs</span></span></code></pre></div>
 <p>The function gives you the option to save the compiled input data.
 The default is <code>save_data = TRUE</code>, and it will save the data
 with the fishery extension as <em>magma_dataXXX.Rds</em> in the
@@ -440,8 +440,8 @@ need to assign the output as an object as shown in the code below.</p>
 <span>                keep_burn <span class="op">=</span> <span class="cn">TRUE</span>, age_prior <span class="op">=</span> <span class="st">"zero_out"</span>,</span>
 <span>                cond_gsi <span class="op">=</span> <span class="cn">TRUE</span>, file <span class="op">=</span> <span class="cn">NULL</span>, seed <span class="op">=</span> <span class="cn">NULL</span>, iden_output <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running model... and if oppotunity doesn't knock, build Lofting!</span></span>
-<span><span class="co">#&gt; Time difference of 2.313062 secs</span></span>
-<span><span class="co">#&gt; 2026-01-09 00:11:24.947003</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.38683 secs</span></span>
+<span><span class="co">#&gt; 2026-01-09 00:13:58.842628</span></span></code></pre></div>
 <p>Burn-ins are excluded in the summary calculations even if a user
 choose to keep the burn-in output. <code>nadapt</code>,
 <code>keep_burn</code>, <code>flat_age_prior</code>,
@@ -499,8 +499,8 @@ to specify the location of the saved files.</p>
 <span>                 ma_dat <span class="op">=</span> <span class="va">yomamafat</span>,</span>
 <span>                 summ_level <span class="op">=</span> <span class="st">"district"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Preparing output (patience grasshopper...)</span></span>
-<span><span class="co">#&gt; Time difference of 0.4677038 secs</span></span>
-<span><span class="co">#&gt; 2026-01-09 00:11:25.479356</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 0.4538407 secs</span></span>
+<span><span class="co">#&gt; 2026-01-09 00:13:59.367919</span></span></code></pre></div>
 <p>For big fisheries like TBR in SEAK, output can be too large for our
 work laptops to process. The summary process can be ran one district at
 a time (using argument <code>which_dist</code>) to manage memory

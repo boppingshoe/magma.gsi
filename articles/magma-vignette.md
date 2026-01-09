@@ -247,7 +247,7 @@ yomamafat <-
 #> Compiling input data, may take a minute or two...
 #> FAKE is the fishery identified in the mixture.RData
 #> No missing hatcheries
-#> Time difference of 9.307102 secs
+#> Time difference of 9.564784 secs
 ```
 
 The function gives you the option to save the compiled input data. The
@@ -332,8 +332,8 @@ freak_out <-
                 keep_burn = TRUE, age_prior = "zero_out",
                 cond_gsi = TRUE, file = NULL, seed = NULL, iden_output = TRUE)
 #> Running model... and if oppotunity doesn't knock, build Lofting!
-#> Time difference of 2.313062 secs
-#> 2026-01-09 00:11:24.947003
+#> Time difference of 2.38683 secs
+#> 2026-01-09 00:13:58.842628
 ```
 
 Burn-ins are excluded in the summary calculations even if a user choose
@@ -391,8 +391,8 @@ magma_summ <-
                  ma_dat = yomamafat,
                  summ_level = "district")
 #> Preparing output (patience grasshopper...)
-#> Time difference of 0.4677038 secs
-#> 2026-01-09 00:11:25.479356
+#> Time difference of 0.4538407 secs
+#> 2026-01-09 00:13:59.367919
 ```
 
 For big fisheries like TBR in SEAK, output can be too large for our work
