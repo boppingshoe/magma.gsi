@@ -88,35 +88,35 @@
 <span><span class="co">#&gt; Compiling input data, may take a minute or two...</span></span>
 <span><span class="co">#&gt; FAKE is the fishery identified in the mixture.RData</span></span>
 <span><span class="co">#&gt; No missing hatcheries</span></span>
-<span><span class="co">#&gt; Time difference of 5.265977 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 5.489551 secs</span></span></code></pre></div>
 <p>Run the model:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">magma_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/magmatize_mdl.html">magmatize_mdl</a></span><span class="op">(</span><span class="va">magma_data</span>, nreps <span class="op">=</span> <span class="fl">50</span>, nburn <span class="op">=</span> <span class="fl">25</span>, thin <span class="op">=</span> <span class="fl">1</span>, nchains <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Running model... and good things come to High Class In A Fur Coat!</span></span>
-<span><span class="co">#&gt; Time difference of 1.02392 secs</span></span>
-<span><span class="co">#&gt; 2024-10-08 15:09:24.414875</span></span></code></pre></div>
+<span><span class="co">#&gt; Running model... and work for a cause, not for Face!</span></span>
+<span><span class="co">#&gt; Time difference of 1.383024 secs</span></span>
+<span><span class="co">#&gt; 2026-01-09 13:08:59.182547</span></span></code></pre></div>
 <p>Summarize the results:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">magma_summ</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/magmatize_summ.html">magmatize_summ</a></span><span class="op">(</span>ma_out <span class="op">=</span> <span class="va">magma_out</span>, ma_dat <span class="op">=</span> <span class="va">magma_data</span>, summ_level <span class="op">=</span> <span class="st">"district"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Preparing output (patience grasshopper...)</span></span>
-<span><span class="co">#&gt; Time difference of 0.3430619 secs</span></span>
-<span><span class="co">#&gt; 2024-10-08 15:09:24.774506</span></span>
+<span><span class="co">#&gt; Time difference of 0.489537 secs</span></span>
+<span><span class="co">#&gt; 2026-01-09 13:08:59.687217</span></span>
 <span></span>
 <span><span class="va">magma_summ</span><span class="op">$</span><span class="va">age_summ</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
 <span><span class="co">#&gt; $D1_Koyukuk</span></span>
 <span><span class="co">#&gt; # A tibble: 9 × 10</span></span>
-<span><span class="co">#&gt;   group   age      mean  median     sd      ci.05  ci.95    p0    GR n_eff</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;   &lt;fct&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 Koyukuk 11    0.0161  0.00441 0.0303 0.00000957 0.0747 0.107  1.05  75  </span></span>
-<span><span class="co">#&gt; 2 Koyukuk 12    0.0165  0.00469 0.0267 0.0000130  0.0700 0.12   1.13  75  </span></span>
-<span><span class="co">#&gt; 3 Koyukuk 13    0.0189  0.00717 0.0282 0.0000248  0.0679 0.173  1.01  75  </span></span>
-<span><span class="co">#&gt; 4 Koyukuk 21    0.00993 0.00323 0.0154 0.00000238 0.0446 0.2    1.07  42.2</span></span>
-<span><span class="co">#&gt; 5 Koyukuk 22    0.0639  0.0471  0.0603 0.00582    0.177  0      1.02  75  </span></span>
-<span><span class="co">#&gt; 6 Koyukuk 23    0.569   0.585   0.123  0.335      0.714  0      1.02  93.8</span></span>
-<span><span class="co">#&gt; 7 Koyukuk 31    0.265   0.256   0.0923 0.134      0.431  0      1.02  93.5</span></span>
-<span><span class="co">#&gt; 8 Koyukuk 32    0.0174  0.00604 0.0286 0.00000185 0.0544 0.133  1.03  75  </span></span>
-<span><span class="co">#&gt; 9 Koyukuk 33    0.0240  0.00626 0.0406 0.0000675  0.128  0.147  1.03  57.1</span></span></code></pre></div>
-<p>There’s a function in the package to make trace plots and inspect mixing of chains.</p>
+<span><span class="co">#&gt;   group   age     mean  median     sd      ci.05  ci.95     p0    GR n_eff</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;   &lt;fct&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 Koyukuk 11    0.0211 0.00420 0.0379 0.00000723 0.0932 0.133   1.02  75  </span></span>
+<span><span class="co">#&gt; 2 Koyukuk 12    0.0222 0.00572 0.0428 0.00000322 0.0856 0.187   1.06  75  </span></span>
+<span><span class="co">#&gt; 3 Koyukuk 13    0.0194 0.00819 0.0300 0.0000325  0.0733 0.0933  1.02  75  </span></span>
+<span><span class="co">#&gt; 4 Koyukuk 21    0.0219 0.00523 0.0364 0.0000492  0.0958 0.12    1.11  63.3</span></span>
+<span><span class="co">#&gt; 5 Koyukuk 22    0.0559 0.0524  0.0458 0.00356    0.135  0       1.12 111. </span></span>
+<span><span class="co">#&gt; 6 Koyukuk 23    0.543  0.550   0.111  0.384      0.718  0       1.03  75  </span></span>
+<span><span class="co">#&gt; 7 Koyukuk 31    0.282  0.281   0.102  0.123      0.453  0       1.09  75  </span></span>
+<span><span class="co">#&gt; 8 Koyukuk 32    0.0162 0.00201 0.0339 0.0000491  0.0762 0.16    1.02  75  </span></span>
+<span><span class="co">#&gt; 9 Koyukuk 33    0.0186 0.00574 0.0311 0.0000737  0.0709 0.0933  1.07  75</span></span></code></pre></div>
+<p>There’s a function in the package to make trace plots and inspect mixing of MCMC chains.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/magmatize_tr_plot.html">magmatize_tr_plot</a></span><span class="op">(</span><span class="va">magma_summ</span><span class="op">$</span><span class="va">age_prop</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-example_trace_plot-1.png" alt="trace plot render" width="100%"></p>
